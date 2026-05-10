@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>会食セレクト | 特別な一夜を</title>
+  <meta name="description" content="会食のお店を直感的に探せるアプリ">
+  <meta name="theme-color" content="#1E3932">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── Loading Screen ── -->
+<div id="loading-screen">
+  <div class="loading-inner">
+    <div class="loading-emblem">
+      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="36" cy="36" r="34" stroke="#D4E9E2" stroke-width="2"/>
+        <path d="M22 36 Q36 20 50 36 Q36 52 22 36Z" fill="#00704A"/>
+        <circle cx="36" cy="36" r="10" fill="#1E3932"/>
+        <circle cx="36" cy="36" r="5" fill="#D4E9E2"/>
+        <text x="36" y="65" text-anchor="middle" fill="#D4E9E2" font-size="8" font-family="serif" letter-spacing="2">SELECT</text>
+      </svg>
+    </div>
+    <p class="loading-tagline">会食セレクト</p>
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+  </div>
+</div>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen" class="auth-screen hidden">
+  <div class="auth-bg-deco"></div>
+  <div class="auth-inner">
+
+    <!-- Emblem -->
+    <div class="auth-emblem">
+      <svg width="64" height="64" viewBox="0 0 72 72" fill="none">
+        <circle cx="36" cy="36" r="34" stroke="#D4E9E2" stroke-width="2"/>
+        <path d="M22 36 Q36 20 50 36 Q36 52 22 36Z" fill="#00704A"/>
+        <circle cx="36" cy="36" r="10" fill="#1E3932"/>
+        <circle cx="36" cy="36" r="5" fill="#D4E9E2"/>
+      </svg>
+      <h1 class="auth-title">会食セレクト</h1>
+      <p class="auth-subtitle">KAISHOKU SELECT</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="auth-card" id="login-card">
+      <p class="auth-card-label">ログイン</p>
+
+      <div class="auth-field">
+        <label for="login-email">メールアドレス</label>
+        <div class="auth-input-wrap">
+          <svg class="auth-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input type="email" id="login-email" class="auth-input" placeholder="メールアドレスを入力" autocomplete="email" inputmode="email">
+        </div>
+      </div>
+
+      <div class="auth-field">
+        <label for="login-password">パスワード</label>
+        <div class="auth-input-wrap">
+          <svg class="auth-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="login-password" class="auth-input" placeholder="パスワードを入力" autocomplete="current-password">
+          <button class="auth-toggle-pw" id="toggle-login-pw" aria-label="パスワード表示切替" type="button">
+            <svg id="pw-eye-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="pw-eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <p id="login-error" class="auth-error hidden">メールアドレスまたはパスワードが違います</p>
+
+      <div class="auth-remember">
+        <label class="auth-check-label">
+          <input type="checkbox" id="remember-me" class="auth-checkbox">
+          <span class="auth-checkmark"></span>
+          ログイン状態を保持する
+        </label>
+      </div>
+
+      <button id="btn-login" class="btn-auth-primary">
+        <span id="login-btn-text">ログイン</span>
+        <div id="login-spinner" class="auth-spinner hidden"></div>
+      </button>
+
+      <button id="btn-to-setup" class="auth-link-btn">初回設定・パスワード変更</button>
+    </div>
+
+    <!-- Setup Card -->
+    <div class="auth-card hidden" id="setup-card">
+      <p class="auth-card-label">初回設定</p>
+      <p class="auth-setup-note">ログイン情報を設定してください。<br>設定後はこの画面に戻れません。</p>
+
+      <div class="auth-field">
+        <label for="setup-email">メールアドレス</label>
+        <div class="auth-input-wrap">
+          <svg class="auth-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input type="email" id="setup-email" class="auth-input" placeholder="メールアドレスを入力" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="auth-field">
+        <label for="setup-password">パスワード（8文字以上）</label>
+        <div class="auth-input-wrap">
+          <svg class="auth-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="setup-password" class="auth-input" placeholder="新しいパスワードを入力" autocomplete="new-password">
+        </div>
+      </div>
+
+      <div class="auth-field">
+        <label for="setup-confirm">パスワード（確認）</label>
+        <div class="auth-input-wrap">
+          <svg class="auth-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="setup-confirm" class="auth-input" placeholder="パスワードを再入力" autocomplete="new-password">
+        </div>
+      </div>
+
+      <p id="setup-error" class="auth-error hidden"></p>
+
+      <button id="btn-setup-save" class="btn-auth-primary">設定を保存する</button>
+      <button id="btn-to-login" class="auth-link-btn">ログイン画面に戻る</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── App Wrapper ── -->
+<div id="app">
+
+  <!-- Header -->
+  <header id="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <svg class="brand-mark" width="36" height="36" viewBox="0 0 72 72" fill="none">
+          <circle cx="36" cy="36" r="34" stroke="#D4E9E2" stroke-width="2"/>
+          <path d="M22 36 Q36 20 50 36 Q36 52 22 36Z" fill="#D4E9E2"/>
+          <circle cx="36" cy="36" r="8" fill="#1E3932"/>
+        </svg>
+        <div class="brand-text">
+          <span class="brand-name">会食セレクト</span>
+          <span class="brand-sub">KAISHOKU SELECT</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="config-btn" class="icon-btn" aria-label="設定">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+        <button id="btn-logout" class="icon-btn" aria-label="ログアウト" title="ログアウト">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main">
+
+    <!-- ══ PANEL: SEARCH ══ -->
+    <div class="panel active" id="panel-search">
+
+      <!-- Hero -->
+      <section class="hero">
+        <p class="hero-eyebrow">今夜の特別な席を</p>
+        <h2 class="hero-headline">迷わず、<br>最高の一軒へ。</h2>
+
+        <!-- Big Location Buttons -->
+        <div class="loc-btns">
+          <button class="loc-btn loc-primary" id="btn-current">
+            <div class="loc-icon-wrap">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
+                <circle cx="12" cy="12" r="9" stroke-dasharray="2 4"/>
+              </svg>
+            </div>
+            <div class="loc-text">
+              <strong>現在地から探す</strong>
+              <span>GPSで周辺のお店を検索</span>
+            </div>
+            <div class="loc-arrow">›</div>
+          </button>
+
+          <button class="loc-btn loc-secondary" id="btn-destination">
+            <div class="loc-icon-wrap">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+            <div class="loc-text">
+              <strong>目的地で探す</strong>
+              <span>駅名・場所名・住所で検索</span>
+            </div>
+            <div class="loc-arrow">›</div>
+          </button>
+        </div>
+
+        <!-- Destination Input -->
+        <div id="dest-input-area" class="dest-input-area hidden">
+          <div class="dest-row">
+            <input type="text" id="dest-text" placeholder="例：新宿三丁目、渋谷駅、六本木ヒルズ" class="dest-input" autocomplete="off">
+            <button id="btn-geocode" class="btn-geocode">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Location Confirmed Status -->
+        <div id="loc-status" class="loc-status hidden">
+          <div class="loc-dot"></div>
+          <span id="loc-label"></span>
+          <button id="btn-clear-loc" class="link-btn">変更</button>
+        </div>
+      </section>
+
+      <!-- Filter Section -->
+      <section class="filter-section">
+        <button class="filter-toggle-btn" id="filter-toggle">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+          </svg>
+          絞り込み条件
+          <span id="filter-badge" class="filter-badge hidden">0</span>
+          <svg class="chevron" id="filter-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+
+        <div id="filter-body" class="filter-body hidden">
+          <div class="filter-grid">
+            <div class="filter-group">
+              <label>エリア</label>
+              <select id="f-area"><option value="">すべて</option></select>
+            </div>
+            <div class="filter-group">
+              <label>ジャンル</label>
+              <select id="f-genre"><option value="">すべて</option></select>
+            </div>
+            <div class="filter-group">
+              <label>予算</label>
+              <select id="f-budget"><option value="">すべて</option></select>
+            </div>
+            <div class="filter-group">
+              <label>雰囲気</label>
+              <select id="f-atmosphere"><option value="">すべて</option></select>
+            </div>
+          </div>
+          <div class="filter-keyword-wrap">
+            <label>キーワード自由検索</label>
+            <input type="text" id="f-keyword" placeholder="店名・こだわり・特徴など..." class="keyword-input">
+          </div>
+          <button id="btn-clear-filter" class="btn-clear-filter">条件をすべてリセット</button>
+        </div>
+      </section>
+
+      <!-- Search CTA -->
+      <div class="search-cta">
+        <button id="btn-search" class="btn-search">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          お店を探す
+        </button>
+      </div>
+
+      <!-- Results -->
+      <section id="results-section" class="results-section hidden">
+        <div class="results-header">
+          <p id="results-count" class="results-count"></p>
+          <button id="btn-show-map" class="btn-map-view">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+              <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+            </svg>
+            地図で見る
+          </button>
+        </div>
+        <div id="store-grid" class="store-grid"></div>
+        <div id="no-results" class="no-results hidden">
+          <div class="no-results-icon">🍃</div>
+          <p>条件に合うお店が見つかりませんでした。<br>条件を変えてお試しください。</p>
+        </div>
+      </section>
+
+    </div><!-- /panel-search -->
+
+    <!-- ══ PANEL: FAVORITES ══ -->
+    <div class="panel" id="panel-favorites">
+      <div class="panel-title-row">
+        <h2 class="panel-title">お気に入り</h2>
+        <span id="fav-total" class="panel-badge">0件</span>
+      </div>
+      <div id="favorites-list" class="list-wrap"></div>
+      <div id="fav-empty" class="empty-state hidden">
+        <div class="empty-icon">♡</div>
+        <p>まだお気に入りがありません。<br>気になるお店にハートを押してみましょう。</p>
+      </div>
+    </div>
+
+    <!-- ══ PANEL: HISTORY ══ -->
+    <div class="panel" id="panel-history">
+      <div class="panel-title-row">
+        <h2 class="panel-title">閲覧履歴</h2>
+        <button id="btn-clear-history" class="btn-danger-text">すべて消去</button>
+      </div>
+      <div id="history-list" class="list-wrap"></div>
+      <div id="history-empty" class="empty-state hidden">
+        <div class="empty-icon">📋</div>
+        <p>まだ閲覧履歴がありません。<br>お店を検索してみましょう。</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav id="bottom-nav">
+    <button class="nav-item active" data-panel="search">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span>探す</span>
+    </button>
+    <button class="nav-item" data-panel="favorites">
+      <div class="nav-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <span id="fav-nav-badge" class="nav-badge hidden">0</span>
+      </div>
+      <span>お気に入り</span>
+    </button>
+    <button class="nav-item" data-panel="history">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span>履歴</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ══ MODAL: Store Detail ══ -->
+<div id="store-modal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" id="store-backdrop"></div>
+  <div class="modal-sheet" id="store-sheet" role="dialog" aria-label="店舗詳細">
+    <div class="sheet-handle"></div>
+    <button class="sheet-close" id="store-close" aria-label="閉じる">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <div id="store-modal-body" class="sheet-body"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Map ══ -->
+<div id="map-modal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" id="map-backdrop"></div>
+  <div class="modal-sheet map-sheet" role="dialog" aria-label="地図">
+    <div class="sheet-handle"></div>
+    <div class="map-sheet-header">
+      <span id="map-modal-title">周辺マップ</span>
+      <button class="sheet-close" id="map-close" aria-label="閉じる">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div id="map-container"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Config ══ -->
+<div id="config-modal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" id="config-backdrop"></div>
+  <div class="modal-sheet config-sheet" role="dialog" aria-label="設定">
+    <div class="sheet-handle"></div>
+    <h3 class="config-heading">データ設定</h3>
+    <div class="config-body">
+      <div class="config-field">
+        <label class="config-label">Google スプレッドシート ID</label>
+        <p class="config-hint">スプレッドシートのURLの <code>/d/</code> と <code>/edit</code> の間の文字列を入力してください。<br>シートは「全員に公開（閲覧）」に設定が必要です。</p>
+        <input type="text" id="sheet-id-input" placeholder="例: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" class="config-input">
+      </div>
+      <button id="btn-save-config" class="btn-save">保存して再読み込み</button>
+      <div class="config-divider"><span>または</span></div>
+      <button id="btn-demo" class="btn-demo">デモデータで試す</button>
+      <p class="config-note">デモデータには東京都内の架空店舗サンプルが含まれます</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
