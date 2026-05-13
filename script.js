@@ -392,48 +392,250 @@ async function loadStoresFromSheet(sheetId) {
 }
 
 /* ─────────────────────────────────────────
-   FILTER
+   TAG KEYWORD MAPPINGS
+   タグ選択 → 検索キーワード変換テーブル
 ───────────────────────────────────────── */
-function buildFilterOptions(stores) {
-  ['area','genre','budget','atmosphere'].forEach(key => {
-    const sel = document.getElementById(`f-${key}`);
-    if (!sel) return;
-    const vals = [...new Set(stores.map(s => s[key]).filter(Boolean))].sort();
-    while (sel.options.length > 1) sel.remove(1);
-    vals.forEach(v => { const o = document.createElement('option'); o.value = o.textContent = v; sel.appendChild(o); });
+const PREF_KEYWORDS = {
+  'ワインが好き':     ['ワイン','フレンチ','イタリアン','ビストロ'],
+  'ビールが好き':     ['ビール','居酒屋','クラフト','ブルワリー'],
+  '日本酒が好き':     ['日本酒','和食','割烹','居酒屋','料亭'],
+  '肉が好き':         ['肉','焼肉','ステーキ','牛','黒毛','ビーフ'],
+  '魚が好き':         ['魚','寿司','鮨','海鮮','シーフード','刺身'],
+  '辛いものが好き':   ['辛','スパイス','四川','タイ','エスニック','韓国'],
+  '甘いものが好き':   ['スイーツ','デザート','パティスリー','甘'],
+  '野菜が好き':       ['野菜','ベジ','サラダ','ヘルシー'],
+  '中華が好き':       ['中華','中国','点心','飲茶','チャイナ'],
+  'イタリアンが好き': ['イタリアン','パスタ','ピザ','トラットリア','リストランテ'],
+  'フレンチが好き':   ['フレンチ','フランス','ビストロ','ブラッスリー'],
+  '和食が好き':       ['和食','割烹','懐石','料亭','寿司','日本料理'],
+  'カジュアルが好き': ['カジュアル','気軽','リラックス','ラフ'],
+  '高級志向':         ['高級','特別','プレミアム','贅沢','VIP','一流'],
+  '接待向け':         ['接待','個室','高級','ビジネス','VIP'],
+  '静かなお店':       ['静か','落ち着き','隠れ家','個室','和モダン'],
+  'にぎやかなお店':   ['にぎやか','活気','賑やか','楽しい'],
+  // Rescue tags
+  '好みが分からない': [],   // フィルターなし
+  'とりあえず人気店': [],   // フィルターなし（全件表示）
+  '雰囲気重視':       [],   // 雰囲気フィールドを重視
+  '写真が良い店':     [],   // photo_urlがあるもの
+};
+
+const ATMOS_KEYWORDS = {
+  '落ち着いた': ['落ち着き','静か','和モダン','おだやか','ゆったり'],
+  'にぎやか':   ['にぎやか','活気','賑やか','楽しい'],
+  '高級感':     ['高級','特別','プレミアム','格式','一流'],
+  'カジュアル': ['カジュアル','気軽','ラフ','アットホーム'],
+  '隠れ家':     ['隠れ家','こっそり','秘密','穴場'],
+  'デート向け': ['デート','カップル','ロマンチック','二人'],
+  '接待向け':   ['接待','VIP','ビジネス','高級','個室'],
+  '個室あり':   ['個室','プライベート','完全個室','仕切り'],
+  '夜景':       ['夜景','ルーフトップ','景色','眺望','view','タワー'],
+  'おしゃれ':   ['おしゃれ','スタイリッシュ','モダン','デザイン','インスタ'],
+  '昭和レトロ': ['昭和','レトロ','老舗','風情','歴史'],
+};
+
+/* ─────────────────────────────────────────
+   FILTER STATE
+───────────────────────────────────────── */
+const FILTER_STATE = {
+  area:    '',
+  prefs:   new Set(),
+  rescues: new Set(),
+  atmos:   new Set(),
+  budget:  null,   // number or null
+  pax:     null,   // number or null
+  keyword: '',
+};
+
+function parseBudget(str) {
+  if (!str) return Infinity;
+  const m = str.match(/[\d,]+/);
+  if (!m) return Infinity;
+  return parseInt(m[0].replace(/,/g,''), 10);
+}
+
+function storeMatchesTags(store, keywords) {
+  if (!keywords.length) return true;
+  const haystack = [store.name, store.genre, store.description, store.atmosphere, store.area]
+    .filter(Boolean).join(' ').toLowerCase();
+  return keywords.some(kw => haystack.includes(kw.toLowerCase()));
+}
+
+function applyFilters() {
+  const kw = FILTER_STATE.keyword.toLowerCase();
+
+  // Collect pref keywords
+  const prefKws = [];
+  FILTER_STATE.prefs.forEach(tag => {
+    (PREF_KEYWORDS[tag] || []).forEach(k => prefKws.push(k));
+  });
+
+  // Rescue flags
+  const onlyWithPhoto = FILTER_STATE.rescues.has('写真が良い店');
+
+  // Collect atmos keywords
+  const atmosKws = [];
+  FILTER_STATE.atmos.forEach(tag => {
+    (ATMOS_KEYWORDS[tag] || []).forEach(k => atmosKws.push(k));
+  });
+
+  // Budget ceiling
+  const budgetCeil = FILTER_STATE.budget;
+
+  STATE.filteredStores = STATE.stores.filter(s => {
+    // Area
+    if (FILTER_STATE.area && s.area !== FILTER_STATE.area) return false;
+
+    // Pref tags (any pref keyword matches)
+    if (prefKws.length && !storeMatchesTags(s, prefKws)) return false;
+
+    // Photo required (rescue)
+    if (onlyWithPhoto && !s.photo_url) return false;
+
+    // Atmos tags
+    if (atmosKws.length && !storeMatchesTags(s, atmosKws)) return false;
+
+    // Budget
+    if (budgetCeil != null) {
+      const storeMin = parseBudget(s.budget);
+      if (storeMin > budgetCeil) return false;
+    }
+
+    // Keyword
+    if (kw) {
+      const hay = [s.name,s.description,s.area,s.genre,s.atmosphere,s.address]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(kw)) return false;
+    }
+
+    return true;
+  });
+
+  // Sort by distance if location set
+  if (STATE.searchLat && STATE.searchLng) {
+    STATE.filteredStores.forEach(s => {
+      s._dist = (s.lat&&s.lng) ? haversine(STATE.searchLat,STATE.searchLng,s.lat,s.lng) : Infinity;
+    });
+    STATE.filteredStores.sort((a,b) => a._dist - b._dist);
+  }
+
+  // Update badge count
+  let cnt = 0;
+  if (FILTER_STATE.area)           cnt++;
+  if (FILTER_STATE.prefs.size)     cnt += FILTER_STATE.prefs.size;
+  if (FILTER_STATE.rescues.size)   cnt += FILTER_STATE.rescues.size;
+  if (FILTER_STATE.atmos.size)     cnt += FILTER_STATE.atmos.size;
+  if (FILTER_STATE.budget != null) cnt++;
+  if (FILTER_STATE.pax != null)    cnt++;
+  if (FILTER_STATE.keyword)        cnt++;
+
+  const b = document.getElementById('filter-badge');
+  b.textContent = cnt;
+  b.classList.toggle('hidden', cnt === 0);
+}
+
+/* ─────────────────────────────────────────
+   TAG CHIP INTERACTION
+───────────────────────────────────────── */
+function initTagChips() {
+  document.querySelectorAll('.tag-chip').forEach(chip => {
+    chip.addEventListener('click', () => handleTagClick(chip));
+  });
+
+  // Budget custom input
+  document.getElementById('f-budget-custom').addEventListener('input', e => {
+    const v = parseInt(e.target.value, 10);
+    FILTER_STATE.budget = isNaN(v) ? null : v;
   });
 }
 
-function haversine(a, b, c, d) {
+function handleTagClick(chip) {
+  const group = chip.dataset.group;
+  const val   = chip.dataset.val;
+
+  if (group === 'budget') {
+    // Single select for budget
+    document.querySelectorAll('[data-group="budget"]').forEach(c => c.classList.remove('selected'));
+    const customWrap = document.getElementById('budget-custom-wrap');
+    if (chip.classList.contains('selected')) {
+      chip.classList.remove('selected');
+      FILTER_STATE.budget = null;
+      customWrap.classList.add('hidden');
+    } else {
+      chip.classList.add('selected');
+      FILTER_STATE.budget = parseInt(val, 10);
+      customWrap.classList.add('hidden');
+    }
+
+  } else if (group === 'pax') {
+    // Single select for pax
+    document.querySelectorAll('[data-group="pax"]').forEach(c => c.classList.remove('selected'));
+    if (chip.classList.contains('selected')) {
+      chip.classList.remove('selected');
+      FILTER_STATE.pax = null;
+    } else {
+      chip.classList.add('selected');
+      FILTER_STATE.pax = parseInt(val, 10);
+    }
+
+  } else if (group === 'rescue') {
+    // Single select: rescue cancels pref and vice-versa
+    const wasSelected = chip.classList.contains('selected');
+    document.querySelectorAll('[data-group="rescue"]').forEach(c => c.classList.remove('selected'));
+    FILTER_STATE.rescues.clear();
+    if (!wasSelected) {
+      chip.classList.add('selected');
+      FILTER_STATE.rescues.add(val);
+      // Clear pref selections when rescue is chosen
+      document.querySelectorAll('[data-group="pref"]').forEach(c => c.classList.remove('selected'));
+      FILTER_STATE.prefs.clear();
+    }
+
+  } else if (group === 'pref') {
+    // Multi select: toggle; clears rescue
+    document.querySelectorAll('[data-group="rescue"]').forEach(c => c.classList.remove('selected'));
+    FILTER_STATE.rescues.clear();
+    chip.classList.toggle('selected');
+    if (chip.classList.contains('selected')) FILTER_STATE.prefs.add(val);
+    else FILTER_STATE.prefs.delete(val);
+
+  } else if (group === 'atmos') {
+    // Multi select
+    chip.classList.toggle('selected');
+    if (chip.classList.contains('selected')) FILTER_STATE.atmos.add(val);
+    else FILTER_STATE.atmos.delete(val);
+  }
+}
+
+function clearAllFilters() {
+  FILTER_STATE.area    = '';
+  FILTER_STATE.prefs   = new Set();
+  FILTER_STATE.rescues = new Set();
+  FILTER_STATE.atmos   = new Set();
+  FILTER_STATE.budget  = null;
+  FILTER_STATE.pax     = null;
+  FILTER_STATE.keyword = '';
+
+  document.querySelectorAll('.tag-chip.selected').forEach(c => c.classList.remove('selected'));
+  document.getElementById('f-area').value = '';
+  document.getElementById('f-keyword').value = '';
+  document.getElementById('f-budget-custom').value = '';
+  document.getElementById('budget-custom-wrap').classList.add('hidden');
+  document.getElementById('filter-badge').classList.add('hidden');
+}
   const R=6371, dLat=(c-a)*Math.PI/180, dLng=(d-b)*Math.PI/180;
   const x=Math.sin(dLat/2)**2 + Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLng/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
 }
 function fmt(km) { return km < 1 ? `${Math.round(km*1000)}m` : `${km.toFixed(1)}km`; }
 
-function applyFilters() {
-  const area  = document.getElementById('f-area').value;
-  const genre = document.getElementById('f-genre').value;
-  const budgt = document.getElementById('f-budget').value;
-  const atmos = document.getElementById('f-atmosphere').value;
-  const kw    = document.getElementById('f-keyword').value.trim().toLowerCase();
-  let cnt = 0;
-  STATE.filteredStores = STATE.stores.filter(s => {
-    if (area  && s.area      !== area)  return false;
-    if (genre && s.genre     !== genre) return false;
-    if (budgt && s.budget    !== budgt) return false;
-    if (atmos && s.atmosphere!== atmos) return false;
-    if (kw && ![s.name,s.description,s.area,s.genre,s.atmosphere].some(v=>(v||'').toLowerCase().includes(kw))) return false;
-    return true;
-  });
-  if (area)  cnt++; if (genre) cnt++; if (budgt) cnt++; if (atmos) cnt++; if (kw) cnt++;
-  const b = document.getElementById('filter-badge');
-  b.textContent = cnt;
-  b.classList.toggle('hidden', cnt === 0);
-  if (STATE.searchLat && STATE.searchLng) {
-    STATE.filteredStores.forEach(s => { s._dist = (s.lat&&s.lng) ? haversine(STATE.searchLat,STATE.searchLng,s.lat,s.lng) : Infinity; });
-    STATE.filteredStores.sort((a,b) => a._dist - b._dist);
-  }
+/* エリアのみスプレッドシートから動的取得 */
+function buildFilterOptions(stores) {
+  const sel  = document.getElementById('f-area');
+  if (!sel) return;
+  const vals = [...new Set(stores.map(s => s.area).filter(Boolean))].sort();
+  while (sel.options.length > 1) sel.remove(1);
+  vals.forEach(v => { const o = document.createElement('option'); o.value = o.textContent = v; sel.appendChild(o); });
 }
 
 /* ─────────────────────────────────────────
@@ -743,16 +945,151 @@ function switchPanel(id) {
 ───────────────────────────────────────── */
 function openConfigModal() {
   document.getElementById('sheet-id-input').value = STATE.sheetId;
+  document.getElementById('config-error-msg').classList.add('hidden');
+  document.getElementById('diagnose-result').classList.add('hidden');
+  // Reset to first tab
+  switchCfgTab('cfg-tab-id');
   openModal('config-modal');
 }
+
+function switchCfgTab(tabId) {
+  document.querySelectorAll('.cfg-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+  document.querySelectorAll('.cfg-panel').forEach(p => p.classList.toggle('active', p.id === tabId));
+}
+
 async function saveConfig() {
-  const id=document.getElementById('sheet-id-input').value.trim();
-  if (!id) { alert('スプレッドシートIDを入力してください'); return; }
-  localStorage.setItem(LS.KEY_SHEET,id); localStorage.removeItem(LS.KEY_DEMO);
-  STATE.sheetId=id; STATE.usingDemo=false;
-  closeModal('config-modal');
-  try { STATE.stores=await loadStoresFromSheet(id); buildFilterOptions(STATE.stores); showToast(`${STATE.stores.length}件読み込みました`); }
-  catch { alert('読み込みに失敗しました。IDとシートの公開設定を確認してください'); }
+  const id = document.getElementById('sheet-id-input').value.trim();
+  const errEl = document.getElementById('config-error-msg');
+  errEl.classList.add('hidden');
+
+  if (!id) {
+    errEl.textContent = 'スプレッドシートIDを入力してください';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  // Validate ID format (should be ~40-60 alphanumeric chars)
+  if (!/^[A-Za-z0-9_-]{20,}$/.test(id)) {
+    errEl.innerHTML = 'IDの形式が正しくありません。<br>URLの <code style="background:var(--cream-dark);padding:1px 4px;border-radius:3px">/d/</code> と <code style="background:var(--cream-dark);padding:1px 4px;border-radius:3px">/edit</code> の間の文字列のみを入力してください。';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  // Show loading
+  document.getElementById('cfg-save-text').style.display = 'none';
+  document.getElementById('cfg-save-spinner').classList.remove('hidden');
+  document.getElementById('btn-save-config').disabled = true;
+
+  try {
+    const stores = await loadStoresFromSheet(id);
+
+    // Success
+    localStorage.setItem(LS.KEY_SHEET, id);
+    localStorage.removeItem(LS.KEY_DEMO);
+    STATE.sheetId   = id;
+    STATE.usingDemo = false;
+    STATE.stores    = stores;
+    buildFilterOptions(STATE.stores);
+    closeModal('config-modal');
+    showToast(`✓ ${stores.length}件の店舗データを読み込みました`);
+
+  } catch (e) {
+    const msg = buildSheetErrorMessage(id, e);
+    errEl.innerHTML = msg;
+    errEl.classList.remove('hidden');
+  } finally {
+    document.getElementById('cfg-save-text').style.display = '';
+    document.getElementById('cfg-save-spinner').classList.add('hidden');
+    document.getElementById('btn-save-config').disabled = false;
+  }
+}
+
+function buildSheetErrorMessage(id, err) {
+  const errStr = String(err.message || err);
+
+  if (errStr.includes('Failed to fetch') || errStr.includes('NetworkError')) {
+    return `<strong>ネットワークエラー</strong><br>インターネット接続を確認してください。または、このアプリはGitHub Pages(https)での利用が必要です。`;
+  }
+  if (errStr.includes('parse error') || errStr.includes('setResponse')) {
+    return `<strong>シートが非公開です</strong><br>スプレッドシートの共有設定を「リンクを知っている全員が閲覧可」に変更してください。<br><span style="color:var(--g-primary);cursor:pointer;text-decoration:underline" onclick="switchCfgTab('cfg-tab-howto')">→ 設定方法を見る</span>`;
+  }
+  if (errStr.includes('404') || errStr.includes('not found')) {
+    return `<strong>IDが見つかりません</strong><br>スプレッドシートIDが正しいか確認してください（URLの /d/ と /edit の間の文字列）。`;
+  }
+  return `<strong>読み込みエラー</strong><br>IDとシートの公開設定を確認してください。<br><small style="color:var(--text-hint)">${errStr}</small><br><span style="color:var(--g-primary);cursor:pointer;text-decoration:underline" onclick="switchCfgTab('cfg-tab-debug')">→ 自動診断を実行する</span>`;
+}
+
+/* ── 自動診断 ── */
+async function runDiagnose() {
+  const id  = document.getElementById('sheet-id-input').value.trim();
+  const res = document.getElementById('diagnose-result');
+  res.classList.remove('hidden');
+  res.innerHTML = '<div class="diag-item diag-warn"><span class="diag-icon">⏳</span><div class="diag-text">診断中...</div></div>';
+
+  const items = [];
+
+  // Check 1: ID format
+  if (!id) {
+    items.push({ type:'err', icon:'✗', title:'IDが未入力', desc:'「IDを入力」タブでスプレッドシートIDを入力してください。' });
+  } else if (!/^[A-Za-z0-9_-]{20,}$/.test(id)) {
+    items.push({ type:'err', icon:'✗', title:'IDの形式が不正', desc:'URLの /d/ と /edit の間の文字列のみを入力してください。スラッシュや余分な文字が含まれていませんか？' });
+  } else {
+    items.push({ type:'ok', icon:'✓', title:'IDの形式 — OK', desc:`入力されたID: ${id.slice(0,12)}...` });
+  }
+
+  // Check 2: HTTPS
+  if (!window.isSecureContext) {
+    items.push({ type:'warn', icon:'⚠', title:'HTTP環境（非推奨）', desc:'GitHub Pagesではhttpsで動作します。ローカルでのテスト時はこのエラーが出ますが、GitHub Pages上では解決します。' });
+  } else {
+    items.push({ type:'ok', icon:'✓', title:'HTTPS — OK', desc:'セキュアな接続で動作しています。' });
+  }
+
+  // Check 3: Fetch test
+  if (id && /^[A-Za-z0-9_-]{20,}$/.test(id)) {
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json`;
+      const r   = await fetch(url);
+      const txt = await r.text();
+
+      if (!r.ok) {
+        items.push({ type:'err', icon:'✗', title:`HTTP ${r.status} エラー`, desc: r.status === 404 ? 'スプレッドシートが見つかりません。IDが正しいか確認してください。' : `サーバーエラーが発生しました (${r.status})。` });
+      } else if (txt.includes('google.visualization.Query.setResponse')) {
+        const m = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+        if (m) {
+          try {
+            const data = JSON.parse(m[1]);
+            const rows = data.table?.rows?.length || 0;
+            items.push({ type:'ok', icon:'✓', title:'シートへのアクセス — OK', desc:`${rows}行のデータを確認しました（ヘッダー行を除く）。` });
+            if (rows === 0) {
+              items.push({ type:'warn', icon:'⚠', title:'データが0件', desc:'シートにデータ行がありません。1行目がヘッダー（id, name, area...）、2行目以降にデータを入力してください。' });
+            }
+            const cols = data.table?.cols?.map(c => c.label) || [];
+            const required = ['name','area','genre'];
+            const missing  = required.filter(c => !cols.map(x=>x.toLowerCase()).includes(c));
+            if (missing.length) {
+              items.push({ type:'warn', icon:'⚠', title:'必須列が見つからない', desc:`列名 「${missing.join('、')}」 が見つかりません。1行目のヘッダーを確認してください。` });
+            } else {
+              items.push({ type:'ok', icon:'✓', title:'列構造 — OK', desc:'必須列 (name, area, genre) が確認できました。' });
+            }
+          } catch {
+            items.push({ type:'err', icon:'✗', title:'データの解析に失敗', desc:'シートの形式が正しくありません。1行目がヘッダー行になっているか確認してください。' });
+          }
+        }
+      } else if (txt.includes('Signin') || txt.includes('ServiceLogin')) {
+        items.push({ type:'err', icon:'✗', title:'シートが非公開', desc:'共有設定が「限定公開」になっています。「リンクを知っている全員が閲覧可」に変更してください。' });
+      } else {
+        items.push({ type:'err', icon:'✗', title:'予期しないレスポンス', desc:'シートの公開設定またはIDを確認してください。' });
+      }
+    } catch (e) {
+      items.push({ type:'err', icon:'✗', title:'接続失敗', desc:`ネットワークエラー: ${e.message}。インターネット接続を確認してください。` });
+    }
+  }
+
+  res.innerHTML = items.map(item => `
+    <div class="diag-item diag-${item.type}">
+      <span class="diag-icon">${item.icon}</span>
+      <div class="diag-text"><strong>${item.title}</strong>${item.desc}</div>
+    </div>`).join('');
 }
 function loadDemoData() {
   localStorage.setItem(LS.KEY_DEMO,'true'); localStorage.removeItem(LS.KEY_SHEET);
@@ -805,11 +1142,10 @@ function attachEvents() {
     document.getElementById('filter-body').classList.toggle('hidden',!STATE.filterOpen);
     document.getElementById('filter-chevron').classList.toggle('open',STATE.filterOpen);
   });
-  document.getElementById('btn-clear-filter').addEventListener('click', ()=>{
-    ['f-area','f-genre','f-budget','f-atmosphere'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('f-keyword').value='';
-    document.getElementById('filter-badge').classList.add('hidden');
-  });
+  document.getElementById('btn-clear-filter').addEventListener('click', clearAllFilters);
+  document.getElementById('f-area').addEventListener('change', e => { FILTER_STATE.area = e.target.value; });
+  document.getElementById('f-keyword').addEventListener('input', e => { FILTER_STATE.keyword = e.target.value.trim(); });
+  initTagChips();
   document.getElementById('btn-search').addEventListener('click', doSearch);
   document.getElementById('btn-show-map').addEventListener('click', openMapModal);
   document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>switchPanel(b.dataset.panel)));
@@ -820,6 +1156,12 @@ function attachEvents() {
   document.getElementById('config-btn').addEventListener('click', openConfigModal);
   document.getElementById('btn-save-config').addEventListener('click', saveConfig);
   document.getElementById('btn-demo').addEventListener('click', loadDemoData);
+  // Config tabs
+  document.querySelectorAll('.cfg-tab').forEach(btn =>
+    btn.addEventListener('click', () => switchCfgTab(btn.dataset.tab))
+  );
+  // Diagnose
+  document.getElementById('btn-diagnose').addEventListener('click', runDiagnose);
 
   document.getElementById('store-grid').addEventListener('click', e=>{
     const fab=e.target.closest('.card-fav-btn'), det=e.target.closest('.btn-card-detail'),
