@@ -1282,3 +1282,286 @@ a { color: inherit; text-decoration: none; }
 .header-actions {
   display: flex; align-items: center; gap: 4px;
 }
+
+/* ============================================================
+   CONFIG MODAL v2 — tabs + howto + diagnose
+   ============================================================ */
+
+.config-sheet {
+  padding: 0 0 40px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+/* ── Tabs ── */
+.cfg-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  margin: 4px 0 0;
+  padding: 0 4px;
+  gap: 2px;
+}
+.cfg-tab {
+  flex: 1;
+  padding: 12px 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+.cfg-tab:hover  { color: var(--g-primary); }
+.cfg-tab.active { color: var(--g-dark); border-bottom-color: var(--g-primary); }
+
+/* ── Panels ── */
+.cfg-panel      { display: none; padding: 20px; }
+.cfg-panel.active { display: block; }
+
+/* ── ID Tab ── */
+.config-error-msg {
+  font-size: 0.82rem;
+  color: #DC2626;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: var(--r-sm);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  line-height: 1.55;
+}
+.config-error-msg::before { content: '⚠ '; font-weight: 700; }
+
+/* ── How-to Steps ── */
+.howto-steps { display: flex; flex-direction: column; gap: 16px; }
+.howto-step  { display: flex; gap: 12px; align-items: flex-start; }
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--g-primary); color: white;
+  font-size: 0.82rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.step-body { flex: 1; }
+.step-title { font-size: 0.9rem; font-weight: 700; color: var(--g-dark); margin-bottom: 4px; }
+.step-desc  { font-size: 0.8rem; color: var(--text-mid); line-height: 1.55; margin-bottom: 8px; }
+.step-img-placeholder {
+  background: var(--g-pale);
+  border: 1px dashed var(--g-primary);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  font-size: 0.76rem;
+  color: var(--g-primary);
+  font-weight: 600;
+}
+.step-url-demo {
+  background: var(--text-dark);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  font-size: 0.72rem;
+  font-family: monospace;
+  line-height: 1.6;
+  word-break: break-all;
+}
+.url-gray    { color: rgba(255,255,255,0.4); }
+.url-highlight {
+  color: #4ade80;
+  background: rgba(74,222,128,0.15);
+  border-radius: 3px;
+  padding: 1px 3px;
+  font-weight: 700;
+}
+.step-cols {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
+}
+.step-cols span {
+  background: var(--gold-light);
+  color: var(--gold-dark);
+  border-radius: var(--r-full);
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+/* ── Diagnose Tab ── */
+.debug-intro {
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+.btn-diagnose {
+  width: 100%; height: 48px;
+  border-radius: var(--r-md);
+  background: var(--g-dark);
+  color: var(--g-light);
+  font-size: 0.9rem; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: 16px;
+  transition: background var(--transition);
+}
+.btn-diagnose:hover { background: var(--g-primary); }
+
+.diagnose-result { margin-top: 4px; display: flex; flex-direction: column; gap: 8px; }
+.diag-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+.diag-ok   { background: #F0FDF4; border: 1px solid #BBF7D0; color: #15803D; }
+.diag-warn { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; }
+.diag-err  { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
+.diag-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.diag-text strong { display: block; font-weight: 700; margin-bottom: 2px; }
+
+/* ============================================================
+   FILTER v2 — Tag chip system
+   ============================================================ */
+
+/* ── Filter sections ── */
+.f-section {
+  padding: 14px 16px 0;
+}
+.f-section:last-of-type { padding-bottom: 4px; }
+
+.f-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin-bottom: 10px;
+}
+.f-multi-note {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--g-primary);
+  background: var(--g-pale);
+  padding: 2px 7px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--g-light);
+}
+.f-select {
+  width: 100%; height: 44px;
+  padding: 0 36px 0 12px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--border);
+  background: var(--cream);
+  color: var(--text-dark);
+  font-size: 0.9rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A7A6E' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+  transition: border-color var(--transition);
+  font-family: var(--sans);
+}
+.f-select:focus { outline: none; border-color: var(--g-primary); }
+
+/* ── Tag chips ── */
+.tag-group {
+  display: flex; flex-wrap: wrap; gap: 7px;
+  margin-bottom: 10px;
+}
+.tag-chip {
+  padding: 7px 13px;
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+  line-height: 1;
+}
+.tag-chip:hover {
+  border-color: var(--g-primary);
+  color: var(--g-primary);
+  background: var(--g-pale);
+}
+.tag-chip:active { transform: scale(0.95); }
+
+/* Selected state */
+.tag-chip.selected {
+  background: var(--g-primary);
+  border-color: var(--g-primary);
+  color: var(--white);
+  box-shadow: 0 2px 8px rgba(0,112,74,0.3);
+}
+
+/* Rescue tags (softer color) */
+.tag-rescue {
+  border-color: var(--gold);
+  color: var(--gold-dark);
+  background: var(--gold-light);
+}
+.tag-rescue:hover { background: var(--gold); color: var(--g-dark); border-color: var(--gold-dark); }
+.tag-rescue.selected { background: var(--gold); border-color: var(--gold-dark); color: var(--g-dark); box-shadow: 0 2px 8px rgba(203,162,88,0.4); }
+
+/* Budget tags — slightly wider */
+.tag-group-budget .tag-chip { padding: 7px 14px; font-feature-settings: 'tnum'; }
+
+/* ── Rescue section label ── */
+.f-rescue-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--gold-dark);
+  letter-spacing: 0.04em;
+  margin: 6px 0 8px;
+  padding-left: 2px;
+}
+
+/* ── Budget custom input ── */
+.budget-custom {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: -4px; margin-bottom: 10px;
+}
+.budget-custom-input {
+  flex: 1; height: 42px;
+  padding: 0 12px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--gold);
+  background: var(--gold-light);
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  font-family: var(--sans);
+  transition: border-color var(--transition);
+}
+.budget-custom-input:focus { outline: none; border-color: var(--gold-dark); }
+.budget-custom-unit { font-size: 0.85rem; color: var(--text-mid); white-space: nowrap; }
+
+/* ── Override old filter styles that conflict ── */
+.filter-body {
+  background: var(--white);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  margin-top: 8px;
+  padding: 4px 0 16px;
+  box-shadow: var(--shadow-xs);
+  animation: slide-down 0.2s ease;
+}
+.btn-clear-filter {
+  margin: 10px 16px 0;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: calc(100% - 32px);
+  padding: 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--cream);
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-family: var(--sans);
+  transition: background var(--transition);
+}
+.btn-clear-filter:hover { background: var(--cream-dark); }
