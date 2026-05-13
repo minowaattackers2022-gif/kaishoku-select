@@ -946,24 +946,79 @@ function renderHistory() {
    GEOLOCATION & NOMINATIM
 ───────────────────────────────────────── */
 function getCurrentLocation() {
-  if (!navigator.geolocation) { alert('このブラウザはGPSに対応していません'); return; }
-  const btn=document.getElementById('btn-current'), save=btn.innerHTML;
-  btn.innerHTML=`<div class="loc-icon-wrap"><div style="width:24px;height:24px;border:3px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite"></div></div><div class="loc-text"><strong>取得中...</strong></div>`;
-  btn.disabled=true;
+  if (!navigator.geolocation) {
+    showToast('このブラウザはGPS機能に対応していません。「目的地で探す」をご利用ください。');
+    return;
+  }
+
+  const btn  = document.getElementById('btn-current');
+  const save = btn.innerHTML;
+  const SPINNER = `<div class="loc-icon-wrap"><div style="width:24px;height:24px;border:3px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite"></div></div><div class="loc-text"><strong id="loc-progress-msg">現在地を取得中...</strong><span>少々お待ちください</span></div>`;
+
+  btn.innerHTML = SPINNER;
+  btn.disabled  = true;
+
+  function setMsg(msg) {
+    const el = document.getElementById('loc-progress-msg');
+    if (el) el.textContent = msg;
+  }
+
+  function onSuccess(pos) {
+    STATE.searchLat   = pos.coords.latitude;
+    STATE.searchLng   = pos.coords.longitude;
+    STATE.searchLabel = '現在地';
+    showLocStatus('📍 現在地を取得しました');
+    switchFilterLocationMode(true, '現在地');
+    btn.innerHTML = save;
+    btn.disabled  = false;
+  }
+
+  function onFinalError(err) {
+    btn.innerHTML = save;
+    btn.disabled  = false;
+    const msgs = {
+      1: 'GPSの利用が許可されていません。\nブラウザのアドレスバー横の🔒アイコンから「位置情報」を「許可」に変更してください。',
+      2: '現在地を取得できませんでした。\n「目的地で探す」で場所を指定してお試しください。',
+      3: '現在地の取得がタイムアウトしました。\n「目的地で探す」で場所名を入力するか、Wi-Fiに接続してお試しください。',
+    };
+    const msg = msgs[err.code] || '現在地の取得に失敗しました。';
+    // アラートの代わりにトーストで表示し、ユーザーフローを止めない
+    showLocError(msg);
+  }
+
+  // ── Stage 1: 高精度GPS（10秒）──
   navigator.geolocation.getCurrentPosition(
-    pos => {
-      STATE.searchLat=pos.coords.latitude; STATE.searchLng=pos.coords.longitude; STATE.searchLabel='現在地';
-      showLocStatus('📍 現在地を取得しました');
-      btn.innerHTML=save; btn.disabled=false;
-      document.getElementById('dest-input-area').classList.add('hidden');
-      switchFilterLocationMode(true, '現在地');
+    onSuccess,
+    (err1) => {
+      if (err1.code === 1) { onFinalError(err1); return; } // 権限拒否は即終了
+      // タイムアウト or 取得不可 → Stage 2 へフォールバック
+      setMsg('通常精度で再試行中...');
+      // ── Stage 2: 低精度（ネットワーク位置・高速）──
+      navigator.geolocation.getCurrentPosition(
+        onSuccess,
+        onFinalError,
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+      );
     },
-    err => {
-      btn.innerHTML=save; btn.disabled=false;
-      alert(['','GPS利用が許可されていません','タイムアウト','取得できませんでした'][err.code]||'位置情報の取得に失敗しました');
-    },
-    {enableHighAccuracy:true, timeout:10000, maximumAge:60000}
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
   );
+}
+
+function showLocError(msg) {
+  // アラートではなくヒーロー内に赤いバナーで表示
+  let banner = document.getElementById('loc-error-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'loc-error-banner';
+    banner.style.cssText = `
+      background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.4);
+      border-radius:var(--r-md);padding:10px 14px;margin-top:12px;
+      font-size:.82rem;color:#fecaca;line-height:1.6;position:relative;z-index:1;`;
+    document.querySelector('.hero').appendChild(banner);
+  }
+  banner.innerHTML = `⚠ ${msg.replace(/\n/g,'<br>')} <button onclick="this.parentElement.remove()" style="float:right;background:none;border:none;color:#fecaca;font-size:1rem;cursor:pointer;margin-top:-2px">✕</button>`;
+  // 10秒後に自動消去
+  setTimeout(() => { if (banner.parentElement) banner.remove(); }, 10000);
 }
 
 async function geocodeDestination() {
