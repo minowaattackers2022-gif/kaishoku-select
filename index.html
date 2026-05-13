@@ -239,25 +239,65 @@
 
         <div id="filter-body" class="filter-body hidden">
 
-          <!-- ① 検索範囲 / エリア（場所設定状態で動的切替） -->
-          <!-- ① 好みが分からない場合（最上部） -->
-          <div class="f-section f-section-rescue-top">
-            <div class="f-label f-label-rescue">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              好みが分からない場合
+          <!-- ① 会食の目的（シーン選択） -->
+          <div class="f-section f-section-scene">
+            <div class="f-label f-label-scene">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              会食の目的
+              <span class="f-multi-note">複数選択OK</span>
             </div>
-            <div class="tag-group" id="tags-rescue">
-              <button class="tag-chip tag-rescue" data-group="rescue" data-val="好みが分からない">🤷 好みが分からない</button>
-              <button class="tag-chip tag-rescue" data-group="rescue" data-val="とりあえず人気店">⭐ とりあえず人気店</button>
-              <button class="tag-chip tag-rescue" data-group="rescue" data-val="雰囲気重視">🌸 雰囲気重視</button>
-              <button class="tag-chip tag-rescue" data-group="rescue" data-val="写真が良い店">📸 写真が良い店</button>
+            <div class="tag-group tags-scene" id="tags-pref">
+              <button class="tag-chip tag-scene" data-group="pref" data-val="広告主との会食">🎯 広告主との会食</button>
+              <button class="tag-chip tag-scene" data-group="pref" data-val="パートナー企業との商談">🤝 パートナー商談</button>
+              <button class="tag-chip tag-scene" data-group="pref" data-val="重要クライアント接待">👑 重要クライアント接待</button>
+              <button class="tag-chip tag-scene" data-group="pref" data-val="大事な謝罪・関係修復">🙇 謝罪・関係修復</button>
+              <button class="tag-chip tag-scene" data-group="pref" data-val="初回商談">🤜 初回商談</button>
+              <button class="tag-chip tag-scene" data-group="pref" data-val="採用候補との面談">💼 採用候補の面談</button>
+              <button class="tag-chip tag-scene" data-group="pref" data-val="採用候補との食事">🍽 採用候補との食事</button>
+              <button class="tag-chip tag-scene" data-group="pref" data-val="インフルエンサー打ち合わせ">📱 インフルエンサー打合せ</button>
+              <button class="tag-chip tag-scene" data-group="pref" data-val="少人数役員会食">🏢 少人数役員会食</button>
             </div>
           </div>
 
-          <!-- ② エリア / 距離 -->
-          <div class="f-section" id="f-section-location">
+          <!-- ② 場所・環境の特性 -->
+          <div class="f-section">
+            <div class="f-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              場所・環境の特性
+              <span class="f-multi-note">複数選択OK</span>
+            </div>
+            <div class="tag-group" id="tags-atmos">
+              <button class="tag-chip" data-group="atmos" data-val="撮影しやすい">📸 撮影しやすい</button>
+              <button class="tag-chip" data-group="atmos" data-val="SNS映え">🌟 SNS映えしやすい</button>
+              <button class="tag-chip" data-group="atmos" data-val="会話しやすい静かめ空間">🎙 会話しやすい・静か</button>
+              <button class="tag-chip" data-group="atmos" data-val="役員会食向きの高級感">💎 役員会食向き高級感</button>
+              <button class="tag-chip" data-group="atmos" data-val="夜景">🌃 夜景</button>
+              <button class="tag-chip" data-group="atmos" data-val="隠れ家">🚪 隠れ家</button>
+              <button class="tag-chip" data-group="atmos" data-val="駅近で移動ロスが少ない">🚉 駅近・アクセス◎</button>
+            </div>
+          </div>
 
-            <!-- 場所設定済み → 距離フィルター表示 -->
+          <!-- ③ こだわり条件 -->
+          <div class="f-section">
+            <div class="f-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              こだわり条件
+              <span class="f-multi-note">複数選択OK</span>
+            </div>
+            <div class="tag-group" id="tags-rescue">
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="個室重視">🔒 個室重視</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="うるさすぎない">🤫 うるさすぎない</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="接待OK">👔 接待OK</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="投稿映え">📲 投稿映え</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="客単価1.2万以上でも許容">💰 1.2万以上OK</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="失敗しにくい定番">✅ 失敗しにくい定番</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="採用面談向き">🙋 採用面談向き</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="4名会食で予算内">👥 4名・予算内</button>
+            </div>
+          </div>
+
+          <!-- ④ エリア / 距離 -->
+          <div class="f-section" id="f-section-location">
             <div id="f-distance-mode" class="hidden">
               <div class="f-label">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -274,8 +314,6 @@
               </div>
               <p class="f-dist-note">📋 マイリストに登録済みのお店が対象です。周辺の新規店舗を探すには「SNS人気店を発見」をご利用ください。</p>
             </div>
-
-            <!-- 場所未設定 → エリア選択ドロップダウン -->
             <div id="f-area-mode">
               <div class="f-label">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -283,60 +321,9 @@
               </div>
               <select id="f-area" class="f-select"><option value="">すべてのエリア</option></select>
             </div>
-
           </div>
 
-          <!-- ③ 相手の好み（タグ複数選択） -->
-          <div class="f-section">
-            <div class="f-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              相手の好み
-              <span class="f-multi-note">複数選択OK</span>
-            </div>
-            <div class="tag-group" id="tags-pref">
-              <button class="tag-chip" data-group="pref" data-val="ワインが好き">🍷 ワイン好き</button>
-              <button class="tag-chip" data-group="pref" data-val="ビールが好き">🍺 ビール好き</button>
-              <button class="tag-chip" data-group="pref" data-val="日本酒が好き">🍶 日本酒好き</button>
-              <button class="tag-chip" data-group="pref" data-val="肉が好き">🥩 肉好き</button>
-              <button class="tag-chip" data-group="pref" data-val="魚が好き">🐟 魚好き</button>
-              <button class="tag-chip" data-group="pref" data-val="辛いものが好き">🌶 辛いもの</button>
-              <button class="tag-chip" data-group="pref" data-val="甘いものが好き">🍰 スイーツ</button>
-              <button class="tag-chip" data-group="pref" data-val="野菜が好き">🥗 野菜好き</button>
-              <button class="tag-chip" data-group="pref" data-val="中華が好き">🥢 中華</button>
-              <button class="tag-chip" data-group="pref" data-val="イタリアンが好き">🍝 イタリアン</button>
-              <button class="tag-chip" data-group="pref" data-val="フレンチが好き">🥐 フレンチ</button>
-              <button class="tag-chip" data-group="pref" data-val="和食が好き">🍱 和食</button>
-              <button class="tag-chip" data-group="pref" data-val="カジュアルが好き">😊 カジュアル</button>
-              <button class="tag-chip" data-group="pref" data-val="高級志向">✨ 高級志向</button>
-              <button class="tag-chip" data-group="pref" data-val="接待向け">👔 接待向け</button>
-              <button class="tag-chip" data-group="pref" data-val="静かなお店">🤫 静かな店</button>
-              <button class="tag-chip" data-group="pref" data-val="にぎやかなお店">🎉 にぎやか</button>
-            </div>
-          </div>
-
-          <!-- ③ 雰囲気 -->
-          <div class="f-section">
-            <div class="f-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-              雰囲気
-              <span class="f-multi-note">複数選択OK</span>
-            </div>
-            <div class="tag-group" id="tags-atmos">
-              <button class="tag-chip" data-group="atmos" data-val="落ち着いた">🕯 落ち着いた</button>
-              <button class="tag-chip" data-group="atmos" data-val="にぎやか">🎊 にぎやか</button>
-              <button class="tag-chip" data-group="atmos" data-val="高級感">💎 高級感</button>
-              <button class="tag-chip" data-group="atmos" data-val="カジュアル">👟 カジュアル</button>
-              <button class="tag-chip" data-group="atmos" data-val="隠れ家">🚪 隠れ家</button>
-              <button class="tag-chip" data-group="atmos" data-val="デート向け">💑 デート向け</button>
-              <button class="tag-chip" data-group="atmos" data-val="接待向け">🤝 接待向け</button>
-              <button class="tag-chip" data-group="atmos" data-val="個室あり">🔒 個室あり</button>
-              <button class="tag-chip" data-group="atmos" data-val="夜景">🌃 夜景</button>
-              <button class="tag-chip" data-group="atmos" data-val="おしゃれ">💫 おしゃれ</button>
-              <button class="tag-chip" data-group="atmos" data-val="昭和レトロ">🏮 昭和レトロ</button>
-            </div>
-          </div>
-
-          <!-- ④ 予算 -->
+          <!-- ⑤ 予算 -->
           <div class="f-section">
             <div class="f-label">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -358,7 +345,7 @@
             </div>
           </div>
 
-          <!-- ⑤ 人数 -->
+          <!-- ⑥ 人数 -->
           <div class="f-section">
             <div class="f-label">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -375,7 +362,7 @@
             </div>
           </div>
 
-          <!-- ⑥ キーワード -->
+          <!-- ⑦ キーワード -->
           <div class="f-section">
             <div class="f-label">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
