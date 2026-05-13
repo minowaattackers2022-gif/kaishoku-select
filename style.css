@@ -1851,3 +1851,36 @@ a { color: inherit; text-decoration: none; }
 }
 .btn-gen-sns:hover  { opacity: 0.9; }
 .btn-gen-sns:active { transform: scale(0.97); }
+
+/* ── Distance filter mode ── */
+.f-dist-note {
+  font-size: 0.74rem;
+  color: var(--text-soft);
+  line-height: 1.6;
+  background: var(--cream);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  margin-top: 10px;
+  border-left: 3px solid var(--g-light);
+}
+
+/* ── No results with discovery CTA ── */
+.no-results-discover {
+  margin-top: 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.no-results-hint {
+  font-size: 0.82rem; color: var(--text-soft);
+}
+.btn-no-res-discover {
+  padding: 12px 24px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(135deg, #1a1a2e, #0f3460);
+  color: white;
+  font-size: 0.9rem; font-weight: 700;
+  border: none; cursor: pointer;
+  box-shadow: 0 3px 14px rgba(15,52,96,0.4);
+  transition: opacity var(--transition), transform var(--transition);
+}
+.btn-no-res-discover:hover  { opacity: 0.9; }
+.btn-no-res-discover:active { transform: scale(0.97); }
