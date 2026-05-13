@@ -1309,25 +1309,38 @@ function renderOverpassResults(elements, searchLat, searchLng) {
     return;
   }
 
-  // Filter: must have name
+  // ハード距離上限 = 指定半径 × 1.5 km
+  const maxDistKm = (discoverRadius / 1000) * 1.5;
+
   const stores = elements
     .filter(e => e.tags && e.tags.name)
-    .map(e => ({
-      name:    e.tags.name,
-      cuisine: e.tags.cuisine || e.tags.amenity || '',
-      address: [e.tags['addr:city'], e.tags['addr:suburb'], e.tags['addr:street']].filter(Boolean).join(' '),
-      phone:   e.tags.phone || e.tags['contact:phone'] || '',
-      website: e.tags.website || e.tags['contact:website'] || '',
-      lat:     e.lat || e.center?.lat,
-      lng:     e.lon || e.center?.lon,
-    }))
-    .sort((a,b) => {
-      const da = haversine(searchLat, searchLng, a.lat, a.lng);
-      const db = haversine(searchLat, searchLng, b.lat, b.lng);
-      return da - db;
-    });
+    .map(e => {
+      // 座標の確実な取得・バリデーション
+      const eLat = parseFloat(e.lat ?? e.center?.lat ?? NaN);
+      const eLng = parseFloat(e.lon ?? e.center?.lon ?? NaN);
+      if (!isFinite(eLat) || !isFinite(eLng)) return null; // 座標不明は除外
 
-  container.innerHTML = `<p class="disc-result-count">${stores.length}件のお店が見つかりました</p>`;
+      const dist = haversine(searchLat, searchLng, eLat, eLng);
+      if (dist > maxDistKm) return null; // 半径外は絶対除外
+
+      return {
+        name:    e.tags.name,
+        cuisine: e.tags.cuisine || e.tags.amenity || '',
+        address: [e.tags['addr:city'], e.tags['addr:suburb'], e.tags['addr:street']].filter(Boolean).join(' '),
+        phone:   e.tags.phone || e.tags['contact:phone'] || '',
+        website: e.tags.website || e.tags['contact:website'] || '',
+        lat: eLat, lng: eLng, dist,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.dist - b.dist);
+
+  if (!stores.length) {
+    container.innerHTML = '<div class="disc-empty">周辺に該当するお店が見つかりませんでした。<br>検索範囲を広げてお試しください。</div>';
+    return;
+  }
+
+  container.innerHTML = `<p class="disc-result-count">${stores.length}件のお店が見つかりました（${discoverRadius >= 1000 ? discoverRadius/1000+'km' : discoverRadius+'m'}以内）</p>`;
 
   const frag = document.createDocumentFragment();
   stores.forEach(s => {
@@ -1686,34 +1699,44 @@ const OverpassPremium = {
     return (data.elements || []).filter(e => e.tags && e.tags.name);
   },
 
-  filterAndScore(elements, lat, lng) {
+  filterAndScore(elements, searchLat, searchLng) {
+    // ハード距離上限 = 指定半径 × 1.5 (km)
+    const maxDistKm = (this.radius / 1000) * 1.5;
+
     return elements
       .map(e => {
-        const t    = e.tags;
-        const eLat = e.lat || e.center?.lat;
-        const eLng = e.lon || e.center?.lon;
-        const dist = (eLat && eLng) ? haversine(lat, lng, eLat, eLng) : 99;
-        const score= osmScore(t);
+        const t = e.tags;
 
-        // attr filter: if any attr selected, element must have at least one
+        // ── 座標の確実な取得 ──
+        const eLat = parseFloat(e.lat ?? e.center?.lat ?? NaN);
+        const eLng = parseFloat(e.lon ?? e.center?.lon ?? NaN);
+
+        // 座標不明・NaN のものは除外（これが遠方混入の原因）
+        if (!isFinite(eLat) || !isFinite(eLng)) return null;
+
+        const dist = haversine(searchLat, searchLng, eLat, eLng);
+
+        // ハード距離カットオフ（半径外は絶対に除外）
+        if (dist > maxDistKm) return null;
+
+        // attr filter
         if (this.attrs.size > 0) {
           const attrMap = {
-            website:       t.website || t['contact:website'],
-            opening_hours: t.opening_hours,
-            reservation:   t.reservation,
+            website:         t.website || t['contact:website'],
+            opening_hours:   t.opening_hours,
+            reservation:     t.reservation,
             outdoor_seating: t.outdoor_seating === 'yes',
-            wikidata:      t.wikidata,
+            wikidata:        t.wikidata,
           };
-          const pass = [...this.attrs].some(a => attrMap[a]);
-          if (!pass) return null;
+          if (![...this.attrs].some(a => attrMap[a])) return null;
         }
 
-        return { name:t.name, tags:t, lat:eLat, lng:eLng, dist, score };
+        return { name:t.name, tags:t, lat:eLat, lng:eLng, dist, score: osmScore(t) };
       })
       .filter(Boolean)
       .sort((a, b) => {
-        // Primary: score desc, secondary: distance asc
-        if (Math.abs(b.score - a.score) > 0.5) return b.score - a.score;
+        // スコア差が大きい時はスコア優先、接近時は距離優先
+        if (Math.abs(b.score - a.score) > 1.0) return b.score - a.score;
         return a.dist - b.dist;
       });
   },
