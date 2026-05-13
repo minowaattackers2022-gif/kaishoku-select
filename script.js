@@ -439,13 +439,14 @@ const ATMOS_KEYWORDS = {
    FILTER STATE
 ───────────────────────────────────────── */
 const FILTER_STATE = {
-  area:    '',
-  prefs:   new Set(),
-  rescues: new Set(),
-  atmos:   new Set(),
-  budget:  null,   // number or null
-  pax:     null,   // number or null
-  keyword: '',
+  area:       '',
+  distanceM:  99999,  // 距離フィルター（メートル）99999=無制限
+  prefs:      new Set(),
+  rescues:    new Set(),
+  atmos:      new Set(),
+  budget:     null,
+  pax:        null,
+  keyword:    '',
 };
 
 function parseBudget(str) {
@@ -484,8 +485,14 @@ function applyFilters() {
   const budgetCeil = FILTER_STATE.budget;
 
   STATE.filteredStores = STATE.stores.filter(s => {
-    // Area
-    if (FILTER_STATE.area && s.area !== FILTER_STATE.area) return false;
+    // Area (only used when no location set)
+    if (!STATE.searchLat && FILTER_STATE.area && s.area !== FILTER_STATE.area) return false;
+
+    // Distance filter (only when location is set)
+    if (STATE.searchLat && STATE.searchLng && s.lat && s.lng) {
+      const distM = haversine(STATE.searchLat, STATE.searchLng, s.lat, s.lng) * 1000;
+      if (FILTER_STATE.distanceM < 99999 && distM > FILTER_STATE.distanceM) return false;
+    }
 
     // Pref tags (any pref keyword matches)
     if (prefKws.length && !storeMatchesTags(s, prefKws)) return false;
@@ -522,7 +529,8 @@ function applyFilters() {
 
   // Update badge count
   let cnt = 0;
-  if (FILTER_STATE.area)           cnt++;
+  if (!STATE.searchLat && FILTER_STATE.area) cnt++;
+  if (STATE.searchLat && FILTER_STATE.distanceM < 99999) cnt++;
   if (FILTER_STATE.prefs.size)     cnt += FILTER_STATE.prefs.size;
   if (FILTER_STATE.rescues.size)   cnt += FILTER_STATE.rescues.size;
   if (FILTER_STATE.atmos.size)     cnt += FILTER_STATE.atmos.size;
@@ -541,6 +549,15 @@ function applyFilters() {
 function initTagChips() {
   document.querySelectorAll('.tag-chip').forEach(chip => {
     chip.addEventListener('click', () => handleTagClick(chip));
+  });
+
+  // Distance filter chips
+  document.querySelectorAll('.f-dist-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.f-dist-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      FILTER_STATE.distanceM = parseInt(chip.dataset.dist, 10);
+    });
   });
 
   // Budget custom input
@@ -609,20 +626,47 @@ function handleTagClick(chip) {
 }
 
 function clearAllFilters() {
-  FILTER_STATE.area    = '';
-  FILTER_STATE.prefs   = new Set();
-  FILTER_STATE.rescues = new Set();
-  FILTER_STATE.atmos   = new Set();
-  FILTER_STATE.budget  = null;
-  FILTER_STATE.pax     = null;
-  FILTER_STATE.keyword = '';
+  FILTER_STATE.area      = '';
+  FILTER_STATE.distanceM = 99999;
+  FILTER_STATE.prefs     = new Set();
+  FILTER_STATE.rescues   = new Set();
+  FILTER_STATE.atmos     = new Set();
+  FILTER_STATE.budget    = null;
+  FILTER_STATE.pax       = null;
+  FILTER_STATE.keyword   = '';
 
   document.querySelectorAll('.tag-chip.selected').forEach(c => c.classList.remove('selected'));
+  // Reset distance chip to "絞らない"
+  document.querySelectorAll('.f-dist-chip').forEach(c => c.classList.remove('selected'));
+  const defaultDistChip = document.querySelector('.f-dist-chip[data-dist="99999"]');
+  if (defaultDistChip) defaultDistChip.classList.add('selected');
+
   document.getElementById('f-area').value = '';
   document.getElementById('f-keyword').value = '';
   document.getElementById('f-budget-custom').value = '';
   document.getElementById('budget-custom-wrap').classList.add('hidden');
   document.getElementById('filter-badge').classList.add('hidden');
+}
+
+/* 場所設定有無でフィルターUIを切り替え */
+function switchFilterLocationMode(hasLocation, locationName) {
+  const distMode = document.getElementById('f-distance-mode');
+  const areaMode = document.getElementById('f-area-mode');
+  if (hasLocation) {
+    distMode.classList.remove('hidden');
+    areaMode.classList.add('hidden');
+    const label = document.getElementById('f-loc-name-label');
+    const short = locationName ? locationName.slice(0, 10) : '現在地';
+    label.textContent = `📍 ${short}`;
+  } else {
+    distMode.classList.add('hidden');
+    areaMode.classList.remove('hidden');
+    // Reset distance filter
+    FILTER_STATE.distanceM = 99999;
+    document.querySelectorAll('.f-dist-chip').forEach(c => c.classList.remove('selected'));
+    const d = document.querySelector('.f-dist-chip[data-dist="99999"]');
+    if (d) d.classList.add('selected');
+  }
 }
 
 function haversine(a, b, c, d) {
@@ -697,6 +741,20 @@ function renderResults() {
   if (!STATE.filteredStores.length) {
     noRes.classList.remove('hidden');
     count.innerHTML = '0件のお店';
+    // Show location-specific message
+    const locName = STATE.searchLabel || '';
+    noRes.innerHTML = `
+      <div class="no-results-icon">🍃</div>
+      <p>${locName ? `<strong>${locName}周辺</strong>に` : ''}マイリストの中に条件に合うお店が見つかりませんでした。</p>
+      ${STATE.searchLat ? `
+      <div class="no-results-discover">
+        <p class="no-results-hint">周辺の飲食店をリアルタイムで探しますか？</p>
+        <button class="btn-no-res-discover" id="btn-no-res-open-disc">
+          📱 SNS人気店を発見する
+        </button>
+      </div>` : '<p style="font-size:.82rem;color:var(--text-hint);margin-top:8px">条件を変えてお試しください。</p>'}`;
+    const discBtn = document.getElementById('btn-no-res-open-disc');
+    if (discBtn) discBtn.addEventListener('click', openDiscoverModal);
     return;
   }
   noRes.classList.add('hidden');
@@ -897,6 +955,7 @@ function getCurrentLocation() {
       showLocStatus('📍 現在地を取得しました');
       btn.innerHTML=save; btn.disabled=false;
       document.getElementById('dest-input-area').classList.add('hidden');
+      switchFilterLocationMode(true, '現在地');
     },
     err => {
       btn.innerHTML=save; btn.disabled=false;
@@ -920,6 +979,7 @@ async function geocodeDestination() {
     STATE.searchLat=parseFloat(data[0].lat); STATE.searchLng=parseFloat(data[0].lon);
     STATE.searchLabel=data[0].display_name.split(',')[0];
     showLocStatus(`📍 ${STATE.searchLabel}`);
+    switchFilterLocationMode(true, STATE.searchLabel);
   } catch { alert('検索中にエラーが発生しました'); }
   finally { btn.innerHTML=save; btn.disabled=false; }
 }
@@ -1139,6 +1199,7 @@ function attachEvents() {
     document.getElementById('loc-status').classList.add('hidden');
     document.getElementById('dest-input-area').classList.add('hidden');
     document.getElementById('dest-text').value='';
+    switchFilterLocationMode(false, '');
   });
   document.getElementById('filter-toggle').addEventListener('click', ()=>{
     STATE.filterOpen=!STATE.filterOpen;
