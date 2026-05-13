@@ -623,6 +623,8 @@ function clearAllFilters() {
   document.getElementById('budget-custom-wrap').classList.add('hidden');
   document.getElementById('filter-badge').classList.add('hidden');
 }
+
+function haversine(a, b, c, d) {
   const R=6371, dLat=(c-a)*Math.PI/180, dLng=(d-b)*Math.PI/180;
   const x=Math.sin(dLat/2)**2 + Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLng/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
