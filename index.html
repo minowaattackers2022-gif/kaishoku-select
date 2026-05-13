@@ -239,29 +239,125 @@
         </button>
 
         <div id="filter-body" class="filter-body hidden">
-          <div class="filter-grid">
-            <div class="filter-group">
-              <label>エリア</label>
-              <select id="f-area"><option value="">すべて</option></select>
+
+          <!-- ① エリア -->
+          <div class="f-section">
+            <div class="f-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              エリア
             </div>
-            <div class="filter-group">
-              <label>ジャンル</label>
-              <select id="f-genre"><option value="">すべて</option></select>
+            <select id="f-area" class="f-select"><option value="">すべてのエリア</option></select>
+          </div>
+
+          <!-- ② 相手の好み（タグ複数選択） -->
+          <div class="f-section">
+            <div class="f-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              相手の好み
+              <span class="f-multi-note">複数選択OK</span>
             </div>
-            <div class="filter-group">
-              <label>予算</label>
-              <select id="f-budget"><option value="">すべて</option></select>
+            <div class="tag-group" id="tags-pref">
+              <button class="tag-chip" data-group="pref" data-val="ワインが好き">🍷 ワイン好き</button>
+              <button class="tag-chip" data-group="pref" data-val="ビールが好き">🍺 ビール好き</button>
+              <button class="tag-chip" data-group="pref" data-val="日本酒が好き">🍶 日本酒好き</button>
+              <button class="tag-chip" data-group="pref" data-val="肉が好き">🥩 肉好き</button>
+              <button class="tag-chip" data-group="pref" data-val="魚が好き">🐟 魚好き</button>
+              <button class="tag-chip" data-group="pref" data-val="辛いものが好き">🌶 辛いもの</button>
+              <button class="tag-chip" data-group="pref" data-val="甘いものが好き">🍰 スイーツ</button>
+              <button class="tag-chip" data-group="pref" data-val="野菜が好き">🥗 野菜好き</button>
+              <button class="tag-chip" data-group="pref" data-val="中華が好き">🥢 中華</button>
+              <button class="tag-chip" data-group="pref" data-val="イタリアンが好き">🍝 イタリアン</button>
+              <button class="tag-chip" data-group="pref" data-val="フレンチが好き">🥐 フレンチ</button>
+              <button class="tag-chip" data-group="pref" data-val="和食が好き">🍱 和食</button>
+              <button class="tag-chip" data-group="pref" data-val="カジュアルが好き">😊 カジュアル</button>
+              <button class="tag-chip" data-group="pref" data-val="高級志向">✨ 高級志向</button>
+              <button class="tag-chip" data-group="pref" data-val="接待向け">👔 接待向け</button>
+              <button class="tag-chip" data-group="pref" data-val="静かなお店">🤫 静かな店</button>
+              <button class="tag-chip" data-group="pref" data-val="にぎやかなお店">🎉 にぎやか</button>
             </div>
-            <div class="filter-group">
-              <label>雰囲気</label>
-              <select id="f-atmosphere"><option value="">すべて</option></select>
+            <div class="f-rescue-label">好みが分からない場合</div>
+            <div class="tag-group" id="tags-rescue">
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="好みが分からない">🤷 好みが分からない</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="とりあえず人気店">⭐ とりあえず人気店</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="雰囲気重視">🌸 雰囲気重視</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="写真が良い店">📸 写真が良い店</button>
             </div>
           </div>
-          <div class="filter-keyword-wrap">
-            <label>キーワード自由検索</label>
-            <input type="text" id="f-keyword" placeholder="店名・こだわり・特徴など..." class="keyword-input">
+
+          <!-- ③ 雰囲気 -->
+          <div class="f-section">
+            <div class="f-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              雰囲気
+              <span class="f-multi-note">複数選択OK</span>
+            </div>
+            <div class="tag-group" id="tags-atmos">
+              <button class="tag-chip" data-group="atmos" data-val="落ち着いた">🕯 落ち着いた</button>
+              <button class="tag-chip" data-group="atmos" data-val="にぎやか">🎊 にぎやか</button>
+              <button class="tag-chip" data-group="atmos" data-val="高級感">💎 高級感</button>
+              <button class="tag-chip" data-group="atmos" data-val="カジュアル">👟 カジュアル</button>
+              <button class="tag-chip" data-group="atmos" data-val="隠れ家">🚪 隠れ家</button>
+              <button class="tag-chip" data-group="atmos" data-val="デート向け">💑 デート向け</button>
+              <button class="tag-chip" data-group="atmos" data-val="接待向け">🤝 接待向け</button>
+              <button class="tag-chip" data-group="atmos" data-val="個室あり">🔒 個室あり</button>
+              <button class="tag-chip" data-group="atmos" data-val="夜景">🌃 夜景</button>
+              <button class="tag-chip" data-group="atmos" data-val="おしゃれ">💫 おしゃれ</button>
+              <button class="tag-chip" data-group="atmos" data-val="昭和レトロ">🏮 昭和レトロ</button>
+            </div>
           </div>
-          <button id="btn-clear-filter" class="btn-clear-filter">条件をすべてリセット</button>
+
+          <!-- ④ 予算 -->
+          <div class="f-section">
+            <div class="f-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              予算（おひとり様）
+            </div>
+            <div class="tag-group tag-group-budget" id="tags-budget">
+              <button class="tag-chip tag-single" data-group="budget" data-val="3000">〜3,000円</button>
+              <button class="tag-chip tag-single" data-group="budget" data-val="5000">〜5,000円</button>
+              <button class="tag-chip tag-single" data-group="budget" data-val="8000">〜8,000円</button>
+              <button class="tag-chip tag-single" data-group="budget" data-val="10000">〜10,000円</button>
+              <button class="tag-chip tag-single" data-group="budget" data-val="15000">〜15,000円</button>
+              <button class="tag-chip tag-single" data-group="budget" data-val="20000">〜20,000円</button>
+              <button class="tag-chip tag-single" data-group="budget" data-val="30000">〜30,000円</button>
+              <button class="tag-chip tag-single" data-group="budget" data-val="99999">上限なし</button>
+            </div>
+            <div id="budget-custom-wrap" class="budget-custom hidden">
+              <input type="number" id="f-budget-custom" class="budget-custom-input" placeholder="例: 12000" min="1000" max="999999" step="1000">
+              <span class="budget-custom-unit">円まで</span>
+            </div>
+          </div>
+
+          <!-- ⑤ 人数 -->
+          <div class="f-section">
+            <div class="f-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              人数
+            </div>
+            <div class="tag-group" id="tags-pax">
+              <button class="tag-chip tag-single" data-group="pax" data-val="1">1名</button>
+              <button class="tag-chip tag-single" data-group="pax" data-val="2">2名</button>
+              <button class="tag-chip tag-single" data-group="pax" data-val="3">3名</button>
+              <button class="tag-chip tag-single" data-group="pax" data-val="4">4名</button>
+              <button class="tag-chip tag-single" data-group="pax" data-val="6">6名</button>
+              <button class="tag-chip tag-single" data-group="pax" data-val="8">8名</button>
+              <button class="tag-chip tag-single" data-group="pax" data-val="10">10名〜</button>
+            </div>
+          </div>
+
+          <!-- ⑥ キーワード -->
+          <div class="f-section">
+            <div class="f-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              キーワード自由検索
+            </div>
+            <input type="text" id="f-keyword" placeholder="店名・料理・こだわりなど..." class="keyword-input">
+          </div>
+
+          <button id="btn-clear-filter" class="btn-clear-filter">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            すべての条件をリセット
+          </button>
         </div>
       </section>
 
@@ -387,18 +483,87 @@
   <div class="modal-backdrop" id="config-backdrop"></div>
   <div class="modal-sheet config-sheet" role="dialog" aria-label="設定">
     <div class="sheet-handle"></div>
-    <h3 class="config-heading">データ設定</h3>
-    <div class="config-body">
+
+    <!-- Tab Header -->
+    <div class="cfg-tabs">
+      <button class="cfg-tab active" data-tab="cfg-tab-id">IDを入力</button>
+      <button class="cfg-tab" data-tab="cfg-tab-howto">設定方法</button>
+      <button class="cfg-tab" data-tab="cfg-tab-debug">診断</button>
+    </div>
+
+    <!-- Tab: ID入力 -->
+    <div class="cfg-panel active" id="cfg-tab-id">
       <div class="config-field">
-        <label class="config-label">Google スプレッドシート ID</label>
-        <p class="config-hint">スプレッドシートのURLの <code>/d/</code> と <code>/edit</code> の間の文字列を入力してください。<br>シートは「全員に公開（閲覧）」に設定が必要です。</p>
+        <label class="config-label">スプレッドシート ID</label>
+        <p class="config-hint">URLの <code>/d/</code> と <code>/edit</code> の間の文字列</p>
         <input type="text" id="sheet-id-input" placeholder="例: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" class="config-input">
       </div>
-      <button id="btn-save-config" class="btn-save">保存して再読み込み</button>
+      <p id="config-error-msg" class="config-error-msg hidden"></p>
+      <button id="btn-save-config" class="btn-save">
+        <span id="cfg-save-text">接続テスト＆保存</span>
+        <div id="cfg-save-spinner" class="auth-spinner hidden"></div>
+      </button>
       <div class="config-divider"><span>または</span></div>
       <button id="btn-demo" class="btn-demo">デモデータで試す</button>
       <p class="config-note">デモデータには東京都内の架空店舗サンプルが含まれます</p>
     </div>
+
+    <!-- Tab: 設定方法 -->
+    <div class="cfg-panel" id="cfg-tab-howto">
+      <div class="howto-steps">
+        <div class="howto-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p class="step-title">スプレッドシートを開く</p>
+            <p class="step-desc">Googleドライブでスプレッドシートを開いてください。</p>
+          </div>
+        </div>
+        <div class="howto-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p class="step-title">「共有」設定を変更する</p>
+            <p class="step-desc">右上の「共有」ボタン → 「リンクを知っている全員」→「閲覧者」に変更して保存。</p>
+            <div class="step-img-placeholder">
+              <span>共有 → リンクを知っている全員 → 閲覧者</span>
+            </div>
+          </div>
+        </div>
+        <div class="howto-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p class="step-title">Sheet IDをコピーする</p>
+            <p class="step-desc">ブラウザのURLバーから <code>/d/</code> と <code>/edit</code> の間の文字列をコピー。</p>
+            <div class="step-url-demo">
+              <span class="url-gray">https://docs.google.com/spreadsheets/d/</span><span class="url-highlight">1BxiMVs0XRA5nF...</span><span class="url-gray">/edit</span>
+            </div>
+          </div>
+        </div>
+        <div class="howto-step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <p class="step-title">1行目は必ずヘッダー行</p>
+            <p class="step-desc">列の順番（A〜N列）を正確に合わせてください。</p>
+            <div class="step-cols">
+              <span>A: id</span><span>B: name</span><span>C: area</span><span>D: genre</span>
+              <span>E: budget</span><span>F: atmosphere</span><span>G: photo_url</span>
+              <span>H: map_url</span><span>I: instagram_url</span><span>J: tiktok_url</span>
+              <span>K: address</span><span>L: lat</span><span>M: lng</span><span>N: description</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: 診断 -->
+    <div class="cfg-panel" id="cfg-tab-debug">
+      <p class="debug-intro">読み込みエラーの原因を自動診断します。</p>
+      <button id="btn-diagnose" class="btn-diagnose">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        診断を実行する
+      </button>
+      <div id="diagnose-result" class="diagnose-result hidden"></div>
+    </div>
+
   </div>
 </div>
 
