@@ -354,6 +354,7 @@ const AppMain = {
 
     updateFavBadge();
     attachEvents();
+    initDiscovery();
 
     if (STATE.usingDemo) {
       STATE.stores = [...DEMO_STORES];
@@ -1187,8 +1188,336 @@ function attachEvents() {
 }
 
 /* ─────────────────────────────────────────
-   ENTRY POINT — 単一の DOMContentLoaded
+   DISCOVERY: OVERPASS API + SNS SEARCH
 ───────────────────────────────────────── */
+
+/* ── Overpass API cuisine type mapping ── */
+const OVERPASS_TYPES = {
+  all:        `["amenity"~"restaurant|bar|pub|cafe|food_court|fast_food|izakaya"]`,
+  restaurant: `["amenity"="restaurant"]`,
+  bar:        `["amenity"~"bar|pub"]`,
+  cafe:       `["amenity"="cafe"]`,
+  sushi:      `["cuisine"~"sushi|japanese"]`,
+  ramen:      `["cuisine"~"ramen|noodle"]`,
+  yakiniku:   `["cuisine"~"bbq|yakiniku|korean"]`,
+};
+
+let discoverRadius = 500;
+let discoverType   = 'all';
+
+async function runOverpassSearch() {
+  const lat = STATE.searchLat;
+  const lng = STATE.searchLng;
+  if (!lat || !lng) {
+    alert('先に「現在地から探す」または「目的地で探す」で場所を設定してください。');
+    return;
+  }
+
+  const btn     = document.getElementById('btn-run-overpass');
+  const spinner = document.getElementById('overpass-spinner');
+  const btnText = document.getElementById('overpass-btn-text');
+  btn.disabled  = true;
+  btnText.style.display = 'none';
+  spinner.classList.remove('hidden');
+
+  const typeFilter = OVERPASS_TYPES[discoverType] || OVERPASS_TYPES.all;
+  const query = `[out:json][timeout:20];(node${typeFilter}(around:${discoverRadius},${lat},${lng});way${typeFilter}(around:${discoverRadius},${lat},${lng}););out center 60;`;
+
+  try {
+    const res  = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body:   'data=' + encodeURIComponent(query),
+    });
+    const data = await res.json();
+    renderOverpassResults(data.elements || [], lat, lng);
+  } catch (e) {
+    document.getElementById('overpass-results').innerHTML =
+      `<div class="disc-error">⚠ 取得に失敗しました。ネットワークを確認して再試行してください。<br><small>${e.message}</small></div>`;
+  } finally {
+    btn.disabled = false;
+    btnText.style.display = '';
+    spinner.classList.add('hidden');
+  }
+}
+
+function renderOverpassResults(elements, searchLat, searchLng) {
+  const container = document.getElementById('overpass-results');
+  if (!elements.length) {
+    container.innerHTML = '<div class="disc-empty">周辺に該当するお店が見つかりませんでした。<br>検索範囲を広げてお試しください。</div>';
+    return;
+  }
+
+  // Filter: must have name
+  const stores = elements
+    .filter(e => e.tags && e.tags.name)
+    .map(e => ({
+      name:    e.tags.name,
+      cuisine: e.tags.cuisine || e.tags.amenity || '',
+      address: [e.tags['addr:city'], e.tags['addr:suburb'], e.tags['addr:street']].filter(Boolean).join(' '),
+      phone:   e.tags.phone || e.tags['contact:phone'] || '',
+      website: e.tags.website || e.tags['contact:website'] || '',
+      lat:     e.lat || e.center?.lat,
+      lng:     e.lon || e.center?.lon,
+    }))
+    .sort((a,b) => {
+      const da = haversine(searchLat, searchLng, a.lat, a.lng);
+      const db = haversine(searchLat, searchLng, b.lat, b.lng);
+      return da - db;
+    });
+
+  container.innerHTML = `<p class="disc-result-count">${stores.length}件のお店が見つかりました</p>`;
+
+  const frag = document.createDocumentFragment();
+  stores.forEach(s => {
+    const dist = haversine(searchLat, searchLng, s.lat, s.lng);
+    const mapQ  = encodeURIComponent(`${s.name} ${s.address}`);
+    const igQ   = encodeURIComponent(`${s.name}`);
+    const tkQ   = encodeURIComponent(`${s.name} グルメ`);
+    const gQ    = encodeURIComponent(`"${s.name}" インスタ映え OR TikTok グルメ 口コミ`);
+
+    const card = document.createElement('div');
+    card.className = 'overpass-card';
+    card.innerHTML = `
+      <div class="opc-top">
+        <div class="opc-info">
+          <p class="opc-name">${s.name}</p>
+          <p class="opc-meta">${[cuisineLabel(s.cuisine), s.address].filter(Boolean).join(' · ')}</p>
+        </div>
+        <span class="opc-dist">${fmt(dist)}</span>
+      </div>
+      <div class="opc-actions">
+        <a href="https://maps.google.com/maps?q=${mapQ}&near=${s.lat},${s.lng}" target="_blank" rel="noopener" class="opc-btn btn-opc-map">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Googleマップ
+        </a>
+        <a href="https://www.instagram.com/explore/search/keyword/?q=${igQ}" target="_blank" rel="noopener" class="opc-btn btn-opc-ig">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          Instagram
+        </a>
+        <a href="https://www.tiktok.com/search?q=${tkQ}" target="_blank" rel="noopener" class="opc-btn btn-opc-tk">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.37a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.8z"/></svg>
+          TikTok
+        </a>
+        <a href="https://www.google.com/search?q=${gQ}" target="_blank" rel="noopener" class="opc-btn btn-opc-g">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          SNS口コミ
+        </a>
+      </div>`;
+    frag.appendChild(card);
+  });
+  container.appendChild(frag);
+}
+
+function cuisineLabel(raw) {
+  if (!raw) return '';
+  const map = {
+    restaurant:'レストラン', bar:'バー', pub:'バー', cafe:'カフェ',
+    sushi:'寿司', japanese:'和食', ramen:'ラーメン', bbq:'焼肉',
+    yakiniku:'焼肉', korean:'韓国料理', chinese:'中華', french:'フレンチ',
+    italian:'イタリアン', pizza:'ピザ', burger:'バーガー', izakaya:'居酒屋',
+    seafood:'シーフード', steak:'ステーキ', fast_food:'ファストフード',
+  };
+  return map[raw.toLowerCase()] || raw;
+}
+
+/* ── SNS Smart Search URL Generator ── */
+const SNS_PLATFORMS = [
+  {
+    id:    'google-insta',
+    label: 'Google × Instagram',
+    icon:  '🔍',
+    color: '#4285F4',
+    desc:  'Instagramで話題の店を発見',
+    build: (area, prefs) => {
+      const q = buildSnsQuery(area, prefs, ['インスタ映え','インスタ話題','グルメ','絶品']);
+      return `https://www.google.com/search?q=${encodeURIComponent(q + ' site:instagram.com')}`;
+    },
+  },
+  {
+    id:    'tiktok-direct',
+    label: 'TikTok グルメ検索',
+    icon:  '🎵',
+    color: '#000000',
+    desc:  'TikTokで話題の飲食店',
+    build: (area, prefs) => {
+      const q = buildSnsQuery(area, prefs, ['グルメ','飯テロ','おすすめ']);
+      return `https://www.tiktok.com/search?q=${encodeURIComponent(q)}`;
+    },
+  },
+  {
+    id:    'instagram-tag',
+    label: 'Instagram ハッシュタグ',
+    icon:  '📸',
+    color: '#C13584',
+    desc:  '最新の投稿でお店を発見',
+    build: (area, prefs) => {
+      const tag = (area || 'グルメ').replace(/\s/g,'') + 'グルメ';
+      return `https://www.instagram.com/explore/tags/${encodeURIComponent(tag)}/`;
+    },
+  },
+  {
+    id:    'google-hidden',
+    label: '隠れ家・穴場を発掘',
+    icon:  '🚪',
+    color: '#1E3932',
+    desc:  'SNSでしか知られていない名店',
+    build: (area, prefs) => {
+      const q = buildSnsQuery(area, prefs, ['隠れ家','穴場','知る人ぞ知る','絶対行くべき']);
+      return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+    },
+  },
+  {
+    id:    'google-foodie',
+    label: 'こだわり飯 × SNS評価',
+    icon:  '⭐',
+    color: '#E67E22',
+    desc:  '食へのこだわりが強い名店',
+    build: (area, prefs) => {
+      const q = buildSnsQuery(area, prefs, ['食べログ','こだわり','絶品','予約困難']);
+      return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+    },
+  },
+  {
+    id:    'youtube-foodie',
+    label: 'YouTube グルメ動画',
+    icon:  '▶️',
+    color: '#FF0000',
+    desc:  'グルメ系YouTuberが紹介した店',
+    build: (area, prefs) => {
+      const q = buildSnsQuery(area, prefs, ['グルメ','おすすめレストラン','絶品']);
+      return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+    },
+  },
+  {
+    id:    'tabelog',
+    label: '食べログ エリア検索',
+    icon:  '🍽',
+    color: '#C0392B',
+    desc:  '食べログ3.5以上の評価店',
+    build: (area, prefs) => {
+      const encoded = encodeURIComponent((area || '東京') + ' ' + (prefs[0] || 'ディナー'));
+      return `https://tabelog.com/tokyo/A1301/A130101/R5174/rstLst/?vs=1&sw=${encoded}&sk=&vac_net=&svd=20240101&svt=1900&svps=2&po=&hfc=1&hs=1`;
+    },
+  },
+  {
+    id:    'retty',
+    label: 'Retty × 実名口コミ',
+    icon:  '👥',
+    color: '#E74C3C',
+    desc:  'グルメ通の実名レビューから発見',
+    build: (area, prefs) => {
+      const q = (area || '東京') + ' ' + (prefs[0] || 'ディナー');
+      return `https://retty.me/search/?q=${encodeURIComponent(q)}`;
+    },
+  },
+];
+
+function buildSnsQuery(area, prefs, keywords) {
+  const parts = [];
+  if (area) parts.push(area);
+  if (prefs.length) parts.push(prefs[0]); // first pref as cuisine hint
+  parts.push(...keywords.slice(0, 2));
+  return parts.join(' ');
+}
+
+function getPrefLabels() {
+  // prefs → readable cuisine words
+  const labels = [];
+  FILTER_STATE.prefs.forEach(tag => {
+    const kws = PREF_KEYWORDS[tag] || [];
+    if (kws[0]) labels.push(kws[0]);
+  });
+  return labels;
+}
+
+function generateSnsCards() {
+  const areaInput = document.getElementById('disc-area-input').value.trim()
+    || (STATE.searchLabel && STATE.searchLabel !== '現在地' ? STATE.searchLabel : '');
+  const prefs     = getPrefLabels();
+  const container = document.getElementById('sns-search-cards');
+
+  container.innerHTML = '';
+  const frag = document.createDocumentFragment();
+
+  SNS_PLATFORMS.forEach(p => {
+    const url  = p.build(areaInput, prefs);
+    const card = document.createElement('a');
+    card.href   = url;
+    card.target = '_blank';
+    card.rel    = 'noopener';
+    card.className = 'sns-card';
+    card.innerHTML = `
+      <div class="sns-card-icon" style="background:${p.color}">${p.icon}</div>
+      <div class="sns-card-body">
+        <p class="sns-card-label">${p.label}</p>
+        <p class="sns-card-desc">${p.desc}</p>
+        ${areaInput ? `<p class="sns-card-query">"${areaInput}" で検索</p>` : ''}
+      </div>
+      <svg class="sns-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>`;
+    frag.appendChild(card);
+  });
+
+  container.appendChild(frag);
+  showToast('✓ 検索クエリを生成しました。各ボタンで新しいタブが開きます');
+}
+
+/* ── Discovery Modal Init ── */
+function initDiscovery() {
+  // Radius chips
+  document.querySelectorAll('.disc-r-chip[data-r]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.disc-r-chip[data-r]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      discoverRadius = parseInt(chip.dataset.r, 10);
+    });
+  });
+
+  // Type chips
+  document.querySelectorAll('.disc-r-chip[data-type]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.disc-r-chip[data-type]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      discoverType = chip.dataset.type;
+    });
+  });
+
+  // Tab switching
+  document.querySelectorAll('.disc-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.disc-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.disc-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.dtab).classList.add('active');
+    });
+  });
+
+  document.getElementById('btn-run-overpass').addEventListener('click', runOverpassSearch);
+  document.getElementById('btn-gen-sns').addEventListener('click', generateSnsCards);
+  document.getElementById('btn-discover').addEventListener('click', openDiscoverModal);
+  document.getElementById('discover-close').addEventListener('click', () => closeModal('discover-modal'));
+  document.getElementById('discover-backdrop').addEventListener('click', () => closeModal('discover-modal'));
+}
+
+function openDiscoverModal() {
+  // Sync location label
+  const locLabel = document.getElementById('disc-loc-label');
+  if (STATE.searchLat && STATE.searchLng) {
+    locLabel.textContent = `📍 ${STATE.searchLabel || '場所設定済み'} — 周辺を検索できます`;
+    locLabel.style.color = 'var(--g-primary)';
+  } else {
+    locLabel.textContent = '先に「現在地から探す」または「目的地で探す」で場所を設定してください';
+    locLabel.style.color = 'var(--text-soft)';
+  }
+
+  // Pre-fill area input
+  if (STATE.searchLabel && STATE.searchLabel !== '現在地') {
+    document.getElementById('disc-area-input').value = STATE.searchLabel;
+  }
+
+  // Auto-generate SNS cards
+  generateSnsCards();
+  openModal('discover-modal');
+}
 document.addEventListener('DOMContentLoaded', () => {
   AuthUI.init();
 });
