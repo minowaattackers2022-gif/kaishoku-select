@@ -2391,3 +2391,26 @@ a { color: inherit; text-decoration: none; }
 
 /* badge追加 */
 .badge-ig { background: linear-gradient(135deg,rgba(131,58,180,.15),rgba(253,29,29,.1)); color: #C13584; }
+
+/* ── 会食の目的（シーン）タグ ── */
+.f-section-scene { border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+.f-label-scene { color: var(--g-dark) !important; font-size: 0.75rem !important; }
+
+.tag-chip.tag-scene {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  color: var(--text-mid);
+  font-size: 0.82rem;
+  padding: 8px 14px;
+}
+.tag-chip.tag-scene:hover {
+  border-color: var(--g-primary);
+  background: var(--g-pale);
+  color: var(--g-dark);
+}
+.tag-chip.tag-scene.selected {
+  background: var(--g-dark);
+  border-color: var(--g-dark);
+  color: var(--white);
+  box-shadow: 0 2px 8px rgba(30,57,50,0.3);
+}
