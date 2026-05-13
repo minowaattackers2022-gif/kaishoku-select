@@ -205,18 +205,6 @@
           </button>
         </div>
 
-        <!-- Premium AI Search Button -->
-        <button id="btn-premium-search" class="btn-premium-hero">
-          <div class="premium-btn-glow"></div>
-          <div class="premium-btn-inner">
-            <span class="premium-btn-icon">✦</span>
-            <div class="premium-btn-text">
-              <strong>ハイエンド × SNS人気を発見</strong>
-              <span>AI評価 × Googleクチコミで厳選</span>
-            </div>
-            <div class="premium-btn-badge">NEW</div>
-          </div>
-        </button>
         <div id="dest-input-area" class="dest-input-area hidden">
           <div class="dest-row">
             <input type="text" id="dest-text" placeholder="例：新宿三丁目、渋谷駅、六本木ヒルズ" class="dest-input" autocomplete="off">
@@ -252,6 +240,21 @@
         <div id="filter-body" class="filter-body hidden">
 
           <!-- ① 検索範囲 / エリア（場所設定状態で動的切替） -->
+          <!-- ① 好みが分からない場合（最上部） -->
+          <div class="f-section f-section-rescue-top">
+            <div class="f-label f-label-rescue">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              好みが分からない場合
+            </div>
+            <div class="tag-group" id="tags-rescue">
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="好みが分からない">🤷 好みが分からない</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="とりあえず人気店">⭐ とりあえず人気店</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="雰囲気重視">🌸 雰囲気重視</button>
+              <button class="tag-chip tag-rescue" data-group="rescue" data-val="写真が良い店">📸 写真が良い店</button>
+            </div>
+          </div>
+
+          <!-- ② エリア / 距離 -->
           <div class="f-section" id="f-section-location">
 
             <!-- 場所設定済み → 距離フィルター表示 -->
@@ -283,7 +286,7 @@
 
           </div>
 
-          <!-- ② 相手の好み（タグ複数選択） -->
+          <!-- ③ 相手の好み（タグ複数選択） -->
           <div class="f-section">
             <div class="f-label">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -308,13 +311,6 @@
               <button class="tag-chip" data-group="pref" data-val="接待向け">👔 接待向け</button>
               <button class="tag-chip" data-group="pref" data-val="静かなお店">🤫 静かな店</button>
               <button class="tag-chip" data-group="pref" data-val="にぎやかなお店">🎉 にぎやか</button>
-            </div>
-            <div class="f-rescue-label">好みが分からない場合</div>
-            <div class="tag-group" id="tags-rescue">
-              <button class="tag-chip tag-rescue" data-group="rescue" data-val="好みが分からない">🤷 好みが分からない</button>
-              <button class="tag-chip tag-rescue" data-group="rescue" data-val="とりあえず人気店">⭐ とりあえず人気店</button>
-              <button class="tag-chip tag-rescue" data-group="rescue" data-val="雰囲気重視">🌸 雰囲気重視</button>
-              <button class="tag-chip tag-rescue" data-group="rescue" data-val="写真が良い店">📸 写真が良い店</button>
             </div>
           </div>
 
@@ -397,6 +393,19 @@
 
       <!-- Search CTA -->
       <div class="search-cta">
+        <!-- ✦ ハイエンド発見ボタン（絞り込み条件とマイリストの間） -->
+        <button id="btn-premium-search" class="btn-premium-hero">
+          <div class="premium-btn-glow"></div>
+          <div class="premium-btn-inner">
+            <span class="premium-btn-icon">✦</span>
+            <div class="premium-btn-text">
+              <strong>ハイエンド × SNS人気を発見</strong>
+              <span>Overpass × OSMスコアで厳選・完全無料</span>
+            </div>
+            <div class="premium-btn-badge">NEW</div>
+          </div>
+        </button>
+
         <button id="btn-search" class="btn-search">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
