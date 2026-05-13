@@ -240,13 +240,36 @@
 
         <div id="filter-body" class="filter-body hidden">
 
-          <!-- ① エリア -->
-          <div class="f-section">
-            <div class="f-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              エリア
+          <!-- ① 検索範囲 / エリア（場所設定状態で動的切替） -->
+          <div class="f-section" id="f-section-location">
+
+            <!-- 場所設定済み → 距離フィルター表示 -->
+            <div id="f-distance-mode" class="hidden">
+              <div class="f-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span id="f-loc-name-label">📍 場所周辺</span>以内のお店
+              </div>
+              <div class="tag-group">
+                <button class="tag-chip tag-single f-dist-chip active" data-dist="99999">距離で絞らない</button>
+                <button class="tag-chip tag-single f-dist-chip" data-dist="500">500m</button>
+                <button class="tag-chip tag-single f-dist-chip" data-dist="1000">1km</button>
+                <button class="tag-chip tag-single f-dist-chip" data-dist="3000">3km</button>
+                <button class="tag-chip tag-single f-dist-chip" data-dist="5000">5km</button>
+                <button class="tag-chip tag-single f-dist-chip" data-dist="10000">10km</button>
+                <button class="tag-chip tag-single f-dist-chip" data-dist="30000">30km</button>
+              </div>
+              <p class="f-dist-note">📋 マイリストに登録済みのお店が対象です。周辺の新規店舗を探すには「SNS人気店を発見」をご利用ください。</p>
             </div>
-            <select id="f-area" class="f-select"><option value="">すべてのエリア</option></select>
+
+            <!-- 場所未設定 → エリア選択ドロップダウン -->
+            <div id="f-area-mode">
+              <div class="f-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                エリア
+              </div>
+              <select id="f-area" class="f-select"><option value="">すべてのエリア</option></select>
+            </div>
+
           </div>
 
           <!-- ② 相手の好み（タグ複数選択） -->
