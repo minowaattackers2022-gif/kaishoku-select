@@ -355,6 +355,7 @@ const AppMain = {
     updateFavBadge();
     attachEvents();
     initDiscovery();
+    initPremium();
 
     if (STATE.usingDemo) {
       STATE.stores = [...DEMO_STORES];
@@ -1579,6 +1580,316 @@ function openDiscoverModal() {
   generateSnsCards();
   openModal('discover-modal');
 }
+
+/* ─────────────────────────────────────────
+   PREMIUM SEARCH — Overpass API + OSM
+   完全無料・APIキー不要
+   OSM発見スコア = データ充実度の複合指標
+   （著名店ほどOSMデータが豊富）
+───────────────────────────────────────── */
+
+/* OSMのcuisineタグ → 日本語ラベル変換 */
+const CUISINE_JA = {
+  sushi:'寿司', japanese:'和食', french:'フレンチ', italian:'イタリアン',
+  chinese:'中華', steak_house:'ステーキ', yakiniku:'焼肉', bbq:'焼肉',
+  seafood:'シーフード', ramen:'ラーメン', izakaya:'居酒屋', bar:'バー',
+  pub:'バー', cafe:'カフェ', pizza:'ピザ', burger:'バーガー',
+  korean:'韓国料理', thai:'タイ料理', vietnamese:'ベトナム料理',
+  indian:'インド料理', turkish:'トルコ料理', mexican:'メキシコ料理',
+  noodle:'麺類', tempura:'天ぷら', teppanyaki:'鉄板焼き',
+  kaiseki:'懐石', curry:'カレー', udon:'うどん', soba:'蕎麦',
+};
+
+/* OSM amenityタグ → 業態ラベル */
+const AMENITY_JA = {
+  restaurant:'レストラン', bar:'バー', pub:'パブ',
+  cafe:'カフェ', fast_food:'ファストフード', food_court:'フードコート',
+};
+
+/* OSM発見スコア（高いほど実力・著名店）*/
+function osmScore(tags) {
+  let s = 0;
+  // 最強シグナル：Wikipedia/Wikidata = 社会的に著名な店
+  if (tags.wikidata)              s += 6;
+  if (tags.wikipedia)             s += 5;
+  // 強シグナル：公式情報が整備されている
+  if (tags.website || tags['contact:website']) s += 3;
+  if (tags['contact:instagram'] || tags['website:instagram']) s += 2;
+  // 運営情報シグナル
+  if (tags.opening_hours)         s += 2;
+  if (tags.phone || tags['contact:phone']) s += 1;
+  // 予約関連（高需要・人気店シグナル）
+  if (tags.reservation === 'required')    s += 3;
+  if (tags.reservation === 'recommended') s += 2;
+  if (tags.reservation === 'yes')         s += 1;
+  // 住所情報
+  if (tags['addr:street'] || tags['addr:full']) s += 1;
+  // プレミアムジャンル加点
+  const premCuisines = ['sushi','japanese','french','italian','steak_house',
+                        'fine_dining','seafood','yakiniku','kaiseki','teppanyaki'];
+  const cuisine = (tags.cuisine || '').toLowerCase();
+  if (premCuisines.some(c => cuisine.includes(c))) s += 2;
+  // 快適性タグ
+  if (tags.outdoor_seating === 'yes') s += 0.5;
+  if (tags.air_conditioning === 'yes') s += 0.5;
+  // OSMスターレーティング（稀だが存在する）
+  if (tags.stars) s += Math.min(parseInt(tags.stars) || 0, 3);
+  // 名前の多言語化（国際的知名度）
+  if (tags['name:en'] || tags['name:ja_rm']) s += 0.5;
+
+  return Math.round(s * 10) / 10;
+}
+
+/* 営業時間テキストを日本語で簡易表示 */
+function formatOpeningHours(oh) {
+  if (!oh) return '';
+  if (oh.length > 60) return oh.substring(0, 60) + '...';
+  return oh
+    .replace(/Mo/g,'月').replace(/Tu/g,'火').replace(/We/g,'水')
+    .replace(/Th/g,'木').replace(/Fr/g,'金').replace(/Sa/g,'土').replace(/Su/g,'日')
+    .replace(/off/g,'休').replace(/,/g,' ');
+}
+
+/* Overpass最適クエリ生成 */
+function buildPremiumOverpassQuery(lat, lng, radius, cuisines, attrs) {
+  // cuisine条件のOR構築
+  const cuisineArr = [...cuisines];
+  const cuisineRegex = cuisineArr.length > 0
+    ? cuisineArr.map(c => c.split(';')).flat().join('|')
+    : null;
+
+  const cuisineFilter = cuisineRegex
+    ? `["cuisine"~"${cuisineRegex}",i]`
+    : '';
+
+  // attr条件（websiteなど）でスコアを上げるため、条件なし全取得 → クライアント側でフィルタ
+  return `[out:json][timeout:25];
+(
+  node["amenity"~"restaurant|bar|pub|izakaya|cafe"]${cuisineFilter}(around:${radius},${lat},${lng});
+  way["amenity"~"restaurant|bar|pub|izakaya|cafe"]${cuisineFilter}(around:${radius},${lat},${lng});
+);
+out center tags;`;
+}
+
+const OverpassPremium = {
+  radius:   1500,
+  cuisines: new Set(),
+  attrs:    new Set(),   // website, opening_hours, reservation, outdoor_seating, wikidata
+
+  async search(lat, lng) {
+    const query = buildPremiumOverpassQuery(lat, lng, this.radius, this.cuisines, this.attrs);
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body:   'data=' + encodeURIComponent(query),
+    });
+    const data = await res.json();
+    return (data.elements || []).filter(e => e.tags && e.tags.name);
+  },
+
+  filterAndScore(elements, lat, lng) {
+    return elements
+      .map(e => {
+        const t    = e.tags;
+        const eLat = e.lat || e.center?.lat;
+        const eLng = e.lon || e.center?.lon;
+        const dist = (eLat && eLng) ? haversine(lat, lng, eLat, eLng) : 99;
+        const score= osmScore(t);
+
+        // attr filter: if any attr selected, element must have at least one
+        if (this.attrs.size > 0) {
+          const attrMap = {
+            website:       t.website || t['contact:website'],
+            opening_hours: t.opening_hours,
+            reservation:   t.reservation,
+            outdoor_seating: t.outdoor_seating === 'yes',
+            wikidata:      t.wikidata,
+          };
+          const pass = [...this.attrs].some(a => attrMap[a]);
+          if (!pass) return null;
+        }
+
+        return { name:t.name, tags:t, lat:eLat, lng:eLng, dist, score };
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        // Primary: score desc, secondary: distance asc
+        if (Math.abs(b.score - a.score) > 0.5) return b.score - a.score;
+        return a.dist - b.dist;
+      });
+  },
+};
+
+/* 結果カード描画 */
+function renderPremiumResults(stores) {
+  const container = document.getElementById('premium-results');
+  if (!stores.length) {
+    container.innerHTML = `
+      <div class="prem-empty">
+        <p>条件に合うお店が見つかりませんでした。</p>
+        <p style="font-size:.8rem;margin-top:6px;color:var(--text-hint)">検索範囲を広げるか、ジャンル条件を減らしてみてください。</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = `<p class="prem-result-count">OSM発見スコア順 <strong>${stores.length}件</strong></p>`;
+  const maxScore = stores[0].score || 1;
+
+  const frag = document.createDocumentFragment();
+  stores.forEach((s, idx) => {
+    const t = s.tags;
+    const cuisine    = t.cuisine ? cuisineLabel(t.cuisine) : (AMENITY_JA[t.amenity] || 'レストラン');
+    const website    = t.website || t['contact:website'] || '';
+    const instagram  = t['contact:instagram'] || t['website:instagram'] || '';
+    const oh         = formatOpeningHours(t.opening_hours);
+    const hasWiki    = !!(t.wikidata || t.wikipedia);
+    const needsRes   = t.reservation === 'required' || t.reservation === 'recommended';
+    const outdoor    = t.outdoor_seating === 'yes';
+    const mapsQ      = encodeURIComponent(`${s.name} ${t['addr:full'] || t['addr:city'] || ''}`);
+    const igQ        = encodeURIComponent(s.name);
+    const tkQ        = encodeURIComponent(s.name + ' グルメ');
+    const tabelogQ   = encodeURIComponent(s.name);
+    const pct        = Math.min(100, Math.round(s.score / Math.max(maxScore, 6) * 100));
+
+    // Badges
+    const badges = [];
+    if (hasWiki)   badges.push('<span class="prem-badge badge-wiki">📚 著名店</span>');
+    if (needsRes)  badges.push('<span class="prem-badge badge-res">📞 要予約</span>');
+    if (outdoor)   badges.push('<span class="prem-badge badge-out">🌿 テラス</span>');
+    if (website)   badges.push('<span class="prem-badge badge-web">🌐 公式サイト</span>');
+
+    const card = document.createElement('div');
+    card.className = 'prem-card';
+    card.innerHTML = `
+      <div class="prem-card-head">
+        <div class="prem-rank-num">#${idx + 1}</div>
+        <div class="prem-card-info">
+          <h3 class="prem-card-name">${s.name}</h3>
+          <p class="prem-cuisine-tag">${cuisine}</p>
+        </div>
+        <span class="prem-dist-pill">${fmt(s.dist)}</span>
+      </div>
+
+      ${badges.length ? `<div class="prem-badges">${badges.join('')}</div>` : ''}
+
+      <div class="prem-score-row">
+        <span class="prem-score-label">OSM発見スコア</span>
+        <div class="prem-score-track"><div class="prem-score-fill" style="width:${pct}%"></div></div>
+        <span class="prem-score-val">${s.score.toFixed(1)}</span>
+      </div>
+
+      ${t['addr:full'] || t['addr:street'] ? `
+        <p class="prem-addr">📍 ${t['addr:full'] || [t['addr:city'],t['addr:suburb'],t['addr:street']].filter(Boolean).join(' ')}</p>` : ''}
+
+      ${oh ? `<p class="prem-oh">🕐 ${oh}</p>` : ''}
+
+      <div class="prem-card-actions">
+        <a href="https://maps.google.com/maps?q=${mapsQ}" target="_blank" rel="noopener" class="prem-action-btn prem-map-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ナビ開始
+        </a>
+        ${website ? `<a href="${website}" target="_blank" rel="noopener" class="prem-action-btn prem-web-btn">🌐 公式</a>` : ''}
+        ${instagram ? `<a href="${instagram.startsWith('http') ? instagram : 'https://instagram.com/'+instagram}" target="_blank" rel="noopener" class="prem-action-btn prem-ig-btn">📸 IG公式</a>` : `
+        <a href="https://www.instagram.com/explore/search/keyword/?q=${igQ}" target="_blank" rel="noopener" class="prem-action-btn prem-ig-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/></svg>
+          Instagram
+        </a>`}
+        <a href="https://www.tiktok.com/search?q=${tkQ}" target="_blank" rel="noopener" class="prem-action-btn prem-tk-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.37a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.8z"/></svg>
+          TikTok
+        </a>
+        <a href="https://tabelog.com/rst/search/?vs=1&sw=${tabelogQ}" target="_blank" rel="noopener" class="prem-action-btn prem-tbl-btn">🍽 食べログ</a>
+      </div>`;
+    frag.appendChild(card);
+  });
+  container.appendChild(frag);
+}
+
+function cuisineLabel(raw) {
+  if (!raw) return 'レストラン';
+  const first = raw.split(';')[0].trim().toLowerCase();
+  return CUISINE_JA[first] || AMENITY_JA[first] || raw.split(';')[0];
+}
+
+/* Premium Search Execute */
+async function runPremiumSearch() {
+  if (!STATE.searchLat) { alert('先に場所を設定してください（現在地 or 目的地）'); return; }
+
+  const btn = document.getElementById('btn-run-premium');
+  const sp  = document.getElementById('prem-spinner');
+  const tx  = document.getElementById('prem-btn-text');
+  const res = document.getElementById('premium-results');
+
+  btn.disabled = true;
+  tx.style.display = 'none';
+  sp.classList.remove('hidden');
+  res.innerHTML = `
+    <div class="prem-loading">
+      <div class="prem-loading-dots"><span></span><span></span><span></span></div>
+      <p>Overpass APIで周辺を検索中...</p>
+      <p style="font-size:.75rem;margin-top:4px;color:var(--text-hint)">※ OSMデータを取得しています（数秒かかる場合があります）</p>
+    </div>`;
+
+  try {
+    const elements = await OverpassPremium.search(STATE.searchLat, STATE.searchLng);
+    const scored   = OverpassPremium.filterAndScore(elements, STATE.searchLat, STATE.searchLng);
+    renderPremiumResults(scored.slice(0, 30));
+  } catch (e) {
+    res.innerHTML = `<div class="prem-error">⚠ ${e.message}<br><small style="color:var(--text-hint)">しばらく待ってから再試行してください（Overpass API一時制限）</small></div>`;
+  } finally {
+    btn.disabled = false;
+    tx.style.display = '';
+    tx.textContent = '✦ 再検索';
+    sp.classList.add('hidden');
+  }
+}
+
+function initPremium() {
+  // Radius chips
+  document.querySelectorAll('.prem-chip[data-radius]').forEach(c =>
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.prem-chip[data-radius]').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+      OverpassPremium.radius = parseInt(c.dataset.radius, 10);
+    })
+  );
+
+  // Cuisine chips (multi)
+  document.querySelectorAll('.prem-chip.prem-osm').forEach(c =>
+    c.addEventListener('click', () => {
+      c.classList.toggle('active');
+      if (c.classList.contains('active')) OverpassPremium.cuisines.add(c.dataset.cuisine);
+      else OverpassPremium.cuisines.delete(c.dataset.cuisine);
+    })
+  );
+
+  // Attr chips (multi)
+  document.querySelectorAll('.prem-chip.prem-attr').forEach(c =>
+    c.addEventListener('click', () => {
+      c.classList.toggle('active');
+      if (c.classList.contains('active')) OverpassPremium.attrs.add(c.dataset.attr);
+      else OverpassPremium.attrs.delete(c.dataset.attr);
+    })
+  );
+
+  document.getElementById('btn-run-premium').addEventListener('click', runPremiumSearch);
+  document.getElementById('btn-premium-search').addEventListener('click', openPremiumModal);
+  document.getElementById('premium-close').addEventListener('click', () => closeModal('premium-modal'));
+  document.getElementById('premium-backdrop').addEventListener('click', () => closeModal('premium-modal'));
+}
+
+function openPremiumModal() {
+  const locText = document.getElementById('prem-loc-text');
+  if (STATE.searchLat) {
+    locText.textContent = `📍 ${STATE.searchLabel || '場所設定済み'}周辺を検索`;
+    locText.style.color = 'var(--g-primary)';
+  } else {
+    locText.textContent = '⚠ まず「現在地から探す」または「目的地で探す」で場所を設定してください';
+    locText.style.color = '#DC2626';
+  }
+  document.getElementById('premium-results').innerHTML = '';
+  openModal('premium-modal');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   AuthUI.init();
 });
