@@ -329,6 +329,7 @@ const STATE = {
   searchLat:null, searchLng:null, searchLabel:'',
   mapInstance:null, activePanel:'search', filterOpen:false,
   sheetId:'', usingDemo:false,
+  selectedPref: '',  // 都道府県タイル選択
 };
 
 const LS = {
@@ -604,17 +605,10 @@ function handleTagClick(chip) {
     }
 
   } else if (group === 'rescue') {
-    // Single select: rescue cancels pref and vice-versa
-    const wasSelected = chip.classList.contains('selected');
-    document.querySelectorAll('[data-group="rescue"]').forEach(c => c.classList.remove('selected'));
-    FILTER_STATE.rescues.clear();
-    if (!wasSelected) {
-      chip.classList.add('selected');
-      FILTER_STATE.rescues.add(val);
-      // Clear pref selections when rescue is chosen
-      document.querySelectorAll('[data-group="pref"]').forEach(c => c.classList.remove('selected'));
-      FILTER_STATE.prefs.clear();
-    }
+    // ③ こだわり条件 → 複数選択OK（pref・atmosと同様の動作）
+    chip.classList.toggle('selected');
+    if (chip.classList.contains('selected')) FILTER_STATE.rescues.add(val);
+    else FILTER_STATE.rescues.delete(val);
 
   } else if (group === 'pref') {
     // Multi select: toggle; clears rescue
@@ -811,32 +805,50 @@ function renderResults() {
   const section = document.getElementById('results-section');
   const noRes   = document.getElementById('no-results');
   const count   = document.getElementById('results-count');
+  const featWrap= document.getElementById('featured-wrap');
+  const discView= document.getElementById('discovery-view');
+
   section.classList.remove('hidden');
+  discView.classList.add('hidden');
   grid.innerHTML = '';
+  if (featWrap) featWrap.innerHTML = '';
+
   if (!STATE.filteredStores.length) {
     noRes.classList.remove('hidden');
     count.innerHTML = '0件のお店';
-    // Show location-specific message
-    const locName = STATE.searchLabel || '';
-    noRes.innerHTML = `
-      <div class="no-results-icon">🍃</div>
-      <p>${locName ? `<strong>${locName}周辺</strong>に` : ''}マイリストの中に条件に合うお店が見つかりませんでした。</p>
-      ${STATE.searchLat ? `
-      <div class="no-results-discover">
-        <p class="no-results-hint">周辺の飲食店をリアルタイムで探しますか？</p>
-        <button class="btn-no-res-discover" id="btn-no-res-open-disc">
-          📱 SNS人気店を発見する
-        </button>
-      </div>` : '<p style="font-size:.82rem;color:var(--text-hint);margin-top:8px">条件を変えてお試しください。</p>'}`;
     const discBtn = document.getElementById('btn-no-res-open-disc');
     if (discBtn) discBtn.addEventListener('click', openDiscoverModal);
     return;
   }
   noRes.classList.add('hidden');
-  count.innerHTML = `<strong>${STATE.filteredStores.length}</strong>件のお店が見つかりました`;
+  count.innerHTML = `<strong>${STATE.filteredStores.length}</strong>件`;
+
+  // 最初の1件はフィーチャードカード
+  const [first, ...rest] = STATE.filteredStores;
+  if (featWrap && first) featWrap.appendChild(buildFeaturedCard(first));
+
+  // 残りは2列グリッド
   const frag = document.createDocumentFragment();
-  STATE.filteredStores.forEach(s => frag.appendChild(buildCard(s)));
+  rest.forEach(s => frag.appendChild(buildCard(s)));
   grid.appendChild(frag);
+
+  // フィーチャードカードのクリック
+  if (featWrap) {
+    featWrap.addEventListener('click', e => {
+      const fab  = e.target.closest('.fc-fav');
+      const det  = e.target.closest('.fc-detail-btn');
+      const card = e.target.closest('.featured-card');
+      if (fab) {
+        e.stopPropagation();
+        const id = fab.dataset.id; toggleFavorite(id); const f = isFav(id);
+        fab.classList.toggle('active', f);
+        fab.querySelector('svg').setAttribute('fill', f ? '#e53e3e' : 'none');
+        fab.querySelector('svg').setAttribute('stroke', f ? '#e53e3e' : 'rgba(0,0,0,.5)');
+        showToast(f ? '♡ お気に入りに追加' : 'お気に入りから削除');
+      } else if (det) { openStoreModal(det.dataset.id); }
+      else if (card && !e.target.closest('a'))  { openStoreModal(card.dataset.id); }
+    }, { once: false });
+  }
 }
 
 /* ─────────────────────────────────────────
@@ -1095,20 +1107,31 @@ function showLocError(msg) {
 }
 
 async function geocodeDestination() {
-  const q=document.getElementById('dest-text').value.trim();
+  const q    = document.getElementById('dest-text').value.trim();
+  const pref = document.getElementById('dest-pref').value.trim();
   if (!q) { alert('場所名を入力してください'); return; }
-  const btn=document.getElementById('btn-geocode'), save=btn.innerHTML;
+
+  // 都道府県が選択されていれば先頭に付加して同名地名の混同を防ぐ
+  const searchQuery = pref ? `${pref} ${q}` : q;
+
+  const btn = document.getElementById('btn-geocode'), save = btn.innerHTML;
   btn.innerHTML='<div style="width:18px;height:18px;border:2px solid rgba(30,57,50,.3);border-top-color:#1E3932;border-radius:50%;animation:spin 0.8s linear infinite"></div>';
   btn.disabled=true;
   try {
-    const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+' 日本')}&format=json&limit=1`,
+    const res  = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery+' 日本')}&format=json&limit=3&countrycodes=jp&accept-language=ja`,
       {headers:{'Accept-Language':'ja','User-Agent':'KaishokuSelect/1.0'}});
-    const data=await res.json();
-    if (!data.length) { alert(`「${q}」が見つかりませんでした`); return; }
-    STATE.searchLat=parseFloat(data[0].lat); STATE.searchLng=parseFloat(data[0].lon);
-    STATE.searchLabel=data[0].display_name.split(',')[0];
+    const data = await res.json();
+    if (!data.length) { alert(`「${searchQuery}」が見つかりませんでした\n都道府県を選択して再試行してください`); return; }
+    // 都道府県が選択されていれば同県の結果を優先
+    const best = pref
+      ? (data.find(d => d.display_name.includes(pref.replace('県','').replace('府','').replace('都',''))) || data[0])
+      : data[0];
+    STATE.searchLat   = parseFloat(best.lat);
+    STATE.searchLng   = parseFloat(best.lon);
+    STATE.searchLabel = best.display_name.split(',')[0];
     showLocStatus(`📍 ${STATE.searchLabel}`);
     switchFilterLocationMode(true, STATE.searchLabel);
+    document.getElementById('dest-input-area').classList.add('hidden');
   } catch { alert('検索中にエラーが発生しました'); }
   finally { btn.innerHTML=save; btn.disabled=false; }
 }
@@ -1308,8 +1331,9 @@ function showToast(msg, ms=3000) {
 ───────────────────────────────────────── */
 function doSearch() {
   if (!STATE.stores.length) { openConfigModal(); return; }
+  document.getElementById('discovery-view')?.classList.add('hidden');
   applyFilters(); renderResults();
-  setTimeout(()=>document.getElementById('results-section').scrollIntoView({behavior:'smooth',block:'start'}),100);
+  setTimeout(()=>document.getElementById('results-section')?.scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
 
 /* ─────────────────────────────────────────
@@ -1317,10 +1341,73 @@ function doSearch() {
 ───────────────────────────────────────── */
 function attachEvents() {
   document.getElementById('btn-current').addEventListener('click', getCurrentLocation);
+  // location bar buttons
   document.getElementById('btn-destination').addEventListener('click', ()=>{
     document.getElementById('dest-input-area').classList.toggle('hidden');
-    document.getElementById('dest-text').focus();
+    setTimeout(()=>document.getElementById('dest-text').focus(), 200);
   });
+  document.getElementById('btn-dest-close')?.addEventListener('click', ()=>{
+    document.getElementById('dest-input-area').classList.add('hidden');
+  });
+  // 都道府県タイルクリック
+  document.querySelectorAll('.drl-pref').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // 選択状態トグル
+      const isSelected = btn.classList.contains('selected');
+      document.querySelectorAll('.drl-pref').forEach(b => b.classList.remove('selected'));
+      if (isSelected) {
+        STATE.selectedPref = '';
+        document.getElementById('dest-pref-status').classList.add('hidden');
+      } else {
+        btn.classList.add('selected');
+        STATE.selectedPref = btn.dataset.pref;
+        const label = document.getElementById('dest-pref-label');
+        if (label) label.textContent = btn.dataset.pref;
+        document.getElementById('dest-pref-status').classList.remove('hidden');
+      }
+    });
+  });
+  // 都道府県クリア
+  document.getElementById('btn-clear-pref')?.addEventListener('click', () => {
+    STATE.selectedPref = '';
+    document.querySelectorAll('.drl-pref').forEach(b => b.classList.remove('selected'));
+    document.getElementById('dest-pref-status').classList.add('hidden');
+  });
+  // 背景クリックでモーダルを閉じる
+  document.getElementById('dest-input-area').addEventListener('click', e => {
+    if (e.target === document.getElementById('dest-input-area')) {
+      document.getElementById('dest-input-area').classList.add('hidden');
+    }
+  });
+  // Enterキー検索
+  document.getElementById('dest-text').addEventListener('keydown', e => {
+    if (e.key === 'Enter') geocodeDestination();
+  });
+  // filter bottom sheet
+  document.getElementById('btn-filter-open').addEventListener('click', () => openModal('filter-modal'));
+  document.getElementById('filter-close').addEventListener('click', () => closeModal('filter-modal'));
+  document.getElementById('filter-backdrop').addEventListener('click', () => closeModal('filter-modal'));
+  document.getElementById('filter-apply-btn').addEventListener('click', () => { closeModal('filter-modal'); doSearch(); });
+  // scene bar
+  document.querySelectorAll('.scene-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.scene-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const scene = pill.dataset.scene;
+      FILTER_STATE.prefs.clear();
+      document.querySelectorAll('[data-group="pref"]').forEach(c => c.classList.remove('selected'));
+      if (scene !== 'all') {
+        FILTER_STATE.prefs.add(scene);
+        const chip = document.querySelector(`[data-group="pref"][data-val="${scene}"]`);
+        if (chip) chip.classList.add('selected');
+      }
+      // auto-search if location set
+      if (STATE.stores.length) doSearch();
+    });
+  });
+  // discovery view action cards
+  document.getElementById('btn-search').addEventListener('click', doSearch);
+  document.getElementById('btn-no-res-open-disc')?.addEventListener('click', openDiscoverModal);
   document.getElementById('btn-geocode').addEventListener('click', geocodeDestination);
   document.getElementById('dest-text').addEventListener('keydown', e=>{if(e.key==='Enter')geocodeDestination();});
   document.getElementById('btn-clear-loc').addEventListener('click', ()=>{
@@ -1330,11 +1417,7 @@ function attachEvents() {
     document.getElementById('dest-text').value='';
     switchFilterLocationMode(false, '');
   });
-  document.getElementById('filter-toggle').addEventListener('click', ()=>{
-    STATE.filterOpen=!STATE.filterOpen;
-    document.getElementById('filter-body').classList.toggle('hidden',!STATE.filterOpen);
-    document.getElementById('filter-chevron').classList.toggle('open',STATE.filterOpen);
-  });
+  // filter is now a bottom sheet - toggle handled by btn-filter-open
   document.getElementById('btn-clear-filter').addEventListener('click', clearAllFilters);
   document.getElementById('f-area').addEventListener('change', e => { FILTER_STATE.area = e.target.value; });
   document.getElementById('f-keyword').addEventListener('input', e => { FILTER_STATE.keyword = e.target.value.trim(); });
@@ -1357,16 +1440,15 @@ function attachEvents() {
   document.getElementById('btn-diagnose').addEventListener('click', runDiagnose);
 
   document.getElementById('store-grid').addEventListener('click', e=>{
-    const fab=e.target.closest('.card-fav-btn'), det=e.target.closest('.btn-card-detail'),
-          map=e.target.closest('.btn-card-map'), card=e.target.closest('.store-card');
+    const fab  = e.target.closest('.mc-fav');
+    const card = e.target.closest('.m-card');
     if (fab) {
       e.stopPropagation(); toggleFavorite(fab.dataset.id); const f=isFav(fab.dataset.id);
       fab.classList.toggle('active',f);
-      fab.innerHTML=`<svg width="17" height="17" viewBox="0 0 24 24" fill="${f?'#e53e3e':'none'}" stroke="${f?'#e53e3e':'#555'}" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+      const svg = fab.querySelector('svg');
+      if(svg){ svg.setAttribute('fill',f?'#e53e3e':'none'); svg.setAttribute('stroke',f?'#e53e3e':'rgba(0,0,0,.5)'); }
       showToast(f?'♡ お気に入りに追加':'お気に入りから削除');
-    } else if (det) { openStoreModal(det.dataset.id); }
-    else if (map)   { window.open(map.dataset.map,'_blank','noopener'); }
-    else if (card)  { openStoreModal(card.dataset.id); }
+    } else if (card) { openStoreModal(card.dataset.id); }
   });
 
   document.getElementById('store-close').addEventListener('click', ()=>closeModal('store-modal'));
@@ -1525,8 +1607,8 @@ const SNS_PLATFORMS = [
     icon:  '🔍',
     color: '#4285F4',
     desc:  'Instagramで話題の店を発見',
-    build: (area, prefs) => {
-      const q = buildSnsQuery(area, prefs, ['インスタ映え','インスタ話題','グルメ','絶品']);
+    build: (area, prefs, scene) => {
+      const q = buildSnsQuery(area, prefs, ['インスタ映え','インスタ話題','グルメ','絶品'], scene);
       return `https://www.google.com/search?q=${encodeURIComponent(q + ' site:instagram.com')}`;
     },
   },
@@ -1536,8 +1618,8 @@ const SNS_PLATFORMS = [
     icon:  '🎵',
     color: '#000000',
     desc:  'TikTokで話題の飲食店',
-    build: (area, prefs) => {
-      const q = buildSnsQuery(area, prefs, ['グルメ','飯テロ','おすすめ']);
+    build: (area, prefs, scene) => {
+      const q = buildSnsQuery(area, prefs, ['グルメ','飯テロ','おすすめ'], scene);
       return `https://www.tiktok.com/search?q=${encodeURIComponent(q)}`;
     },
   },
@@ -1547,7 +1629,7 @@ const SNS_PLATFORMS = [
     icon:  '📸',
     color: '#C13584',
     desc:  '最新の投稿でお店を発見',
-    build: (area, prefs) => {
+    build: (area, prefs, scene) => {
       const tag = (area || 'グルメ').replace(/\s/g,'') + 'グルメ';
       return `https://www.instagram.com/explore/tags/${encodeURIComponent(tag)}/`;
     },
@@ -1558,8 +1640,8 @@ const SNS_PLATFORMS = [
     icon:  '🚪',
     color: '#1E3932',
     desc:  'SNSでしか知られていない名店',
-    build: (area, prefs) => {
-      const q = buildSnsQuery(area, prefs, ['隠れ家','穴場','知る人ぞ知る','絶対行くべき']);
+    build: (area, prefs, scene) => {
+      const q = buildSnsQuery(area, prefs, ['隠れ家','穴場','知る人ぞ知る','絶対行くべき'], scene);
       return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
     },
   },
@@ -1569,8 +1651,8 @@ const SNS_PLATFORMS = [
     icon:  '⭐',
     color: '#E67E22',
     desc:  '食へのこだわりが強い名店',
-    build: (area, prefs) => {
-      const q = buildSnsQuery(area, prefs, ['食べログ','こだわり','絶品','予約困難']);
+    build: (area, prefs, scene) => {
+      const q = buildSnsQuery(area, prefs, ['食べログ','こだわり','絶品','予約困難'], scene);
       return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
     },
   },
@@ -1580,8 +1662,8 @@ const SNS_PLATFORMS = [
     icon:  '▶️',
     color: '#FF0000',
     desc:  'グルメ系YouTuberが紹介した店',
-    build: (area, prefs) => {
-      const q = buildSnsQuery(area, prefs, ['グルメ','おすすめレストラン','絶品']);
+    build: (area, prefs, scene) => {
+      const q = buildSnsQuery(area, prefs, ['グルメ','おすすめレストラン','絶品'], scene);
       return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
     },
   },
@@ -1591,7 +1673,7 @@ const SNS_PLATFORMS = [
     icon:  '🍽',
     color: '#C0392B',
     desc:  '食べログ3.5以上の評価店',
-    build: (area, prefs) => {
+    build: (area, prefs, scene) => {
       const encoded = encodeURIComponent((area || '東京') + ' ' + (prefs[0] || 'ディナー'));
       return `https://tabelog.com/tokyo/A1301/A130101/R5174/rstLst/?vs=1&sw=${encoded}&sk=&vac_net=&svd=20240101&svt=1900&svps=2&po=&hfc=1&hs=1`;
     },
@@ -1602,60 +1684,110 @@ const SNS_PLATFORMS = [
     icon:  '👥',
     color: '#E74C3C',
     desc:  'グルメ通の実名レビューから発見',
-    build: (area, prefs) => {
+    build: (area, prefs, scene) => {
       const q = (area || '東京') + ' ' + (prefs[0] || 'ディナー');
       return `https://retty.me/search/?q=${encodeURIComponent(q)}`;
     },
   },
 ];
 
-function buildSnsQuery(area, prefs, keywords) {
+function buildSnsQuery(area, prefs, keywords, scene) {
   const parts = [];
-  if (area) parts.push(area);
-  if (prefs.length) parts.push(prefs[0]); // first pref as cuisine hint
+  if (area)              parts.push(area);
+  if (scene)             parts.push(...scene.split(' ').slice(0,2));
+  else if (prefs.length) parts.push(prefs[0]);
   parts.push(...keywords.slice(0, 2));
   return parts.join(' ');
 }
 
 function getPrefLabels() {
-  // prefs → readable cuisine words
   const labels = [];
+  // 会食シーン → キーワード変換
   FILTER_STATE.prefs.forEach(tag => {
     const kws = PREF_KEYWORDS[tag] || [];
     if (kws[0]) labels.push(kws[0]);
   });
-  return labels;
+  // こだわり条件 → キーワード変換
+  FILTER_STATE.rescues.forEach(tag => {
+    const kws = (typeof RESCUE_KEYWORDS !== 'undefined' ? RESCUE_KEYWORDS[tag] : null) || [];
+    if (kws[0]) labels.push(kws[0]);
+  });
+  return [...new Set(labels)];
+}
+
+/* 会食シーンタグを読みやすい日本語に変換（SNSクエリ用） */
+function getSceneLabels() {
+  const sceneMap = {
+    '広告主との会食':         '接待 会食',
+    'パートナー企業との商談': 'ビジネス 商談',
+    '重要クライアント接待':   '接待 高級',
+    '大事な謝罪・関係修復':   '個室 静か',
+    '初回商談':               'カジュアル 商談',
+    '採用候補との面談':       'カジュアル 面談',
+    '採用候補との食事':       'カジュアル おしゃれ',
+    'インフルエンサー打ち合わせ': 'おしゃれ インスタ映え',
+    '少人数役員会食':         '個室 高級 役員',
+  };
+  const condMap = {
+    '個室重視': '個室', 'うるさすぎない': '静か', '接待OK': '接待',
+    '投稿映え': 'インスタ映え', '失敗しにくい定番': '人気', '採用面談向き': 'カジュアル',
+  };
+  const parts = [];
+  FILTER_STATE.prefs.forEach(t => { if (sceneMap[t]) parts.push(sceneMap[t]); });
+  FILTER_STATE.rescues.forEach(t => { if (condMap[t]) parts.push(condMap[t]); });
+  return parts.join(' ');
 }
 
 function generateSnsCards() {
-  const areaInput = document.getElementById('disc-area-input').value.trim()
-    || (STATE.searchLabel && STATE.searchLabel !== '現在地' ? STATE.searchLabel : '');
-  const prefs     = getPrefLabels();
+  // ② GPS情報・会食目的・こだわりを自動入力
+  const areaEl = document.getElementById('disc-area-input');
+
+  // 場所が未入力なら自動セット
+  if (!areaEl.value.trim()) {
+    if (STATE.searchLabel && STATE.searchLabel !== '現在地') {
+      areaEl.value = STATE.searchLabel;
+    }
+  }
+
+  const area     = areaEl.value.trim();
+  const scene    = getSceneLabels();
+  const prefs    = getPrefLabels();
+  const locInfo  = STATE.searchLat
+    ? `📍 ${STATE.searchLabel || '現在地'}から検索中`
+    : '';
+
   const container = document.getElementById('sns-search-cards');
-
   container.innerHTML = '';
-  const frag = document.createDocumentFragment();
 
+  // 自動セット状態の表示
+  if (locInfo || scene) {
+    const info = document.createElement('div');
+    info.className = 'sns-auto-info';
+    info.innerHTML = [
+      locInfo ? `<span class="sai-loc">${locInfo}</span>` : '',
+      scene   ? `<span class="sai-scene">🎯 ${[...FILTER_STATE.prefs, ...FILTER_STATE.rescues].slice(0,3).join(' · ')}</span>` : '',
+    ].filter(Boolean).join('');
+    container.appendChild(info);
+  }
+
+  const frag = document.createDocumentFragment();
   SNS_PLATFORMS.forEach(p => {
-    const url  = p.build(areaInput, prefs);
+    const url  = p.build(area, prefs, scene);
     const card = document.createElement('a');
-    card.href   = url;
-    card.target = '_blank';
-    card.rel    = 'noopener';
+    card.href = url; card.target = '_blank'; card.rel = 'noopener';
     card.className = 'sns-card';
     card.innerHTML = `
       <div class="sns-card-icon" style="background:${p.color}">${p.icon}</div>
       <div class="sns-card-body">
         <p class="sns-card-label">${p.label}</p>
         <p class="sns-card-desc">${p.desc}</p>
-        ${areaInput ? `<p class="sns-card-query">"${areaInput}" で検索</p>` : ''}
+        ${area  ? `<p class="sns-card-query">📍 ${area}</p>` : ''}
+        ${scene ? `<p class="sns-card-query">🎯 ${scene.split(' ').slice(0,3).join(' · ')}</p>` : ''}
       </div>
       <svg class="sns-card-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>`;
     frag.appendChild(card);
   });
-
   container.appendChild(frag);
-  showToast('✓ 検索クエリを生成しました。各ボタンで新しいタブが開きます');
 }
 
 /* ── Discovery Modal Init ── */
