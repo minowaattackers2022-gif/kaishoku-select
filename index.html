@@ -299,66 +299,115 @@ tailwind.config = {
       <h2 class="font-serif text-2xl font-bold leading-tight" style="color:#1E3932">
         SNSで発見する
       </h2>
-      <p class="text-sm mt-1" style="color:#6B7280">選択した条件で最適化されたクエリで検索</p>
+      <p class="text-sm mt-1" style="color:#6B7280">プラットフォーム別に最適化されたクエリで検索が開きます</p>
     </div>
 
-    <!-- Summary card -->
-    <div class="rounded-2xl p-5 mb-5" style="background:#1E3932">
+    <!-- 選択サマリーカード -->
+    <div class="rounded-2xl p-4 mb-5" style="background:#1E3932">
       <p class="text-xs font-bold mb-3" style="color:rgba(212,233,226,.6);letter-spacing:.1em">検索条件サマリー</p>
-      <div id="s4-tags" class="flex flex-wrap gap-2 mb-4"></div>
-      <div class="pt-3 border-t" style="border-color:rgba(212,233,226,.15)">
-        <p class="text-xs" style="color:rgba(212,233,226,.5)">生成された検索クエリ</p>
-        <p id="s4-query" class="text-sm font-bold mt-1" style="color:#D4E9E2;word-break:break-all"></p>
-      </div>
+      <div id="s4-tags" class="flex flex-wrap gap-2"></div>
     </div>
 
-    <!-- SNS Buttons -->
+    <!-- プラットフォーム別クエリカード -->
     <div class="space-y-3 mb-5">
-      <!-- TikTok -->
-      <button onclick="openSNS('tiktok')"
-              class="tiktok-btn w-full rounded-2xl px-5 py-4 flex items-center justify-between text-white font-bold">
-        <div class="flex items-center gap-3">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.37a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.8z"/>
-          </svg>
-          <div class="text-left">
-            <p class="text-base font-bold">TikTokで発見する</p>
-            <p class="text-xs font-normal opacity-70">飯テロ動画から話題の店を探す</p>
-          </div>
-        </div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
 
-      <!-- Instagram -->
-      <button onclick="openSNS('instagram')"
-              class="ig-btn w-full rounded-2xl px-5 py-4 flex items-center justify-between text-white font-bold">
-        <div class="flex items-center gap-3">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="2" width="20" height="20" rx="5"/>
-            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-          </svg>
-          <div class="text-left">
-            <p class="text-base font-bold">Instagramで発見する</p>
-            <p class="text-xs font-normal opacity-80">おしゃれ・映えグルメを探す</p>
+      <!-- ① TikTok -->
+      <div class="rounded-2xl overflow-hidden" style="border:2px solid #000">
+        <div class="px-4 py-3" style="background:#000">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.37a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.8z"/>
+              </svg>
+              <span class="text-white font-bold text-sm">TikTok</span>
+              <span class="text-xs px-2 py-0.5 rounded-full font-bold" style="background:#FE2C55;color:#fff">飯テロ特化</span>
+            </div>
           </div>
         </div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
+        <div class="px-4 py-3" style="background:#111">
+          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">検索クエリ</p>
+          <p id="q-tiktok" class="text-xs font-mono mb-3 break-all leading-relaxed" style="color:#FE2C55"></p>
+          <a id="a-tiktok" href="#" target="_blank" rel="noopener"
+             class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm transition-all"
+             style="background:#FE2C55;color:#fff"
+             onclick="return trackOpen('tiktok',this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            TikTokで開く
+          </a>
+        </div>
+        <div id="copy-tiktok" class="px-4 pb-3" style="background:#111">
+          <button onclick="copyURL('tiktok')" class="text-xs w-full py-2 rounded-lg font-medium" style="background:#222;color:rgba(255,255,255,.5)">
+            📋 URLをコピー（ブロックされた場合）
+          </button>
+        </div>
+      </div>
 
-      <!-- Google Maps -->
-      <button onclick="openSNS('google')"
-              class="w-full rounded-2xl px-5 py-4 flex items-center justify-between font-bold"
-              style="background:#4285F4;color:#fff">
-        <div class="flex items-center gap-3">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <div class="text-left">
-            <p class="text-base font-bold">Googleマップで探す</p>
-            <p class="text-xs font-normal opacity-80">評価・クチコミから選ぶ</p>
+      <!-- ② Instagram -->
+      <div class="rounded-2xl overflow-hidden" style="border:2px solid #C13584">
+        <div class="px-4 py-3" style="background:linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)">
+          <div class="flex items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <rect x="2" y="2" width="20" height="20" rx="5"/>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            </svg>
+            <span class="text-white font-bold text-sm">Instagram</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-bold" style="background:rgba(255,255,255,.25);color:#fff">映え特化</span>
           </div>
         </div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
+        <div class="px-4 py-3" style="background:#1a0a20">
+          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">検索クエリ</p>
+          <p id="q-instagram" class="text-xs font-mono mb-3 break-all leading-relaxed" style="color:#F77737"></p>
+          <a id="a-instagram" href="#" target="_blank" rel="noopener"
+             class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
+             style="background:linear-gradient(135deg,#833AB4,#FD1D1D);color:#fff"
+             onclick="return trackOpen('instagram',this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Instagramで開く
+          </a>
+        </div>
+        <div class="px-4 pb-3" style="background:#1a0a20">
+          <button onclick="copyURL('instagram')" class="text-xs w-full py-2 rounded-lg font-medium" style="background:#2a1030;color:rgba(255,255,255,.5)">
+            📋 URLをコピー（ブロックされた場合）
+          </button>
+        </div>
+      </div>
+
+      <!-- ③ Google Maps -->
+      <div class="rounded-2xl overflow-hidden" style="border:2px solid #4285F4">
+        <div class="px-4 py-3" style="background:#4285F4">
+          <div class="flex items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span class="text-white font-bold text-sm">Googleマップ</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-bold" style="background:rgba(255,255,255,.25);color:#fff">クチコミ特化</span>
+          </div>
+        </div>
+        <div class="px-4 py-3" style="background:#0a1428">
+          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">検索クエリ</p>
+          <p id="q-google" class="text-xs font-mono mb-3 break-all leading-relaxed" style="color:#81B4FF"></p>
+          <a id="a-google" href="#" target="_blank" rel="noopener"
+             class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
+             style="background:#4285F4;color:#fff"
+             onclick="return trackOpen('google',this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Googleマップで開く
+          </a>
+        </div>
+        <div class="px-4 pb-3" style="background:#0a1428">
+          <button onclick="copyURL('google')" class="text-xs w-full py-2 rounded-lg font-medium" style="background:#101f3a;color:rgba(255,255,255,.5)">
+            📋 URLをコピー（ブロックされた場合）
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 補足テキスト -->
+    <div class="rounded-xl px-4 py-3 mb-4 flex items-start gap-3" style="background:#EBF5F0">
+      <span class="text-lg flex-shrink-0">💡</span>
+      <p class="text-xs leading-relaxed" style="color:#006241">
+        ブラウザのポップアップブロックが作動した場合は「URLをコピー」でリンクをコピーして、ブラウザのアドレスバーに貼り付けてください。
+      </p>
     </div>
 
     <!-- Restart -->
@@ -552,47 +601,146 @@ function renderConditions() {
   });
 }
 
-/* ── SUMMARY & QUERY ── */
-function buildQuery() {
-  const area    = S.area.replace('現在地周辺','近く');
-  const kw      = KW[S.purpose] || S.purpose;
-  const condKw  = S.conditions.map(c=>c.replace('必須','').replace('あり','')).slice(0,3).join(' ');
-  return `${area} ${kw} ${condKw} 飯テロ グルメ`.trim().replace(/\s+/,' ');
+/* ── PLATFORM-SPECIFIC QUERY BUILDERS ── */
+
+/* 条件ラベルをSNS検索向けキーワードに変換 */
+const COND_KW = {
+  '個室必須':     '個室',   '静かな空間':   '静か',
+  '防音個室':     '完全個室', '人目につかない': '隠れ家',
+  '深夜営業':     '深夜',   '出口複数':     '',
+  '映え重視':     'インスタ映え', 'テラス席':     'テラス',
+  'SNS映え内装': 'フォトジェニック', '夜景':         '夜景',
+  'フォトジェニック': 'フォトジェニック', '深夜営業':  '深夜',
+  '大人数OK':     '宴会',   '駅チカ':       '駅近',
+  '飲み放題あり': '飲み放題', '接待向け':     '接待',
+  '予約可能':     '予約',   'ドレスコードあり': '高級',
+  '貸切可能':     '貸切',   'コスパ重視':   '',
+  '駐車場あり':   '',       '防音':         '防音',
+  'ドリンク充実': 'バー',   'SNS禁止OK':   '隠れ家 秘密',
+  '和食・割烹':   '和食 割烹', 'おしゃれBGM': 'おしゃれ',
+  'カラオケ付近': 'カラオケ', '食べ放題あり': '食べ放題',
+};
+
+function condToKw(conds) {
+  return conds.map(c => COND_KW[c] ?? c.replace('必須','').replace('あり','').replace('OK','')).filter(Boolean);
 }
 
+/* TikTok用: 飯テロ・バイラルキーワード特化 */
+function buildTikTokQuery() {
+  const area    = S.area.replace('現在地周辺','近く').replace('・',' ');
+  const kwBase  = KW[S.purpose] || '';
+  const condKws = condToKw(S.conditions).slice(0,2).join(' ');
+  return [area, kwBase, condKws, '飯テロ', 'グルメ', '絶品']
+    .filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+}
+
+/* Instagram用: ハッシュタグ・映えキーワード特化 */
+function buildInstagramQuery() {
+  const area    = S.area.replace('現在地周辺','').replace('・',' ').trim();
+  const kwBase  = KW[S.purpose] || '';
+  const condKws = condToKw(S.conditions).slice(0,2).join(' ');
+  return [area, kwBase, condKws, 'グルメ', 'インスタ映え']
+    .filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+}
+
+/* Google Maps用: 店舗名・ジャンル特化 */
+function buildGoogleQuery() {
+  const area    = S.area.replace('現在地周辺','').replace('・',' ').trim();
+  const kwBase  = KW[S.purpose] || '';
+  const condKws = condToKw(S.conditions).slice(0,2).join(' ');
+  return [area, 'レストラン', kwBase, condKws]
+    .filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+}
+
+/* ── URL BUILDERS ── */
+function buildURLs() {
+  const tq = buildTikTokQuery();
+  const iq = buildInstagramQuery();
+  const gq = buildGoogleQuery();
+
+  return {
+    tiktok: {
+      query: tq,
+      url: `https://www.tiktok.com/search?q=${encodeURIComponent(tq)}`,
+    },
+    instagram: {
+      query: iq,
+      url: `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(iq)}`,
+    },
+    google: {
+      query: gq,
+      url: `https://www.google.com/maps/search/${encodeURIComponent(gq)}`,
+    },
+  };
+}
+
+// グローバルでURLを保持（コピー用）
+let _urls = {};
+
+/* ── RENDER SUMMARY（完全書き直し） ── */
 function renderSummary() {
+  // サマリータグ
   const tags = document.getElementById('s4-tags');
   tags.innerHTML = '';
-
   const items = [
-    { label: `📍 ${S.area}`,    bg:'rgba(212,233,226,.2)', color:'#D4E9E2' },
-    { label: `🎯 ${S.purpose}`, bg:'rgba(203,162,88,.2)',  color:'#CBA258' },
+    { label:`📍 ${S.area}`,    bg:'rgba(212,233,226,.2)', color:'#D4E9E2' },
+    { label:`🎯 ${S.purpose}`, bg:'rgba(203,162,88,.2)',  color:'#CBA258' },
     ...S.conditions.map(c => ({ label:`✓ ${c}`, bg:'rgba(255,255,255,.1)', color:'rgba(212,233,226,.8)' })),
   ];
   items.forEach((it,i) => {
     const span = document.createElement('span');
     span.className = 'sum-tag px-3 py-1.5 rounded-full text-xs font-bold';
-    span.style.background = it.bg;
-    span.style.color = it.color;
-    span.style.animationDelay = (i*0.07)+'s';
+    span.style.cssText = `background:${it.bg};color:${it.color};animation-delay:${i*0.07}s`;
     span.textContent = it.label;
     tags.appendChild(span);
   });
 
-  const q = buildQuery();
-  document.getElementById('s4-query').textContent = `"${q}"`;
+  // プラットフォーム別クエリ生成
+  _urls = buildURLs();
+
+  // クエリテキストを各カードに表示
+  document.getElementById('q-tiktok').textContent    = `🔍 "${_urls.tiktok.query}"`;
+  document.getElementById('q-instagram').textContent = `🔍 "${_urls.instagram.query}"`;
+  document.getElementById('q-google').textContent    = `🔍 "${_urls.google.query}"`;
+
+  // <a>タグのhrefを確実にセット（ポップアップブロック回避の核心）
+  document.getElementById('a-tiktok').href    = _urls.tiktok.url;
+  document.getElementById('a-instagram').href = _urls.instagram.url;
+  document.getElementById('a-google').href    = _urls.google.url;
 }
 
-/* ── SNS URL OPEN ── */
-function openSNS(platform) {
-  const q = buildQuery();
-  const urls = {
-    tiktok:    `https://www.tiktok.com/search?q=${encodeURIComponent(q)}`,
-    instagram: `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(q)}`,
-    google:    `https://maps.google.com/maps?q=${encodeURIComponent(S.area+' '+KW[S.purpose])}`,
-  };
-  const url = urls[platform];
-  if (url) window.open(url,'_blank','noopener');
+/* ── TRACK OPEN（クリック追跡 + フィードバック） ── */
+function trackOpen(platform, anchor) {
+  // href が '#' のままなら生成し直す（念のため）
+  if (anchor.href.endsWith('#') || anchor.href === location.href) {
+    anchor.href = _urls[platform]?.url || '#';
+  }
+  // ビジュアルフィードバック
+  const orig = anchor.innerHTML;
+  anchor.innerHTML = '✓ 開いています...';
+  setTimeout(() => { anchor.innerHTML = orig; }, 1500);
+  return true; // デフォルト動作（href遷移）を継続
+}
+
+/* ── COPY URL (ポップアップブロック対策フォールバック) ── */
+async function copyURL(platform) {
+  const url = _urls[platform]?.url;
+  if (!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+    showCopyToast('✓ URLをコピーしました！\nブラウザのアドレスバーに貼り付けてください');
+  } catch {
+    // クリップボードAPIが使えない場合はpromptで表示
+    prompt('このURLをコピーしてください:', url);
+  }
+}
+
+function showCopyToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1E3932;color:#D4E9E2;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;white-space:pre-line;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:sRight .3s ease';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
 }
 
 /* ── RESTART ── */
