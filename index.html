@@ -325,7 +325,10 @@ tailwind.config = {
           </div>
         </div>
         <div class="px-4 py-3" style="background:#111">
-          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">検索クエリ</p>
+          <!-- URL組み立て表示 -->
+          <p class="text-xs mb-1.5" style="color:rgba(255,255,255,.35)">▶ チップス組み合わせ</p>
+          <div id="parts-tiktok" class="flex flex-wrap items-center gap-1 mb-3 text-xs"></div>
+          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">生成URL</p>
           <p id="q-tiktok" class="text-xs font-mono mb-3 break-all leading-relaxed" style="color:#FE2C55"></p>
           <a id="a-tiktok" href="#" target="_blank" rel="noopener"
              class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm transition-all"
@@ -356,14 +359,23 @@ tailwind.config = {
           </div>
         </div>
         <div class="px-4 py-3" style="background:#1a0a20">
-          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">検索クエリ</p>
+          <!-- URL組み立て表示 -->
+          <p class="text-xs mb-1.5" style="color:rgba(255,255,255,.35)">▶ チップス組み合わせ → #ハッシュタグ</p>
+          <div id="parts-instagram" class="flex flex-wrap items-center gap-1 mb-3 text-xs"></div>
+          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">生成URL（ハッシュタグ検索）</p>
           <p id="q-instagram" class="text-xs font-mono mb-3 break-all leading-relaxed" style="color:#F77737"></p>
           <a id="a-instagram" href="#" target="_blank" rel="noopener"
-             class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
+             class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mb-2"
              style="background:linear-gradient(135deg,#833AB4,#FD1D1D);color:#fff"
              onclick="return trackOpen('instagram',this)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Instagramで開く
+            Instagramで開く（ハッシュタグ）
+          </a>
+          <!-- サブ: キーワード検索 -->
+          <a id="a-instagram-sub" href="#" target="_blank" rel="noopener"
+             class="flex items-center justify-center gap-1 w-full py-2 rounded-xl text-xs font-medium"
+             style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)">
+            または キーワード検索で開く →
           </a>
         </div>
         <div class="px-4 pb-3" style="background:#1a0a20">
@@ -383,7 +395,10 @@ tailwind.config = {
           </div>
         </div>
         <div class="px-4 py-3" style="background:#0a1428">
-          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">検索クエリ</p>
+          <!-- URL組み立て表示 -->
+          <p class="text-xs mb-1.5" style="color:rgba(255,255,255,.35)">▶ チップス組み合わせ → Maps検索</p>
+          <div id="parts-google" class="flex flex-wrap items-center gap-1 mb-3 text-xs"></div>
+          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">生成URL</p>
           <p id="q-google" class="text-xs font-mono mb-3 break-all leading-relaxed" style="color:#81B4FF"></p>
           <a id="a-google" href="#" target="_blank" rel="noopener"
              class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
@@ -605,81 +620,120 @@ function renderConditions() {
 
 /* 条件ラベルをSNS検索向けキーワードに変換 */
 const COND_KW = {
-  '個室必須':     '個室',   '静かな空間':   '静か',
-  '防音個室':     '完全個室', '人目につかない': '隠れ家',
-  '深夜営業':     '深夜',   '出口複数':     '',
-  '映え重視':     'インスタ映え', 'テラス席':     'テラス',
-  'SNS映え内装': 'フォトジェニック', '夜景':         '夜景',
-  'フォトジェニック': 'フォトジェニック', '深夜営業':  '深夜',
-  '大人数OK':     '宴会',   '駅チカ':       '駅近',
-  '飲み放題あり': '飲み放題', '接待向け':     '接待',
-  '予約可能':     '予約',   'ドレスコードあり': '高級',
-  '貸切可能':     '貸切',   'コスパ重視':   '',
-  '駐車場あり':   '',       '防音':         '防音',
-  'ドリンク充実': 'バー',   'SNS禁止OK':   '隠れ家 秘密',
-  '和食・割烹':   '和食 割烹', 'おしゃれBGM': 'おしゃれ',
-  'カラオケ付近': 'カラオケ', '食べ放題あり': '食べ放題',
+  '個室必須':'個室', '静かな空間':'静か', '防音個室':'完全個室',
+  '人目につかない':'隠れ家', '深夜営業':'深夜', '映え重視':'インスタ映え',
+  'テラス席':'テラス', 'SNS映え内装':'フォトジェニック', '夜景':'夜景',
+  'フォトジェニック':'フォトジェニック', '大人数OK':'宴会', '駅チカ':'駅近',
+  '飲み放題あり':'飲み放題', '接待向け':'接待', '予約可能':'予約',
+  'ドレスコードあり':'高級', '貸切可能':'貸切', 'ドリンク充実':'バー',
+  'SNS禁止OK':'隠れ家', '和食・割烹':'和食', 'おしゃれBGM':'おしゃれ',
+  'カラオケ付近':'カラオケ', '食べ放題あり':'食べ放題',
 };
 
-function condToKw(conds) {
-  return conds.map(c => COND_KW[c] ?? c.replace('必須','').replace('あり','').replace('OK','')).filter(Boolean);
+/* エリア文字列の整形（短縮） */
+function cleanArea() {
+  return S.area.split('・')[0]          // "恵比寿・中目黒" → "恵比寿"
+               .replace('現在地周辺','現在地')
+               .replace('周辺','')
+               .trim();
 }
 
-/* TikTok用: 飯テロ・バイラルキーワード特化 */
-function buildTikTokQuery() {
-  const area    = S.area.replace('現在地周辺','近く').replace('・',' ');
-  const kwBase  = KW[S.purpose] || '';
-  const condKws = condToKw(S.conditions).slice(0,2).join(' ');
-  return [area, kwBase, condKws, '飯テロ', 'グルメ', '絶品']
-    .filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+/* 用途 → プラットフォーム別キーワードマッピング */
+const PF_KW = {
+  // TikTok: 動画・飯テロ向け
+  tiktok: {
+    'クライアントと打合せ': '会食',
+    'ガチ密談':            '個室ディナー',
+    'インフルエンサー会食': '飯テロ',
+    '社内懇親':            '宴会',
+  },
+  // Instagram: ハッシュタグ向け（スペースなし1単語）
+  instagram: {
+    'クライアントと打合せ': 'グルメ',
+    'ガチ密談':            '個室グルメ',
+    'インフルエンサー会食': 'インスタ映えグルメ',
+    '社内懇親':            '宴会グルメ',
+  },
+  // Google Maps: 店舗検索向け
+  google: {
+    'クライアントと打合せ': 'レストラン 接待',
+    'ガチ密談':            'レストラン 個室',
+    'インフルエンサー会食': 'レストラン おしゃれ',
+    '社内懇親':            'レストラン 宴会',
+  },
+};
+
+function condKw(max=2) {
+  return S.conditions
+    .map(c => COND_KW[c] ?? c.replace('必須','').replace('あり','').replace('OK',''))
+    .filter(Boolean).slice(0, max);
 }
 
-/* Instagram用: ハッシュタグ・映えキーワード特化 */
-function buildInstagramQuery() {
-  const area    = S.area.replace('現在地周辺','').replace('・',' ').trim();
-  const kwBase  = KW[S.purpose] || '';
-  const condKws = condToKw(S.conditions).slice(0,2).join(' ');
-  return [area, kwBase, condKws, 'グルメ', 'インスタ映え']
-    .filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+/*
+ ① TikTok: 単語を "+" でつないで search?q=word+word 形式
+    例: https://www.tiktok.com/search?q=恵比寿+会食+飯テロ
+*/
+function buildTikTok() {
+  const area = cleanArea();
+  const kw   = PF_KW.tiktok[S.purpose] || '会食';
+  const cond = condKw(1);
+  const parts = [area, kw, '飯テロ', ...cond].filter(Boolean);
+  // URL: 各パーツをencodeURIComponentしてから"+"でjoin
+  const url  = 'https://www.tiktok.com/search?q=' + parts.map(encodeURIComponent).join('+');
+  return { parts, url };
 }
 
-/* Google Maps用: 店舗名・ジャンル特化 */
-function buildGoogleQuery() {
-  const area    = S.area.replace('現在地周辺','').replace('・',' ').trim();
-  const kwBase  = KW[S.purpose] || '';
-  const condKws = condToKw(S.conditions).slice(0,2).join(' ');
-  return [area, 'レストラン', kwBase, condKws]
-    .filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+/*
+ ② Instagram: エリア+ジャンルを1語に結合してハッシュタグURLに
+    例: https://www.instagram.com/explore/tags/恵比寿グルメ/
+    + サブクエリ: keyword search URL
+*/
+function buildInstagram() {
+  const area    = cleanArea();
+  const kwForIG = PF_KW.instagram[S.purpose] || 'グルメ';
+  const cond    = condKw(1);
+
+  // メインハッシュタグ: エリア+ジャンル（スペースなし）
+  const hashtag = area + kwForIG;            // "恵比寿グルメ"
+  const tagURL  = `https://www.instagram.com/explore/tags/${encodeURIComponent(hashtag)}/`;
+
+  // サブ: キーワード検索URL
+  const kwParts  = [area, kwForIG, ...cond].filter(Boolean);
+  const searchURL= `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(kwParts.join(' '))}`;
+
+  return { hashtag, tagURL, searchURL, kwParts };
 }
 
-/* ── URL BUILDERS ── */
+/*
+ ③ Google Maps: エリア+ジャンルで店舗検索
+    例: https://www.google.com/maps/search/恵比寿+レストラン+接待
+*/
+function buildGoogle() {
+  const area = cleanArea();
+  const kw   = PF_KW.google[S.purpose] || 'レストラン';
+  const cond = condKw(1);
+  const parts = [area, kw, ...cond].filter(Boolean);
+  const url   = 'https://www.google.com/maps/search/' + parts.map(encodeURIComponent).join('+');
+  return { parts, url };
+}
+
+/* ── buildURLs: 3プラットフォームのURL一括生成 ── */
 function buildURLs() {
-  const tq = buildTikTokQuery();
-  const iq = buildInstagramQuery();
-  const gq = buildGoogleQuery();
-
+  const tk = buildTikTok();
+  const ig = buildInstagram();
+  const gm = buildGoogle();
   return {
-    tiktok: {
-      query: tq,
-      url: `https://www.tiktok.com/search?q=${encodeURIComponent(tq)}`,
-    },
-    instagram: {
-      query: iq,
-      url: `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(iq)}`,
-    },
-    google: {
-      query: gq,
-      url: `https://www.google.com/maps/search/${encodeURIComponent(gq)}`,
-    },
+    tiktok:    { ...tk, query: tk.parts.join(' + ') },
+    instagram: { ...ig, query: '#' + ig.hashtag },
+    google:    { ...gm, query: gm.parts.join(' + ') },
   };
 }
 
-// グローバルでURLを保持（コピー用）
-let _urls = {};
+let _urls = {};  // グローバル保持（コピー用）
 
-/* ── RENDER SUMMARY（完全書き直し） ── */
+/* ── RENDER SUMMARY ── */
 function renderSummary() {
-  // サマリータグ
+  // ① 選択サマリータグ
   const tags = document.getElementById('s4-tags');
   tags.innerHTML = '';
   const items = [
@@ -695,42 +749,97 @@ function renderSummary() {
     tags.appendChild(span);
   });
 
-  // プラットフォーム別クエリ生成
+  // ② プラットフォーム別URL生成
   _urls = buildURLs();
 
-  // クエリテキストを各カードに表示
-  document.getElementById('q-tiktok').textContent    = `🔍 "${_urls.tiktok.query}"`;
-  document.getElementById('q-instagram').textContent = `🔍 "${_urls.instagram.query}"`;
-  document.getElementById('q-google').textContent    = `🔍 "${_urls.google.query}"`;
+  // ③ TikTok カード更新
+  renderURLCard('tiktok', {
+    parts:   _urls.tiktok.parts,
+    joinStr: ' ＋ ',
+    arrow:   '→ q= で結合',
+    urlText: _urls.tiktok.url,
+    url:     _urls.tiktok.url,
+    color:   '#FE2C55',
+  });
 
-  // <a>タグのhrefを確実にセット（ポップアップブロック回避の核心）
-  document.getElementById('a-tiktok').href    = _urls.tiktok.url;
-  document.getElementById('a-instagram').href = _urls.instagram.url;
-  document.getElementById('a-google').href    = _urls.google.url;
+  // ④ Instagram カード更新（ハッシュタグ表示）
+  renderURLCard('instagram', {
+    parts:   [cleanArea(), PF_KW.instagram[S.purpose] || 'グルメ'],
+    joinStr: '＋',
+    arrow:   '→ #ハッシュタグ に結合',
+    urlText: _urls.instagram.tagURL,
+    url:     _urls.instagram.tagURL,
+    subURL:  _urls.instagram.searchURL,
+    color:   '#F77737',
+  });
+
+  // ⑤ Google Maps カード更新
+  renderURLCard('google', {
+    parts:   _urls.google.parts,
+    joinStr: ' ＋ ',
+    arrow:   '→ Mapsで検索',
+    urlText: _urls.google.url,
+    url:     _urls.google.url,
+    color:   '#81B4FF',
+  });
 }
 
-/* ── TRACK OPEN（クリック追跡 + フィードバック） ── */
-function trackOpen(platform, anchor) {
-  // href が '#' のままなら生成し直す（念のため）
-  if (anchor.href.endsWith('#') || anchor.href === location.href) {
-    anchor.href = _urls[platform]?.url || '#';
+/*
+ URL組み立て表示ロジック
+ ─────────────────────────
+ [恵比寿] ＋ [グルメ]
+      ↓ #ハッシュタグ に結合
+ https://www.instagram.com/explore/tags/恵比寿グルメ/
+*/
+function renderURLCard(platform, cfg) {
+  // パーツ組み立て表示
+  const partsEl = document.getElementById(`parts-${platform}`);
+  if (partsEl) {
+    partsEl.innerHTML = cfg.parts.map((p,i) =>
+      `<span class="inline-flex items-center">
+        <span class="px-2.5 py-1 rounded-lg text-xs font-bold" style="background:rgba(255,255,255,.12);color:#fff">${p}</span>
+        ${i < cfg.parts.length-1 ? `<span class="mx-1 text-xs opacity-50">${cfg.joinStr}</span>` : ''}
+      </span>`
+    ).join('') +
+    `<span class="text-xs opacity-40 ml-1">&nbsp;${cfg.arrow}</span>`;
   }
-  // ビジュアルフィードバック
-  const orig = anchor.innerHTML;
-  anchor.innerHTML = '✓ 開いています...';
-  setTimeout(() => { anchor.innerHTML = orig; }, 1500);
-  return true; // デフォルト動作（href遷移）を継続
+
+  // クエリ/URL表示
+  const qEl = document.getElementById(`q-${platform}`);
+  if (qEl) qEl.textContent = cfg.urlText;
+
+  // <a> href セット（核心：ここでURLを確実に注入）
+  const aEl = document.getElementById(`a-${platform}`);
+  if (aEl) aEl.href = cfg.url;
+
+  // Instagram サブリンク（キーワード検索）
+  if (platform === 'instagram' && cfg.subURL) {
+    const subEl = document.getElementById('a-instagram-sub');
+    if (subEl) subEl.href = cfg.subURL;
+    const subQEl = document.getElementById('q-instagram-sub');
+    if (subQEl) subQEl.textContent = cfg.subURL;
+  }
 }
 
-/* ── COPY URL (ポップアップブロック対策フォールバック) ── */
+/* ── TRACK OPEN ── */
+function trackOpen(platform, anchor) {
+  if (!anchor.href || anchor.href === location.href || anchor.href.endsWith('#')) {
+    anchor.href = _urls[platform]?.url || _urls[platform]?.tagURL || '#';
+  }
+  const orig = anchor.innerHTML;
+  anchor.innerHTML = '<span>✓ 開きます...</span>';
+  setTimeout(() => { anchor.innerHTML = orig; }, 1500);
+  return true;
+}
+
+/* ── COPY URL ── */
 async function copyURL(platform) {
-  const url = _urls[platform]?.url;
+  const url = _urls[platform]?.url || _urls[platform]?.tagURL;
   if (!url) return;
   try {
     await navigator.clipboard.writeText(url);
-    showCopyToast('✓ URLをコピーしました！\nブラウザのアドレスバーに貼り付けてください');
+    showCopyToast('✓ URLをコピーしました！\nアドレスバーに貼り付けてください');
   } catch {
-    // クリップボードAPIが使えない場合はpromptで表示
     prompt('このURLをコピーしてください:', url);
   }
 }
@@ -738,7 +847,7 @@ async function copyURL(platform) {
 function showCopyToast(msg) {
   const t = document.createElement('div');
   t.textContent = msg;
-  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1E3932;color:#D4E9E2;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;white-space:pre-line;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:sRight .3s ease';
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1E3932;color:#D4E9E2;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;white-space:pre-line;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.3)';
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3000);
 }
