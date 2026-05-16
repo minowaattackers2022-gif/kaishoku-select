@@ -7,867 +7,621 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        f:   { DEFAULT:'#006241', dk:'#1E3932', lt:'#D4E9E2', pl:'#EBF5F0' },
-        cr:  { DEFAULT:'#FBF8F3', dk:'#EDE0CC', dd:'#D9CBBA' },
-        gd:  { DEFAULT:'#CBA258', lt:'#F2E8D0', dk:'#9A7830' },
-        ch:  '#1A1A1A',
-        ms:  '#6B7280',
-      },
-      fontFamily: {
-        serif: ['"Playfair Display"','Georgia','serif'],
-        sans:  ['"Noto Sans JP"','sans-serif'],
-      },
-    }
-  }
-}
-</script>
+<script>tailwind.config={theme:{extend:{fontFamily:{serif:['"Playfair Display"','serif'],sans:['"Noto Sans JP"','sans-serif']}}}}</script>
 <style>
-  *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
-  body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavior:none}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavior:none;max-width:430px;margin:0 auto}
+::-webkit-scrollbar{display:none}
 
-  /* ── STEP SLIDE ANIMATION ── */
-  .slide-in-right  { animation: sRight .3s cubic-bezier(.4,0,.2,1) both }
-  .slide-in-left   { animation: sLeft  .3s cubic-bezier(.4,0,.2,1) both }
-  .slide-out-right { animation: soRight .25s cubic-bezier(.4,0,.2,1) forwards }
-  .slide-out-left  { animation: soLeft  .25s cubic-bezier(.4,0,.2,1) forwards }
+@keyframes slideUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sInR  {from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:translateX(0)}}
+@keyframes sInL  {from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
+@keyframes sOutR {from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(24px)}}
+@keyframes sOutL {from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(-24px)}}
+@keyframes badgePop{0%{transform:scale(0) rotate(-12deg)}65%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes lineGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 
-  @keyframes sRight  { from{opacity:0;transform:translateX(32px)}  to{opacity:1;transform:translateX(0)} }
-  @keyframes sLeft   { from{opacity:0;transform:translateX(-32px)} to{opacity:1;transform:translateX(0)} }
-  @keyframes soRight { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(32px)} }
-  @keyframes soLeft  { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(-32px)} }
+.slide-r{animation:sInR  .3s cubic-bezier(.4,0,.2,1) both}
+.slide-l{animation:sInL  .3s cubic-bezier(.4,0,.2,1) both}
+.out-r  {animation:sOutR .22s cubic-bezier(.4,0,.2,1) forwards}
+.out-l  {animation:sOutL .22s cubic-bezier(.4,0,.2,1) forwards}
 
-  /* ── CHIP PRESS ── */
-  .chip { transition: all .14s ease; user-select:none }
-  .chip:active { transform:scale(.93) }
+.chip{transition:all .13s ease;user-select:none}
+.chip:active{transform:scale(.92)}
+.purpose-card{transition:all .15s ease}
+.purpose-card:active{transform:scale(.96)}
 
-  /* ── PURPOSE CARD ── */
-  .purpose-card { transition: all .16s ease }
-  .purpose-card:active { transform:scale(.96) }
+/* RESULT CARDS stagger */
+.rcard{animation:slideUp .42s cubic-bezier(.16,1,.3,1) both;border:1px solid #E2D8C8;border-radius:20px;background:#fff;overflow:hidden}
+.rcard:nth-child(1){animation-delay:.04s}
+.rcard:nth-child(2){animation-delay:.17s}
+.rcard:nth-child(3){animation-delay:.30s}
 
-  /* ── PULSE RING for selected ── */
-  @keyframes pulseRing { 0%{box-shadow:0 0 0 0 rgba(0,98,65,.35)} 70%{box-shadow:0 0 0 10px rgba(0,98,65,0)} 100%{box-shadow:0 0 0 0 rgba(0,98,65,0)} }
-  .ring-pulse { animation: pulseRing .5s ease-out }
+/* RANK BADGES */
+.r1{background:linear-gradient(135deg,#B8860B,#FFD700,#DAA520);color:#2d1f00}
+.r2{background:linear-gradient(135deg,#5c6670,#BCC4CC,#A8B4BC);color:#0d1214}
+.r3{background:linear-gradient(135deg,#7B3F0A,#CD853F,#B87333);color:#fff}
 
-  /* ── SNS BUTTONS ── */
-  .tiktok-btn { background:#000; transition:transform .14s ease }
-  .tiktok-btn:active { transform:scale(.96) }
-  .ig-btn { background:linear-gradient(135deg,#833AB4,#FD1D1D,#F77737); transition:transform .14s ease }
-  .ig-btn:active { transform:scale(.96) }
+/* SNS BUTTONS */
+.tk-btn{background:#000;color:#fff;transition:transform .12s,opacity .12s}
+.tk-btn:active{transform:scale(.93);opacity:.8}
+.ig-btn{background:linear-gradient(135deg,#833AB4,#C43474,#FD1D1D,#F77737);color:#fff;transition:transform .12s,opacity .12s}
+.ig-btn:active{transform:scale(.93);opacity:.8}
 
-  /* ── PROGRESS CONNECTOR ── */
-  .connector { transition: background .4s ease }
-
-  /* ── RIPPLE ── */
-  @keyframes ripple { from{transform:scale(0);opacity:.5} to{transform:scale(4);opacity:0} }
-  .ripple::after { content:''; position:absolute; inset:0; border-radius:inherit; background:currentColor; opacity:0; }
-
-  /* ── CONDITION CHIPS ── */
-  .cond-chip { transition: all .14s ease; }
-  .cond-chip:active { transform:scale(.92) }
-  .cond-chip.on { background:#006241; color:#fff; border-color:#006241; }
-
-  /* ── SCROLL ── */
-  ::-webkit-scrollbar { display:none }
-  scrollbar-width:none;
-
-  /* ── SUMMARY TAG ── */
-  .sum-tag { animation: sRight .3s cubic-bezier(.4,0,.2,1) both }
-  .sum-tag:nth-child(1){animation-delay:.05s}
-  .sum-tag:nth-child(2){animation-delay:.10s}
-  .sum-tag:nth-child(3){animation-delay:.15s}
-  .sum-tag:nth-child(4){animation-delay:.20s}
+/* PROGRESS LINE */
+.pgline{transition:background .4s ease}
 </style>
 </head>
+<body class="min-h-screen flex flex-col">
 
-<body class="min-h-screen flex flex-col" style="max-width:430px;margin:0 auto">
-
-<!-- ════════════════════════════
-     HEADER
-════════════════════════════ -->
-<header class="sticky top-0 z-50 flex items-center justify-between px-5 py-3"
-        style="background:#1E3932;box-shadow:0 2px 16px rgba(0,0,0,.25)">
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-5 py-3.5"
+        style="background:#1E3932;box-shadow:0 2px 18px rgba(0,0,0,.3)">
   <div class="flex items-center gap-3">
-    <!-- Brand mark -->
-    <svg width="34" height="34" viewBox="0 0 72 72" fill="none" style="flex-shrink:0">
+    <svg width="36" height="36" viewBox="0 0 72 72" fill="none">
       <circle cx="36" cy="36" r="34" stroke="#D4E9E2" stroke-width="2"/>
       <path d="M22 36 Q36 20 50 36 Q36 52 22 36Z" fill="#00704A"/>
       <circle cx="36" cy="36" r="10" fill="#1E3932"/>
-      <circle cx="36" cy="36" r="5" fill="#D4E9E2"/>
+      <circle cx="36" cy="36" r="5"  fill="#D4E9E2"/>
     </svg>
     <div>
-      <p class="font-serif text-base font-bold leading-none" style="color:#D4E9E2;letter-spacing:.03em">会食セレクト</p>
-      <p class="text-xs mt-0.5" style="color:rgba(212,233,226,.5);letter-spacing:.15em">KAISHOKU SELECT</p>
+      <p class="font-serif font-bold leading-none" style="color:#D4E9E2;letter-spacing:.03em">会食セレクト</p>
+      <p class="text-xs mt-0.5" style="color:rgba(212,233,226,.42);letter-spacing:.16em">KAISHOKU SELECT</p>
     </div>
   </div>
-  <!-- Step label -->
-  <div id="hdr-step-label" class="text-xs font-bold px-3 py-1.5 rounded-full"
-       style="background:rgba(212,233,226,.15);color:#D4E9E2">STEP 1 / 4</div>
+  <span id="hdr-step" class="text-xs font-bold px-3 py-1.5 rounded-full"
+        style="background:rgba(212,233,226,.14);color:#D4E9E2">STEP 1 / 4</span>
 </header>
 
-<!-- ════════════════════════════
-     PROGRESS BAR
-════════════════════════════ -->
-<div class="bg-white border-b px-5 py-4" style="border-color:#EDE0CC">
+<!-- ═══════════════ PROGRESS ═══════════════ -->
+<div class="bg-white px-5 py-3.5 border-b" style="border-color:#EDE0CC">
   <div class="flex items-center">
-    <!-- Step 1 -->
+    <!-- S1 -->
     <div class="flex flex-col items-center" style="min-width:52px">
-      <div id="pg1" class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300"
+      <div id="pg1" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300"
            style="background:#006241;border-color:#006241;color:#fff">1</div>
-      <p class="text-xs mt-1 font-medium" style="color:#006241">エリア</p>
+      <p id="lb1" class="mt-1 font-bold" style="font-size:10px;color:#006241">エリア</p>
     </div>
-    <div id="cn12" class="connector flex-1 h-0.5 mb-4" style="background:#006241;margin:0 2px"></div>
-    <!-- Step 2 -->
+    <div id="ln1" class="pgline flex-1 h-px mb-4" style="background:#006241"></div>
+    <!-- S2 -->
     <div class="flex flex-col items-center" style="min-width:52px">
-      <div id="pg2" class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300"
-           style="background:#EDE0CC;border-color:#EDE0CC;color:#6B7280">2</div>
-      <p class="text-xs mt-1 font-medium" style="color:#6B7280">用途</p>
+      <div id="pg2" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300"
+           style="background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF">2</div>
+      <p id="lb2" class="mt-1 font-bold" style="font-size:10px;color:#9CA3AF">用途</p>
     </div>
-    <div id="cn23" class="connector flex-1 h-0.5 mb-4" style="background:#EDE0CC;margin:0 2px"></div>
-    <!-- Step 3 -->
+    <div id="ln2" class="pgline flex-1 h-px mb-4" style="background:#EDE0CC"></div>
+    <!-- S3 -->
     <div class="flex flex-col items-center" style="min-width:52px">
-      <div id="pg3" class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300"
-           style="background:#EDE0CC;border-color:#EDE0CC;color:#6B7280">3</div>
-      <p class="text-xs mt-1 font-medium" style="color:#6B7280">条件</p>
+      <div id="pg3" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300"
+           style="background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF">3</div>
+      <p id="lb3" class="mt-1 font-bold" style="font-size:10px;color:#9CA3AF">条件</p>
     </div>
-    <div id="cn34" class="connector flex-1 h-0.5 mb-4" style="background:#EDE0CC;margin:0 2px"></div>
-    <!-- Step 4 -->
+    <div id="ln3" class="pgline flex-1 h-px mb-4" style="background:#EDE0CC"></div>
+    <!-- S4 -->
     <div class="flex flex-col items-center" style="min-width:52px">
-      <div id="pg4" class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300"
-           style="background:#EDE0CC;border-color:#EDE0CC;color:#6B7280">4</div>
-      <p class="text-xs mt-1 font-medium" style="color:#6B7280">SNS</p>
+      <div id="pg4" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300"
+           style="background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF">4</div>
+      <p id="lb4" class="mt-1 font-bold" style="font-size:10px;color:#9CA3AF">即決</p>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════
-     PANELS
-════════════════════════════ -->
-<div class="flex-1 overflow-y-auto" style="padding-bottom:24px">
+<!-- ═══════════════ PANELS ═══════════════ -->
+<div class="flex-1" style="overflow-y:auto;-webkit-overflow-scrolling:touch">
 
-  <!-- ── STEP 1: エリア ── -->
-  <div id="step1" class="px-5 pt-6 pb-4">
-    <!-- Hero text -->
-    <div class="mb-6">
-      <p class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">STEP 01</p>
-      <h2 class="font-serif text-2xl font-bold leading-tight" style="color:#1E3932">
-        どのエリアで<br>お探しですか？
-      </h2>
-      <p class="text-sm mt-2" style="color:#6B7280">タップして選択してください</p>
-    </div>
+<!-- ── STEP 1 ── -->
+<div id="step1" class="px-5 pt-6 pb-6">
+  <p class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">STEP 01</p>
+  <h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">どのエリアで<br>お探しですか？</h2>
+  <p class="text-sm mb-5" style="color:#6B7280">タップして選択してください</p>
+  <div class="grid grid-cols-2 gap-2.5 mb-6">
+    <button class="chip ac col-span-2 flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 text-left"
+            data-a="現在地周辺" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">
+      <span class="text-2xl flex-shrink-0">📍</span>
+      <div><p class="font-bold text-sm">現在地周辺</p><p class="text-xs" style="color:#6B7280">GPSで周辺を探す</p></div>
+    </button>
+    <button class="chip ac py-3 rounded-2xl border-2 font-bold text-sm" data-a="恵比寿・中目黒" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">恵比寿・中目黒</button>
+    <button class="chip ac py-3 rounded-2xl border-2 font-bold text-sm" data-a="六本木・麻布"  style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">六本木・麻布</button>
+    <button class="chip ac py-3 rounded-2xl border-2 font-bold text-sm" data-a="銀座・丸の内"  style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">銀座・丸の内</button>
+    <button class="chip ac py-3 rounded-2xl border-2 font-bold text-sm" data-a="新宿"         style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">新宿</button>
+    <button class="chip ac py-3 rounded-2xl border-2 font-bold text-sm" data-a="渋谷・表参道"  style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">渋谷・表参道</button>
+    <button class="chip ac py-3 rounded-2xl border-2 font-bold text-sm" data-a="品川・天王洲"  style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">品川・天王洲</button>
+  </div>
+  <button id="s1next" onclick="go(2)" disabled
+          class="w-full h-14 rounded-2xl font-bold text-base transition-all duration-300"
+          style="background:#EDE0CC;color:#bbb;cursor:not-allowed">次へ進む →</button>
+</div>
 
-    <!-- Area chips grid -->
-    <div class="grid grid-cols-2 gap-2.5 mb-6">
-      <button class="chip area-chip col-span-2 flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 font-bold text-sm text-left"
-              data-area="現在地周辺" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">
-        <span class="text-xl">📍</span>
-        <div>
-          <p class="font-bold">現在地周辺</p>
-          <p class="text-xs font-normal" style="color:#6B7280">GPSで周辺を検索</p>
-        </div>
-      </button>
-      <button class="chip area-chip px-4 py-3 rounded-2xl border-2 font-bold text-sm text-center"
-              data-area="恵比寿・中目黒" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">恵比寿・中目黒</button>
-      <button class="chip area-chip px-4 py-3 rounded-2xl border-2 font-bold text-sm text-center"
-              data-area="六本木・麻布" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">六本木・麻布</button>
-      <button class="chip area-chip px-4 py-3 rounded-2xl border-2 font-bold text-sm text-center"
-              data-area="銀座・丸の内" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">銀座・丸の内</button>
-      <button class="chip area-chip px-4 py-3 rounded-2xl border-2 font-bold text-sm text-center"
-              data-area="新宿" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">新宿</button>
-      <button class="chip area-chip px-4 py-3 rounded-2xl border-2 font-bold text-sm text-center"
-              data-area="渋谷・表参道" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">渋谷・表参道</button>
-      <button class="chip area-chip px-4 py-3 rounded-2xl border-2 font-bold text-sm text-center"
-              data-area="品川・天王洲" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">品川・天王洲</button>
-    </div>
-
-    <!-- CTA -->
-    <button id="step1-next" onclick="goTo(2)" disabled
-            class="w-full h-14 rounded-2xl font-bold text-base transition-all duration-300"
-            style="background:#EDE0CC;color:#aaa;cursor:not-allowed">
-      次へ進む
+<!-- ── STEP 2 ── -->
+<div id="step2" class="px-5 pt-5 pb-6 hidden">
+  <button onclick="go(1)" class="flex items-center gap-1 text-sm font-medium mb-4" style="color:#006241">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    エリアを変更
+  </button>
+  <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold mb-4"
+        style="background:#EBF5F0;color:#006241">📍 <span id="s2a"></span></span>
+  <p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">STEP 02</p>
+  <h2 class="font-serif text-2xl font-bold leading-tight mb-5" style="color:#1E3932">今夜の目的は？</h2>
+  <div class="flex flex-col gap-3">
+    <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left"
+            data-p="クライアントと打合せ" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style="background:#EBF5F0">👔</div>
+      <div><p class="font-bold text-sm" style="color:#1A1A1A">クライアントと打合せ</p><p class="text-xs mt-0.5" style="color:#6B7280">商談・接待・ビジネス会食</p></div>
+    </button>
+    <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left"
+            data-p="ガチ密談" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style="background:#EBF5F0">🤫</div>
+      <div><p class="font-bold text-sm" style="color:#1A1A1A">ガチ密談</p><p class="text-xs mt-0.5" style="color:#6B7280">極秘・重要な話し合い</p></div>
+    </button>
+    <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left"
+            data-p="インフルエンサー会食" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style="background:#EBF5F0">📱</div>
+      <div><p class="font-bold text-sm" style="color:#1A1A1A">インフルエンサー会食</p><p class="text-xs mt-0.5" style="color:#6B7280">SNS映え・投稿コラボ向け</p></div>
+    </button>
+    <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left"
+            data-p="社内懇親" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style="background:#EBF5F0">🥂</div>
+      <div><p class="font-bold text-sm" style="color:#1A1A1A">社内懇親</p><p class="text-xs mt-0.5" style="color:#6B7280">チームビルディング・打ち上げ</p></div>
     </button>
   </div>
+</div>
 
-  <!-- ── STEP 2: 用途 ── -->
-  <div id="step2" class="px-5 pt-6 pb-4 hidden">
-    <div class="mb-5">
-      <button onclick="goTo(1)" class="flex items-center gap-1.5 text-sm font-medium mb-4" style="color:#006241">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        エリアを変更
-      </button>
-      <div class="flex items-center gap-2 mb-2">
-        <div class="px-2.5 py-1 rounded-full text-xs font-bold" style="background:#EBF5F0;color:#006241">
-          📍 <span id="s2-area"></span>
-        </div>
-      </div>
-      <p class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">STEP 02</p>
-      <h2 class="font-serif text-2xl font-bold leading-tight" style="color:#1E3932">
-        今夜の目的は<br>何ですか？
-      </h2>
-    </div>
-
-    <!-- Purpose cards -->
-    <div class="grid grid-cols-1 gap-3 mb-4">
-      <button class="purpose-card px-5 py-4 rounded-2xl border-2 text-left flex items-center gap-4"
-              data-purpose="クライアントと打合せ" onclick="selectPurpose(this)"
-              style="background:#fff;border-color:#EDE0CC">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-             style="background:#EBF5F0">👔</div>
-        <div>
-          <p class="font-bold text-sm" style="color:#1A1A1A">クライアントと打合せ</p>
-          <p class="text-xs mt-0.5" style="color:#6B7280">商談・接待・ビジネス会食</p>
-        </div>
-      </button>
-      <button class="purpose-card px-5 py-4 rounded-2xl border-2 text-left flex items-center gap-4"
-              data-purpose="ガチ密談" onclick="selectPurpose(this)"
-              style="background:#fff;border-color:#EDE0CC">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-             style="background:#EBF5F0">🤫</div>
-        <div>
-          <p class="font-bold text-sm" style="color:#1A1A1A">ガチ密談</p>
-          <p class="text-xs mt-0.5" style="color:#6B7280">極秘・重要な話し合い</p>
-        </div>
-      </button>
-      <button class="purpose-card px-5 py-4 rounded-2xl border-2 text-left flex items-center gap-4"
-              data-purpose="インフルエンサー会食" onclick="selectPurpose(this)"
-              style="background:#fff;border-color:#EDE0CC">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-             style="background:#EBF5F0">📱</div>
-        <div>
-          <p class="font-bold text-sm" style="color:#1A1A1A">インフルエンサー会食</p>
-          <p class="text-xs mt-0.5" style="color:#6B7280">SNS映え・投稿コラボ向け</p>
-        </div>
-      </button>
-      <button class="purpose-card px-5 py-4 rounded-2xl border-2 text-left flex items-center gap-4"
-              data-purpose="社内懇親" onclick="selectPurpose(this)"
-              style="background:#fff;border-color:#EDE0CC">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-             style="background:#EBF5F0">🥂</div>
-        <div>
-          <p class="font-bold text-sm" style="color:#1A1A1A">社内懇親</p>
-          <p class="text-xs mt-0.5" style="color:#6B7280">チームビルディング・打ち上げ</p>
-        </div>
-      </button>
-    </div>
+<!-- ── STEP 3 ── -->
+<div id="step3" class="px-5 pt-5 pb-6 hidden">
+  <button onclick="go(2)" class="flex items-center gap-1 text-sm font-medium mb-4" style="color:#006241">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    用途を変更
+  </button>
+  <div class="flex flex-wrap gap-2 mb-4">
+    <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:#EBF5F0;color:#006241">📍 <span id="s3a"></span></span>
+    <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:#1E3932;color:#D4E9E2"><span id="s3p"></span></span>
   </div>
+  <p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">STEP 03</p>
+  <h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">こだわり条件</h2>
+  <p class="text-sm mb-5" style="color:#6B7280">複数選択OK・スキップも可能</p>
+  <div id="cwrap" class="flex flex-wrap gap-2.5 mb-6"></div>
+  <button onclick="go(4)"
+          class="w-full h-14 rounded-2xl font-bold text-base text-white"
+          style="background:#006241;box-shadow:0 4px 22px rgba(0,98,65,.42)">
+    ✦ この条件でトップ3を見る
+  </button>
+</div>
 
-  <!-- ── STEP 3: 条件 ── -->
-  <div id="step3" class="px-5 pt-6 pb-4 hidden">
-    <div class="mb-5">
-      <button onclick="goTo(2)" class="flex items-center gap-1.5 text-sm font-medium mb-4" style="color:#006241">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        用途を変更
-      </button>
-      <!-- Selected badges -->
-      <div class="flex flex-wrap gap-2 mb-4">
-        <div class="px-3 py-1 rounded-full text-xs font-bold" style="background:#EBF5F0;color:#006241">
-          📍 <span id="s3-area"></span>
-        </div>
-        <div class="px-3 py-1 rounded-full text-xs font-bold" style="background:#1E3932;color:#D4E9E2">
-          <span id="s3-purpose"></span>
-        </div>
-      </div>
-      <p class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">STEP 03</p>
-      <h2 class="font-serif text-2xl font-bold leading-tight" style="color:#1E3932">
-        こだわり条件を<br>選んでください
-      </h2>
-      <p class="text-sm mt-1" style="color:#6B7280">複数選択OK（スキップも可）</p>
-    </div>
+<!-- ── STEP 4: 即決トップ3 ── -->
+<div id="step4" class="hidden pb-8">
 
-    <!-- Condition chips (rendered by JS) -->
-    <div id="cond-chips" class="flex flex-wrap gap-2.5 mb-6"></div>
-
-    <button onclick="goTo(4)"
-            class="w-full h-14 rounded-2xl font-bold text-base text-white transition-all duration-200"
-            style="background:#006241;box-shadow:0 4px 20px rgba(0,98,65,.4)">
-      この条件で探す →
+  <!-- ダーク背景ヘッダー -->
+  <div class="px-5 pt-5 pb-5" style="background:#1E3932">
+    <button onclick="go(3)" class="flex items-center gap-1 text-sm font-medium mb-4" style="color:rgba(212,233,226,.65)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      条件を変更
     </button>
+    <p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258;letter-spacing:.12em">STEP 04 — 即決アシスト</p>
+    <h2 class="font-serif text-2xl font-bold leading-tight mb-3" style="color:#fff">
+      この条件なら<br><em style="font-style:normal;color:#D4E9E2">ここ</em>がベスト
+    </h2>
+    <div id="s4badges" class="flex flex-wrap gap-2"></div>
   </div>
 
-  <!-- ── STEP 4: SNS ── -->
-  <div id="step4" class="px-5 pt-6 pb-4 hidden">
-    <div class="mb-5">
-      <button onclick="goTo(3)" class="flex items-center gap-1.5 text-sm font-medium mb-4" style="color:#006241">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        条件を変更
-      </button>
-      <p class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">STEP 04</p>
-      <h2 class="font-serif text-2xl font-bold leading-tight" style="color:#1E3932">
-        SNSで発見する
-      </h2>
-      <p class="text-sm mt-1" style="color:#6B7280">プラットフォーム別に最適化されたクエリで検索が開きます</p>
-    </div>
+  <!-- カードリスト -->
+  <div class="px-4 pt-5 pb-4" style="background:#F0EBE1">
+    <p class="text-xs font-bold mb-4 flex items-center gap-2" style="color:#9A7830;letter-spacing:.08em">
+      ✦ リアルな評判トップ3
+    </p>
+    <div id="cards" class="flex flex-col gap-4"></div>
+  </div>
 
-    <!-- 選択サマリーカード -->
-    <div class="rounded-2xl p-4 mb-5" style="background:#1E3932">
-      <p class="text-xs font-bold mb-3" style="color:rgba(212,233,226,.6);letter-spacing:.1em">検索条件サマリー</p>
-      <div id="s4-tags" class="flex flex-wrap gap-2"></div>
-    </div>
-
-    <!-- プラットフォーム別クエリカード -->
-    <div class="space-y-3 mb-5">
-
-      <!-- ① TikTok -->
-      <div class="rounded-2xl overflow-hidden" style="border:2px solid #000">
-        <div class="px-4 py-3" style="background:#000">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.37a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.8z"/>
-              </svg>
-              <span class="text-white font-bold text-sm">TikTok</span>
-              <span class="text-xs px-2 py-0.5 rounded-full font-bold" style="background:#FE2C55;color:#fff">飯テロ特化</span>
-            </div>
-          </div>
-        </div>
-        <div class="px-4 py-3" style="background:#111">
-          <!-- URL組み立て表示 -->
-          <p class="text-xs mb-1.5" style="color:rgba(255,255,255,.35)">▶ チップス組み合わせ</p>
-          <div id="parts-tiktok" class="flex flex-wrap items-center gap-1 mb-3 text-xs"></div>
-          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">生成URL</p>
-          <p id="q-tiktok" class="text-xs font-mono mb-3 break-all leading-relaxed" style="color:#FE2C55"></p>
-          <a id="a-tiktok" href="#" target="_blank" rel="noopener"
-             class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm transition-all"
-             style="background:#FE2C55;color:#fff"
-             onclick="return trackOpen('tiktok',this)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            TikTokで開く
-          </a>
-        </div>
-        <div id="copy-tiktok" class="px-4 pb-3" style="background:#111">
-          <button onclick="copyURL('tiktok')" class="text-xs w-full py-2 rounded-lg font-medium" style="background:#222;color:rgba(255,255,255,.5)">
-            📋 URLをコピー（ブロックされた場合）
-          </button>
-        </div>
-      </div>
-
-      <!-- ② Instagram -->
-      <div class="rounded-2xl overflow-hidden" style="border:2px solid #C13584">
-        <div class="px-4 py-3" style="background:linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)">
-          <div class="flex items-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-              <rect x="2" y="2" width="20" height="20" rx="5"/>
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-            </svg>
-            <span class="text-white font-bold text-sm">Instagram</span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-bold" style="background:rgba(255,255,255,.25);color:#fff">映え特化</span>
-          </div>
-        </div>
-        <div class="px-4 py-3" style="background:#1a0a20">
-          <!-- URL組み立て表示 -->
-          <p class="text-xs mb-1.5" style="color:rgba(255,255,255,.35)">▶ チップス組み合わせ → #ハッシュタグ</p>
-          <div id="parts-instagram" class="flex flex-wrap items-center gap-1 mb-3 text-xs"></div>
-          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">生成URL（ハッシュタグ検索）</p>
-          <p id="q-instagram" class="text-xs font-mono mb-3 break-all leading-relaxed" style="color:#F77737"></p>
-          <a id="a-instagram" href="#" target="_blank" rel="noopener"
-             class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm mb-2"
-             style="background:linear-gradient(135deg,#833AB4,#FD1D1D);color:#fff"
-             onclick="return trackOpen('instagram',this)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Instagramで開く（ハッシュタグ）
-          </a>
-          <!-- サブ: キーワード検索 -->
-          <a id="a-instagram-sub" href="#" target="_blank" rel="noopener"
-             class="flex items-center justify-center gap-1 w-full py-2 rounded-xl text-xs font-medium"
-             style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)">
-            または キーワード検索で開く →
-          </a>
-        </div>
-        <div class="px-4 pb-3" style="background:#1a0a20">
-          <button onclick="copyURL('instagram')" class="text-xs w-full py-2 rounded-lg font-medium" style="background:#2a1030;color:rgba(255,255,255,.5)">
-            📋 URLをコピー（ブロックされた場合）
-          </button>
-        </div>
-      </div>
-
-      <!-- ③ Google Maps -->
-      <div class="rounded-2xl overflow-hidden" style="border:2px solid #4285F4">
-        <div class="px-4 py-3" style="background:#4285F4">
-          <div class="flex items-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span class="text-white font-bold text-sm">Googleマップ</span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-bold" style="background:rgba(255,255,255,.25);color:#fff">クチコミ特化</span>
-          </div>
-        </div>
-        <div class="px-4 py-3" style="background:#0a1428">
-          <!-- URL組み立て表示 -->
-          <p class="text-xs mb-1.5" style="color:rgba(255,255,255,.35)">▶ チップス組み合わせ → Maps検索</p>
-          <div id="parts-google" class="flex flex-wrap items-center gap-1 mb-3 text-xs"></div>
-          <p class="text-xs mb-1" style="color:rgba(255,255,255,.4)">生成URL</p>
-          <p id="q-google" class="text-xs font-mono mb-3 break-all leading-relaxed" style="color:#81B4FF"></p>
-          <a id="a-google" href="#" target="_blank" rel="noopener"
-             class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
-             style="background:#4285F4;color:#fff"
-             onclick="return trackOpen('google',this)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Googleマップで開く
-          </a>
-        </div>
-        <div class="px-4 pb-3" style="background:#0a1428">
-          <button onclick="copyURL('google')" class="text-xs w-full py-2 rounded-lg font-medium" style="background:#101f3a;color:rgba(255,255,255,.5)">
-            📋 URLをコピー（ブロックされた場合）
-          </button>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- 補足テキスト -->
-    <div class="rounded-xl px-4 py-3 mb-4 flex items-start gap-3" style="background:#EBF5F0">
-      <span class="text-lg flex-shrink-0">💡</span>
-      <p class="text-xs leading-relaxed" style="color:#006241">
-        ブラウザのポップアップブロックが作動した場合は「URLをコピー」でリンクをコピーして、ブラウザのアドレスバーに貼り付けてください。
-      </p>
-    </div>
-
-    <!-- Restart -->
+  <!-- やり直し -->
+  <div class="px-4 pt-2 pb-6" style="background:#F0EBE1">
     <button onclick="restart()"
-            class="w-full py-3.5 rounded-2xl text-sm font-bold border-2 transition-all"
-            style="border-color:#EDE0CC;color:#6B7280;background:#fff">
+            class="w-full py-3.5 rounded-2xl text-sm font-bold border-2"
+            style="border-color:#D9CBBA;color:#6B7280;background:#fff">
       ↺ 最初からやり直す
     </button>
   </div>
+</div>
 
 </div><!-- /panels -->
 
-
-<!-- ════════════════════════════
-     JAVASCRIPT
-════════════════════════════ -->
 <script>
-
-/* ── STATE ── */
-const S = { area:'', purpose:'', conditions:[] };
+/* ─────────────────────────────
+   STATE
+───────────────────────────── */
+const S = { area:'', purpose:'', conds:[] };
 let cur = 1;
 
-/* ── CONDITIONS MAP ── */
-const COND = {
-  'クライアントと打合せ': [
-    {icon:'🔒', label:'個室必須'},
-    {icon:'🤫', label:'静かな空間'},
-    {icon:'🚉', label:'駅チカ'},
-    {icon:'🍷', label:'接待向け'},
-    {icon:'📅', label:'予約可能'},
-    {icon:'💼', label:'ドレスコードあり'},
-    {icon:'🌙', label:'夜景あり'},
-    {icon:'🚗', label:'駐車場あり'},
-  ],
-  'ガチ密談': [
-    {icon:'🔒', label:'個室必須'},
-    {icon:'🔇', label:'防音個室'},
-    {icon:'🤫', label:'静かな空間'},
-    {icon:'👤', label:'人目につかない'},
-    {icon:'🌙', label:'深夜営業'},
-    {icon:'🚇', label:'出口が複数'},
-    {icon:'📵', label:'SNS禁止OK'},
-    {icon:'🍶', label:'和食・割烹'},
-  ],
-  'インフルエンサー会食': [
-    {icon:'📸', label:'映え重視'},
-    {icon:'🌿', label:'テラス席'},
-    {icon:'✨', label:'SNS映え内装'},
-    {icon:'🌃', label:'夜景'},
-    {icon:'🎨', label:'フォトジェニック'},
-    {icon:'🕙', label:'深夜営業'},
-    {icon:'🍽', label:'フォトメニュー'},
-    {icon:'🎵', label:'おしゃれBGM'},
-  ],
-  '社内懇親': [
-    {icon:'👥', label:'大人数OK'},
-    {icon:'🚉', label:'駅チカ'},
-    {icon:'🍺', label:'飲み放題あり'},
-    {icon:'🎉', label:'貸切可能'},
-    {icon:'💰', label:'コスパ重視'},
-    {icon:'🍕', label:'食べ放題あり'},
-    {icon:'🎤', label:'カラオケ付近'},
-    {icon:'🚗', label:'駐車場あり'},
-  ],
-};
+/* ─────────────────────────────
+   STORE DATABASE（25店舗）
+   スコアリング用メタデータ付き
+───────────────────────────── */
+const DB = [
+  /* ── 六本木・麻布 ── */
+  { name:'麻布 真田',     area:'六本木・麻布', loc:'麻布十番駅 徒歩3分', genre:'日本料理・割烹',
+    budget:'¥18,000〜', hook:'完全防音の個室で密談に最適。格式ある雰囲気で相手への敬意を示せる',
+    tags:['個室必須','静かな空間','接待向け','予約可能','防音個室'],
+    purpose:['クライアントと打合せ','ガチ密談'],
+    areas:['六本木・麻布','現在地周辺'],
+    sns:{ tk:'麻布十番 割烹 個室 接待 グルメ', ig:'麻布十番グルメ' } },
 
-/* ── PURPOSE → SNS KEYWORDS ── */
-const KW = {
-  'クライアントと打合せ': '接待 商談 個室 高級 グルメ',
-  'ガチ密談':             '個室 完全個室 隠れ家 穴場',
-  'インフルエンサー会食': 'インスタ映え フォトジェニック おしゃれ 飯テロ',
-  '社内懇親':             '宴会 飲み放題 居酒屋 懇親会',
-};
+  { name:'六本木 銀狐',   area:'六本木・麻布', loc:'六本木駅 徒歩2分', genre:'モダンフレンチ',
+    budget:'¥22,000〜', hook:'東京タワーを望む最上階テラス。インフルエンサー受け抜群のフォトジェニック空間',
+    tags:['夜景','テラス席','映え重視','SNS映え','フォトジェニック'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'],
+    areas:['六本木・麻布','現在地周辺'],
+    sns:{ tk:'六本木 夜景 フレンチ 飯テロ', ig:'六本木グルメ' } },
 
-/* ── STEP NAVIGATION ── */
-function goTo(next) {
-  const dir = next > cur ? 'right' : 'left';
-  const old = document.getElementById('step'+cur);
-  const nw  = document.getElementById('step'+next);
+  { name:'西麻布 杉乃屋', area:'六本木・麻布', loc:'広尾駅 徒歩8分', genre:'懐石料理',
+    budget:'¥25,000〜', hook:'路地裏の完全隠れ家。知る人ぞ知る密談御用達、外部に漏れない安心感',
+    tags:['個室必須','防音個室','人目につかない','静かな空間','隠れ家'],
+    purpose:['ガチ密談','クライアントと打合せ'],
+    areas:['六本木・麻布','現在地周辺'],
+    sns:{ tk:'西麻布 懐石 隠れ家 グルメ', ig:'西麻布グルメ' } },
 
-  old.classList.add(dir==='right' ? 'slide-out-left' : 'slide-out-right');
-  setTimeout(() => {
-    old.classList.add('hidden');
-    old.classList.remove('slide-out-left','slide-out-right');
-    nw.classList.remove('hidden');
-    nw.classList.add(dir==='right' ? 'slide-in-right' : 'slide-in-left');
-    setTimeout(()=> nw.classList.remove('slide-in-right','slide-in-left'), 350);
-  }, 220);
+  { name:'麻布 Cielo',   area:'六本木・麻布', loc:'麻布十番駅 徒歩5分', genre:'イタリアン',
+    budget:'¥12,000〜', hook:'大型ライトとオープンキッチンが映え最強。料理の彩りでSNS投稿率ダントツ',
+    tags:['映え重視','SNS映え','フォトジェニック','テラス席','おしゃれ'],
+    purpose:['インフルエンサー会食','社内懇親'],
+    areas:['六本木・麻布','現在地周辺'],
+    sns:{ tk:'麻布十番 イタリアン 映え 飯テロ', ig:'麻布十番グルメ' } },
 
-  cur = next;
-  updateProgress();
-  updateHeader();
-  if (next === 3) renderConditions();
-  if (next === 4) renderSummary();
+  { name:'六本木 月夜',  area:'六本木・麻布', loc:'六本木駅 徒歩4分', genre:'鉄板焼き',
+    budget:'¥20,000〜', hook:'カウンター鉄板でシェフのライブ感を演出。接待で「体験価値」を提供できる',
+    tags:['接待向け','個室必須','夜景','高級感','予約可能'],
+    purpose:['クライアントと打合せ','ガチ密談'],
+    areas:['六本木・麻布','現在地周辺'],
+    sns:{ tk:'六本木 鉄板焼き 接待 飯テロ', ig:'六本木グルメ' } },
+
+  /* ── 恵比寿・中目黒 ── */
+  { name:'恵比寿 木の葉', area:'恵比寿・中目黒', loc:'恵比寿駅 徒歩5分', genre:'和食・個室',
+    budget:'¥15,000〜', hook:'完全個室で商談が弾む。厳選食材と繊細な盛り付けで相手の心をつかめる',
+    tags:['個室必須','静かな空間','接待向け','駅チカ','予約可能'],
+    purpose:['クライアントと打合せ','ガチ密談'],
+    areas:['恵比寿・中目黒','現在地周辺'],
+    sns:{ tk:'恵比寿 和食 個室 接待 飯テロ', ig:'恵比寿グルメ' } },
+
+  { name:'中目黒 HARU',  area:'恵比寿・中目黒', loc:'中目黒駅 徒歩3分', genre:'モダンフレンチ',
+    budget:'¥16,000〜', hook:'目黒川沿いテラス×フォトジェニック料理が最強コンボ。春はサクラも映える',
+    tags:['テラス席','映え重視','SNS映え','おしゃれ','夜景','フォトジェニック'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'],
+    areas:['恵比寿・中目黒','現在地周辺'],
+    sns:{ tk:'中目黒 フレンチ テラス 映え 飯テロ', ig:'中目黒グルメ' } },
+
+  { name:'中目黒 静流',  area:'恵比寿・中目黒', loc:'中目黒駅 徒歩6分', genre:'日本料理',
+    budget:'¥20,000〜', hook:'完全予約制・防音完璧の静寂個室。声が外に漏れない安心感で密談に最適',
+    tags:['個室必須','防音個室','静かな空間','人目につかない','予約可能'],
+    purpose:['ガチ密談','クライアントと打合せ'],
+    areas:['恵比寿・中目黒','現在地周辺'],
+    sns:{ tk:'中目黒 日本料理 個室 グルメ', ig:'中目黒グルメ' } },
+
+  { name:'恵比寿 炭火 零', area:'恵比寿・中目黒', loc:'恵比寿駅 徒歩4分', genre:'焼肉',
+    budget:'¥10,000〜', hook:'黒毛和牛の炭火焼きが飯テロ最強。テーブル間隔広く懇親でも騒げる',
+    tags:['大人数OK','映え重視','駅チカ','飲み放題あり'],
+    purpose:['社内懇親','インフルエンサー会食'],
+    areas:['恵比寿・中目黒','現在地周辺'],
+    sns:{ tk:'恵比寿 焼肉 黒毛和牛 飯テロ', ig:'恵比寿グルメ' } },
+
+  /* ── 銀座・丸の内 ── */
+  { name:'銀座 黒田',    area:'銀座・丸の内', loc:'銀座駅 徒歩2分', genre:'鮨',
+    budget:'¥30,000〜', hook:'ミシュラン掲載。大切なクライアントへの格式と信頼感が圧倒的',
+    tags:['接待向け','個室必須','高級感','予約可能','静かな空間'],
+    purpose:['クライアントと打合せ','ガチ密談'],
+    areas:['銀座・丸の内','現在地周辺'],
+    sns:{ tk:'銀座 鮨 高級 接待 グルメ', ig:'銀座グルメ' } },
+
+  { name:'銀座 天空バー', area:'銀座・丸の内', loc:'銀座駅 徒歩3分', genre:'バー・ダイニング',
+    budget:'¥14,000〜', hook:'地上32階から見える夜景×シャンパンでSNS投稿率95%超。映え確定の絶景',
+    tags:['夜景','映え重視','SNS映え','フォトジェニック','おしゃれ','テラス席'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'],
+    areas:['銀座・丸の内','現在地周辺'],
+    sns:{ tk:'銀座 夜景 バー 映え 飯テロ', ig:'銀座グルメ' } },
+
+  { name:'丸の内 FORZA', area:'銀座・丸の内', loc:'東京駅 徒歩4分', genre:'フレンチイタリアン',
+    budget:'¥18,000〜', hook:'ビジネス街の正統派接待店。サービス水準が高く初対面相手にも安心感を与える',
+    tags:['接待向け','個室必須','駅チカ','予約可能','ドレスコードあり'],
+    purpose:['クライアントと打合せ'],
+    areas:['銀座・丸の内','現在地周辺'],
+    sns:{ tk:'丸の内 フレンチ 接待 グルメ', ig:'丸の内グルメ' } },
+
+  { name:'銀座 囲炉裏 雅', area:'銀座・丸の内', loc:'銀座駅 徒歩5分', genre:'日本料理',
+    budget:'¥22,000〜', hook:'囲炉裏個室が密談特化。BGMをゼロにできるオプションあり、完全な静寂を確保',
+    tags:['個室必須','防音個室','静かな空間','高級感','人目につかない'],
+    purpose:['ガチ密談','クライアントと打合せ'],
+    areas:['銀座・丸の内','現在地周辺'],
+    sns:{ tk:'銀座 和食 個室 隠れ家 グルメ', ig:'銀座グルメ' } },
+
+  /* ── 新宿 ── */
+  { name:'新宿 頂 極上焼肉', area:'新宿', loc:'新宿駅 徒歩6分', genre:'焼肉',
+    budget:'¥8,000〜', hook:'最大40名対応。飲み放題×黒毛和牛で懇親会の満足度がとにかく高い',
+    tags:['大人数OK','飲み放題あり','駅チカ','貸切可能'],
+    purpose:['社内懇親'],
+    areas:['新宿','現在地周辺'],
+    sns:{ tk:'新宿 焼肉 宴会 飲み放題 飯テロ', ig:'新宿グルメ' } },
+
+  { name:'新宿 夜桜',    area:'新宿', loc:'西新宿駅 徒歩3分', genre:'割烹・個室',
+    budget:'¥15,000〜', hook:'個室で話しやすく格式もある。初回商談でも「また来たい」と思わせる品格',
+    tags:['個室必須','静かな空間','接待向け','駅チカ','予約可能'],
+    purpose:['クライアントと打合せ','ガチ密談'],
+    areas:['新宿','現在地周辺'],
+    sns:{ tk:'新宿 割烹 個室 接待 グルメ', ig:'新宿グルメ' } },
+
+  { name:'西新宿 Sky Lounge', area:'新宿', loc:'西新宿駅 徒歩2分', genre:'バー・夜景',
+    budget:'¥12,000〜', hook:'超高層から見える東京夜景がSNS投稿確定。インフルエンサーに大人気の絶景バー',
+    tags:['夜景','映え重視','SNS映え','フォトジェニック','おしゃれ'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'],
+    areas:['新宿','現在地周辺'],
+    sns:{ tk:'西新宿 夜景 バー 映え 飯テロ', ig:'新宿グルメ' } },
+
+  /* ── 渋谷・表参道 ── */
+  { name:'表参道 BLANC', area:'渋谷・表参道', loc:'表参道駅 徒歩3分', genre:'モダンフレンチ',
+    budget:'¥18,000〜', hook:'ファッション誌でも紹介される洗練空間。インフルエンサーと同じ空気感を演出',
+    tags:['映え重視','SNS映え','おしゃれ','フォトジェニック','テラス席'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'],
+    areas:['渋谷・表参道','現在地周辺'],
+    sns:{ tk:'表参道 フレンチ 映え フォトジェニック 飯テロ', ig:'表参道グルメ' } },
+
+  { name:'渋谷 ROOT',    area:'渋谷・表参道', loc:'渋谷駅 徒歩5分', genre:'和モダン',
+    budget:'¥12,000〜', hook:'クリエイター業界のSNS人気No.1店。料理の盛り付けが毎回Twitterでも話題に',
+    tags:['映え重視','SNS映え','おしゃれ','フォトジェニック','駅チカ'],
+    purpose:['インフルエンサー会食','社内懇親'],
+    areas:['渋谷・表参道','現在地周辺'],
+    sns:{ tk:'渋谷 和モダン SNS映え 飯テロ', ig:'渋谷グルメ' } },
+
+  { name:'渋谷 円（まどか）', area:'渋谷・表参道', loc:'渋谷駅 徒歩4分', genre:'居酒屋・個室',
+    budget:'¥7,000〜', hook:'30名貸切OK×飲み放題。賑わいの中に個室ゾーンがあって懇親に最適',
+    tags:['大人数OK','飲み放題あり','貸切可能','駅チカ'],
+    purpose:['社内懇親'],
+    areas:['渋谷・表参道','現在地周辺'],
+    sns:{ tk:'渋谷 居酒屋 宴会 飲み放題 飯テロ', ig:'渋谷グルメ' } },
+
+  /* ── 品川・天王洲 ── */
+  { name:'天王洲 MARINA', area:'品川・天王洲', loc:'天王洲アイル駅 徒歩2分', genre:'シーフード',
+    budget:'¥14,000〜', hook:'運河ビューのテラス席が映え確定。夜のリフレクションは国内随一の絶景',
+    tags:['テラス席','夜景','映え重視','SNS映え','フォトジェニック'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'],
+    areas:['品川・天王洲','現在地周辺'],
+    sns:{ tk:'天王洲 シーフード 運河 映え 飯テロ', ig:'天王洲グルメ' } },
+
+  { name:'品川 風雅',    area:'品川・天王洲', loc:'品川駅 徒歩5分', genre:'日本料理・個室',
+    budget:'¥16,000〜', hook:'新幹線移動前後にも使いやすい品川の接待定番。個室で落ち着いて商談できる',
+    tags:['個室必須','接待向け','静かな空間','駅チカ','予約可能'],
+    purpose:['クライアントと打合せ','ガチ密談'],
+    areas:['品川・天王洲','現在地周辺'],
+    sns:{ tk:'品川 日本料理 個室 接待 グルメ', ig:'品川グルメ' } },
+
+  { name:'天王洲 BLUE',  area:'品川・天王洲', loc:'天王洲アイル駅 徒歩3分', genre:'バー・ダイニング',
+    budget:'¥11,000〜', hook:'水辺のおしゃれバー。インフルエンサーとのブランド協議が絵になる空間',
+    tags:['テラス席','おしゃれ','映え重視','SNS映え'],
+    purpose:['インフルエンサー会食','社内懇親'],
+    areas:['品川・天王洲','現在地周辺'],
+    sns:{ tk:'天王洲 バー おしゃれ 映え 飯テロ', ig:'天王洲グルメ' } },
+
+  { name:'品川 肉割烹 薫', area:'品川・天王洲', loc:'品川駅 徒歩7分', genre:'肉割烹',
+    budget:'¥12,000〜', hook:'黒毛和牛の創作肉料理でSNS投稿率が高い。懇親会で「選んだ人すごい」と言われる',
+    tags:['大人数OK','映え重視','飲み放題あり','駅チカ'],
+    purpose:['社内懇親','インフルエンサー会食'],
+    areas:['品川・天王洲','現在地周辺'],
+    sns:{ tk:'品川 肉割烹 黒毛和牛 飯テロ', ig:'品川グルメ' } },
+
+  /* ── 汎用（現在地周辺のみ） ── */
+  { name:'隠れ家 翡翠',  area:'現在地周辺', loc:'最寄駅 徒歩圏内', genre:'和食・完全個室',
+    budget:'¥20,000〜', hook:'完全予約制の完全個室。その場にいる人以外には存在すら知られない密談空間',
+    tags:['個室必須','防音個室','人目につかない','静かな空間','高級感'],
+    purpose:['ガチ密談','クライアントと打合せ'],
+    areas:['現在地周辺'],
+    sns:{ tk:'完全個室 和食 隠れ家 グルメ', ig:'和食グルメ' } },
+
+  { name:'フォト食堂 凛', area:'現在地周辺', loc:'最寄駅 徒歩圏内', genre:'和洋折衷',
+    budget:'¥9,000〜', hook:'料理の盛り付けがすべてフォトジェニック。投稿するたびにフォロワーが増えると話題',
+    tags:['映え重視','SNS映え','フォトジェニック','おしゃれ'],
+    purpose:['インフルエンサー会食'],
+    areas:['現在地周辺'],
+    sns:{ tk:'フォトジェニック グルメ 映え 飯テロ', ig:'インスタグルメ' } },
+];
+
+/* ─────────────────────────────
+   SCORING ENGINE
+───────────────────────────── */
+function scoreStore(s) {
+  let sc = 0;
+  if (s.areas.includes(S.area))     sc += 12;  // エリア一致
+  if (s.purpose.includes(S.purpose)) sc += 10;  // 用途一致
+  S.conds.forEach(c => { if (s.tags.includes(c)) sc += 5; });  // 条件一致
+  sc += (s._r = s._r || Math.random() * 3);  // ランダム微差
+  return sc;
+}
+
+function getTop3() {
+  return [...DB]
+    .map(s => ({...s, sc: scoreStore(s)}))
+    .sort((a,b) => b.sc - a.sc)
+    .slice(0, 3);
+}
+
+/* ─────────────────────────────
+   CARD BUILDER
+───────────────────────────── */
+function buildCard(store, rank) {
+  const icons  = ['🥇','🥈','🥉'];
+  const labels = ['1位','2位','3位'];
+  const cls    = ['r1','r2','r3'];
+  const tkURL  = `https://www.tiktok.com/search?q=${encodeURIComponent(store.sns.tk)}`;
+  const igURL  = `https://www.instagram.com/explore/tags/${encodeURIComponent(store.sns.ig)}/`;
+
+  // 条件マッチタグ（緑ハイライト）+ その他タグ
+  const matched = store.tags.filter(t => S.conds.includes(t)).slice(0,3);
+  const others  = store.tags.filter(t => !S.conds.includes(t)).slice(0,2);
+  const tagHtml = [
+    ...matched.map(t=>`<span class="px-2 py-0.5 rounded-full text-xs font-bold" style="background:#006241;color:#fff">✓ ${t}</span>`),
+    ...others.map(t =>`<span class="px-2 py-0.5 rounded-full text-xs"           style="background:#EDE0CC;color:#6B7280">${t}</span>`),
+  ].join('');
+
+  return `<div class="rcard">
+  <!-- ヘッダー -->
+  <div class="flex items-start justify-between px-4 pt-4 pb-2">
+    <div class="flex-1 min-w-0 pr-3">
+      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+        <span class="px-2.5 py-1 rounded-full text-xs font-black ${cls[rank-1]}" style="animation:badgePop .35s ${rank*.12}s ease both;display:inline-flex;align-items:center;gap:4px">
+          ${icons[rank-1]} ${labels[rank-1]}
+        </span>
+        <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:#EBF5F0;color:#006241">${store.genre}</span>
+      </div>
+      <h3 class="font-serif text-lg font-bold leading-tight" style="color:#1E3932">${store.name}</h3>
+      <p class="text-xs mt-0.5" style="color:#6B7280">📍 ${store.loc}</p>
+    </div>
+    <div class="text-right flex-shrink-0">
+      <p class="text-xs font-bold mb-0.5" style="color:#9A7830">予算</p>
+      <p class="font-black" style="color:#1E3932;font-size:1.05rem">${store.budget}</p>
+    </div>
+  </div>
+  <!-- 決定打 -->
+  <div class="mx-4 mb-2.5 px-3 py-2.5 rounded-xl" style="background:#EBF5F0;border-left:3px solid #006241">
+    <p class="text-xs font-bold mb-0.5" style="color:#006241">✦ 決定打</p>
+    <p class="text-sm font-medium leading-relaxed" style="color:#1E3932">${store.hook}</p>
+  </div>
+  <!-- タグ -->
+  ${tagHtml ? `<div class="px-4 pb-3 flex flex-wrap gap-1.5">${tagHtml}</div>` : ''}
+  <!-- SNSボタン -->
+  <div class="flex gap-2 px-4 pb-4">
+    <a href="${tkURL}" target="_blank" rel="noopener"
+       class="tk-btn flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.37a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.8z"/></svg>
+      TikTokで見る
+    </a>
+    <a href="${igURL}" target="_blank" rel="noopener"
+       class="ig-btn flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      Instagramで見る
+    </a>
+  </div>
+</div>`;
+}
+
+function renderTop3() {
+  // バッジ
+  const bs = document.getElementById('s4badges');
+  bs.innerHTML = [
+    `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(212,233,226,.18);color:#D4E9E2">📍 ${S.area}</span>`,
+    `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(203,162,88,.2);color:#CBA258">🎯 ${S.purpose}</span>`,
+    ...S.conds.map(c=>`<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.1);color:rgba(212,233,226,.8)">✓ ${c}</span>`),
+  ].join('');
+
+  const wrap = document.getElementById('cards');
+  wrap.innerHTML = getTop3().map((s,i)=>buildCard(s,i+1)).join('');
+}
+
+/* ─────────────────────────────
+   NAVIGATION
+───────────────────────────── */
+function go(next) {
+  if (next===3) buildConds();
+  const dir = next > cur ? 'r' : 'l';
+  const from= document.getElementById('step'+cur);
+  const to  = document.getElementById('step'+next);
+  from.classList.add('out-'+dir);
+  setTimeout(()=>{
+    from.classList.add('hidden'); from.classList.remove('out-r','out-l');
+    to.classList.remove('hidden'); to.classList.add('slide-'+dir);
+    setTimeout(()=>to.classList.remove('slide-r','slide-l'),320);
+    if (next===4) renderTop3();
+  },200);
+  cur=next; updPg(); updHdr();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-/* ── PROGRESS ── */
-function updateProgress() {
-  for (let i=1; i<=4; i++) {
-    const el = document.getElementById('pg'+i);
-    const cn = i<4 ? document.getElementById('cn'+(i)+(i+1)) : null;
-    if (i < cur) {
-      el.style.background='#006241'; el.style.borderColor='#006241'; el.style.color='#fff';
-      el.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
-      el.querySelector('p') && (el.querySelector('p').style.color='#006241');
-      if(cn){cn.style.background='#006241'}
-    } else if (i === cur) {
-      el.style.background='#006241'; el.style.borderColor='#006241'; el.style.color='#fff';
-      el.innerHTML=i;
-      if(cn){cn.style.background='#EDE0CC'}
+/* ─────────────────────────────
+   PROGRESS
+───────────────────────────── */
+function updPg() {
+  [{pg:'pg1',ln:'ln1',lb:'lb1'},{pg:'pg2',ln:'ln2',lb:'lb2'},{pg:'pg3',ln:'ln3',lb:'lb3'},{pg:'pg4',ln:null,lb:'lb4'}]
+  .forEach(({pg,ln,lb},i)=>{
+    const n=i+1, el=document.getElementById(pg), lel=document.getElementById(lb);
+    const lnel=ln?document.getElementById(ln):null;
+    if(n<cur){
+      el.style.cssText='background:#006241;border-color:#006241;color:#fff;width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border-width:2px;transition:all .3s';
+      el.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+      lel.style.color='#006241'; if(lnel)lnel.style.background='#006241';
+    } else if(n===cur){
+      el.style.cssText='background:#006241;border-color:#006241;color:#fff;width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border-width:2px;transition:all .3s';
+      el.innerHTML=n; lel.style.color='#006241'; if(lnel)lnel.style.background='#EDE0CC';
     } else {
-      el.style.background='#EDE0CC'; el.style.borderColor='#EDE0CC'; el.style.color='#6B7280';
-      el.innerHTML=i;
-      if(cn){cn.style.background='#EDE0CC'}
+      el.style.cssText='background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF;width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border-width:2px;transition:all .3s';
+      el.innerHTML=n; lel.style.color='#9CA3AF'; if(lnel)lnel.style.background='#EDE0CC';
     }
-  }
-  // Update text labels
-  const labels = ['エリア','用途','条件','SNS'];
-  for(let i=1;i<=4;i++){
-    const label = document.getElementById('pg'+i).nextElementSibling;
-    if(label) label.style.color = i<=cur ? '#006241' : '#6B7280';
-  }
+  });
 }
+function updHdr(){ document.getElementById('hdr-step').textContent=`STEP ${cur} / 4`; }
 
-function updateHeader() {
-  document.getElementById('hdr-step-label').textContent = `STEP ${cur} / 4`;
-}
-
-/* ── AREA SELECTION ── */
-document.querySelectorAll('.area-chip').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.area-chip').forEach(b => {
-      b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A';
-    });
-    btn.style.background='#006241'; btn.style.borderColor='#006241'; btn.style.color='#fff';
-    // Gold glow effect
-    btn.classList.add('ring-pulse');
-    setTimeout(()=>btn.classList.remove('ring-pulse'),500);
-
-    S.area = btn.dataset.area;
-    const nextBtn = document.getElementById('step1-next');
-    nextBtn.disabled = false;
-    nextBtn.style.background='#006241';
-    nextBtn.style.color='#fff';
-    nextBtn.style.cursor='pointer';
-    nextBtn.style.boxShadow='0 4px 20px rgba(0,98,65,.4)';
+/* ─────────────────────────────
+   AREA CHIPS
+───────────────────────────── */
+document.querySelectorAll('.ac').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.ac').forEach(x=>{x.style.background='#fff';x.style.borderColor='#EDE0CC';x.style.color='#1A1A1A';});
+    b.style.background='#006241'; b.style.borderColor='#006241'; b.style.color='#fff';
+    S.area=b.dataset.a;
+    const nb=document.getElementById('s1next');
+    nb.disabled=false; nb.style.background='#006241'; nb.style.color='#fff';
+    nb.style.cursor='pointer'; nb.style.boxShadow='0 4px 20px rgba(0,98,65,.42)';
   });
 });
 
-/* ── PURPOSE SELECTION ── */
-function selectPurpose(btn) {
-  document.querySelectorAll('.purpose-card').forEach(b => {
-    b.style.background='#fff'; b.style.borderColor='#EDE0CC';
-  });
+/* ─────────────────────────────
+   PURPOSE
+───────────────────────────── */
+function selPurpose(btn){
+  document.querySelectorAll('.purpose-card').forEach(b=>{b.style.background='#fff';b.style.borderColor='#EDE0CC';});
   btn.style.background='#EBF5F0'; btn.style.borderColor='#006241';
-  S.purpose = btn.dataset.purpose;
-
-  // Update step 2 area badge
-  document.getElementById('s2-area').textContent = S.area;
-
-  // Brief delay for visual feedback then advance
-  setTimeout(() => goTo(3), 250);
+  S.purpose=btn.dataset.p;
+  document.getElementById('s2a').textContent=S.area;
+  setTimeout(()=>go(3),200);
 }
 
-/* ── CONDITION RENDERING ── */
-function renderConditions() {
-  document.getElementById('s3-area').textContent    = S.area;
-  document.getElementById('s3-purpose').textContent = S.purpose;
-  S.conditions = [];
-
-  const chips = COND[S.purpose] || [];
-  const wrap  = document.getElementById('cond-chips');
-  wrap.innerHTML = '';
-  chips.forEach(c => {
-    const btn = document.createElement('button');
-    btn.className = 'cond-chip px-4 py-2.5 rounded-full border-2 text-sm font-bold flex items-center gap-2';
-    btn.style.background='#fff'; btn.style.borderColor='#EDE0CC'; btn.style.color='#1A1A1A';
-    btn.innerHTML = `<span>${c.icon}</span> ${c.label}`;
-    btn.addEventListener('click', () => {
-      const idx = S.conditions.indexOf(c.label);
-      if (idx >= 0) {
-        S.conditions.splice(idx,1);
-        btn.style.background='#fff'; btn.style.borderColor='#EDE0CC'; btn.style.color='#1A1A1A';
-      } else {
-        S.conditions.push(c.label);
-        btn.style.background='#006241'; btn.style.borderColor='#006241'; btn.style.color='#fff';
-      }
-    });
-    wrap.appendChild(btn);
-  });
-}
-
-/* ── PLATFORM-SPECIFIC QUERY BUILDERS ── */
-
-/* 条件ラベルをSNS検索向けキーワードに変換 */
-const COND_KW = {
-  '個室必須':'個室', '静かな空間':'静か', '防音個室':'完全個室',
-  '人目につかない':'隠れ家', '深夜営業':'深夜', '映え重視':'インスタ映え',
-  'テラス席':'テラス', 'SNS映え内装':'フォトジェニック', '夜景':'夜景',
-  'フォトジェニック':'フォトジェニック', '大人数OK':'宴会', '駅チカ':'駅近',
-  '飲み放題あり':'飲み放題', '接待向け':'接待', '予約可能':'予約',
-  'ドレスコードあり':'高級', '貸切可能':'貸切', 'ドリンク充実':'バー',
-  'SNS禁止OK':'隠れ家', '和食・割烹':'和食', 'おしゃれBGM':'おしゃれ',
-  'カラオケ付近':'カラオケ', '食べ放題あり':'食べ放題',
+/* ─────────────────────────────
+   CONDITIONS
+───────────────────────────── */
+const CMAP = {
+  'クライアントと打合せ':[{i:'🔒',l:'個室必須'},{i:'🤫',l:'静かな空間'},{i:'🚉',l:'駅チカ'},{i:'🍷',l:'接待向け'},{i:'📅',l:'予約可能'},{i:'💼',l:'ドレスコードあり'},{i:'🌙',l:'夜景'},{i:'🚗',l:'駐車場あり'}],
+  'ガチ密談':            [{i:'🔒',l:'個室必須'},{i:'🔇',l:'防音個室'},{i:'🤫',l:'静かな空間'},{i:'👤',l:'人目につかない'},{i:'🚪',l:'隠れ家'},{i:'🌙',l:'深夜営業'},{i:'📵',l:'SNS禁止OK'},{i:'🍶',l:'和食・割烹'}],
+  'インフルエンサー会食':[{i:'📸',l:'映え重視'},{i:'🌿',l:'テラス席'},{i:'✨',l:'SNS映え'},{i:'🌃',l:'夜景'},{i:'🎨',l:'フォトジェニック'},{i:'💫',l:'おしゃれ'},{i:'🕙',l:'深夜営業'},{i:'🍽',l:'フォトメニュー'}],
+  '社内懇親':            [{i:'👥',l:'大人数OK'},{i:'🚉',l:'駅チカ'},{i:'🍺',l:'飲み放題あり'},{i:'🎉',l:'貸切可能'},{i:'💰',l:'コスパ重視'},{i:'🍕',l:'食べ放題あり'},{i:'🎤',l:'カラオケ付近'},{i:'🚗',l:'駐車場あり'}],
 };
 
-/* エリア文字列の整形（短縮） */
-function cleanArea() {
-  return S.area.split('・')[0]          // "恵比寿・中目黒" → "恵比寿"
-               .replace('現在地周辺','現在地')
-               .replace('周辺','')
-               .trim();
-}
-
-/* 用途 → プラットフォーム別キーワードマッピング */
-const PF_KW = {
-  // TikTok: 動画・飯テロ向け
-  tiktok: {
-    'クライアントと打合せ': '会食',
-    'ガチ密談':            '個室ディナー',
-    'インフルエンサー会食': '飯テロ',
-    '社内懇親':            '宴会',
-  },
-  // Instagram: ハッシュタグ向け（スペースなし1単語）
-  instagram: {
-    'クライアントと打合せ': 'グルメ',
-    'ガチ密談':            '個室グルメ',
-    'インフルエンサー会食': 'インスタ映えグルメ',
-    '社内懇親':            '宴会グルメ',
-  },
-  // Google Maps: 店舗検索向け
-  google: {
-    'クライアントと打合せ': 'レストラン 接待',
-    'ガチ密談':            'レストラン 個室',
-    'インフルエンサー会食': 'レストラン おしゃれ',
-    '社内懇親':            'レストラン 宴会',
-  },
-};
-
-function condKw(max=2) {
-  return S.conditions
-    .map(c => COND_KW[c] ?? c.replace('必須','').replace('あり','').replace('OK',''))
-    .filter(Boolean).slice(0, max);
-}
-
-/*
- ① TikTok: 単語を "+" でつないで search?q=word+word 形式
-    例: https://www.tiktok.com/search?q=恵比寿+会食+飯テロ
-*/
-function buildTikTok() {
-  const area = cleanArea();
-  const kw   = PF_KW.tiktok[S.purpose] || '会食';
-  const cond = condKw(1);
-  const parts = [area, kw, '飯テロ', ...cond].filter(Boolean);
-  // URL: 各パーツをencodeURIComponentしてから"+"でjoin
-  const url  = 'https://www.tiktok.com/search?q=' + parts.map(encodeURIComponent).join('+');
-  return { parts, url };
-}
-
-/*
- ② Instagram: エリア+ジャンルを1語に結合してハッシュタグURLに
-    例: https://www.instagram.com/explore/tags/恵比寿グルメ/
-    + サブクエリ: keyword search URL
-*/
-function buildInstagram() {
-  const area    = cleanArea();
-  const kwForIG = PF_KW.instagram[S.purpose] || 'グルメ';
-  const cond    = condKw(1);
-
-  // メインハッシュタグ: エリア+ジャンル（スペースなし）
-  const hashtag = area + kwForIG;            // "恵比寿グルメ"
-  const tagURL  = `https://www.instagram.com/explore/tags/${encodeURIComponent(hashtag)}/`;
-
-  // サブ: キーワード検索URL
-  const kwParts  = [area, kwForIG, ...cond].filter(Boolean);
-  const searchURL= `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(kwParts.join(' '))}`;
-
-  return { hashtag, tagURL, searchURL, kwParts };
-}
-
-/*
- ③ Google Maps: エリア+ジャンルで店舗検索
-    例: https://www.google.com/maps/search/恵比寿+レストラン+接待
-*/
-function buildGoogle() {
-  const area = cleanArea();
-  const kw   = PF_KW.google[S.purpose] || 'レストラン';
-  const cond = condKw(1);
-  const parts = [area, kw, ...cond].filter(Boolean);
-  const url   = 'https://www.google.com/maps/search/' + parts.map(encodeURIComponent).join('+');
-  return { parts, url };
-}
-
-/* ── buildURLs: 3プラットフォームのURL一括生成 ── */
-function buildURLs() {
-  const tk = buildTikTok();
-  const ig = buildInstagram();
-  const gm = buildGoogle();
-  return {
-    tiktok:    { ...tk, query: tk.parts.join(' + ') },
-    instagram: { ...ig, query: '#' + ig.hashtag },
-    google:    { ...gm, query: gm.parts.join(' + ') },
-  };
-}
-
-let _urls = {};  // グローバル保持（コピー用）
-
-/* ── RENDER SUMMARY ── */
-function renderSummary() {
-  // ① 選択サマリータグ
-  const tags = document.getElementById('s4-tags');
-  tags.innerHTML = '';
-  const items = [
-    { label:`📍 ${S.area}`,    bg:'rgba(212,233,226,.2)', color:'#D4E9E2' },
-    { label:`🎯 ${S.purpose}`, bg:'rgba(203,162,88,.2)',  color:'#CBA258' },
-    ...S.conditions.map(c => ({ label:`✓ ${c}`, bg:'rgba(255,255,255,.1)', color:'rgba(212,233,226,.8)' })),
-  ];
-  items.forEach((it,i) => {
-    const span = document.createElement('span');
-    span.className = 'sum-tag px-3 py-1.5 rounded-full text-xs font-bold';
-    span.style.cssText = `background:${it.bg};color:${it.color};animation-delay:${i*0.07}s`;
-    span.textContent = it.label;
-    tags.appendChild(span);
-  });
-
-  // ② プラットフォーム別URL生成
-  _urls = buildURLs();
-
-  // ③ TikTok カード更新
-  renderURLCard('tiktok', {
-    parts:   _urls.tiktok.parts,
-    joinStr: ' ＋ ',
-    arrow:   '→ q= で結合',
-    urlText: _urls.tiktok.url,
-    url:     _urls.tiktok.url,
-    color:   '#FE2C55',
-  });
-
-  // ④ Instagram カード更新（ハッシュタグ表示）
-  renderURLCard('instagram', {
-    parts:   [cleanArea(), PF_KW.instagram[S.purpose] || 'グルメ'],
-    joinStr: '＋',
-    arrow:   '→ #ハッシュタグ に結合',
-    urlText: _urls.instagram.tagURL,
-    url:     _urls.instagram.tagURL,
-    subURL:  _urls.instagram.searchURL,
-    color:   '#F77737',
-  });
-
-  // ⑤ Google Maps カード更新
-  renderURLCard('google', {
-    parts:   _urls.google.parts,
-    joinStr: ' ＋ ',
-    arrow:   '→ Mapsで検索',
-    urlText: _urls.google.url,
-    url:     _urls.google.url,
-    color:   '#81B4FF',
+function buildConds(){
+  S.conds=[];
+  document.getElementById('s3a').textContent=S.area;
+  document.getElementById('s3p').textContent=S.purpose;
+  const w=document.getElementById('cwrap');
+  w.innerHTML='';
+  (CMAP[S.purpose]||[]).forEach(c=>{
+    const b=document.createElement('button');
+    b.className='chip px-4 py-2.5 rounded-full border-2 text-sm font-bold flex items-center gap-2';
+    b.style.cssText='background:#fff;border-color:#EDE0CC;color:#1A1A1A';
+    b.innerHTML=`<span>${c.i}</span>${c.l}`;
+    b.onclick=()=>{
+      const idx=S.conds.indexOf(c.l);
+      if(idx>=0){S.conds.splice(idx,1);b.style.cssText='background:#fff;border-color:#EDE0CC;color:#1A1A1A';}
+      else{S.conds.push(c.l);b.style.cssText='background:#006241;border-color:#006241;color:#fff';}
+    };
+    w.appendChild(b);
   });
 }
 
-/*
- URL組み立て表示ロジック
- ─────────────────────────
- [恵比寿] ＋ [グルメ]
-      ↓ #ハッシュタグ に結合
- https://www.instagram.com/explore/tags/恵比寿グルメ/
-*/
-function renderURLCard(platform, cfg) {
-  // パーツ組み立て表示
-  const partsEl = document.getElementById(`parts-${platform}`);
-  if (partsEl) {
-    partsEl.innerHTML = cfg.parts.map((p,i) =>
-      `<span class="inline-flex items-center">
-        <span class="px-2.5 py-1 rounded-lg text-xs font-bold" style="background:rgba(255,255,255,.12);color:#fff">${p}</span>
-        ${i < cfg.parts.length-1 ? `<span class="mx-1 text-xs opacity-50">${cfg.joinStr}</span>` : ''}
-      </span>`
-    ).join('') +
-    `<span class="text-xs opacity-40 ml-1">&nbsp;${cfg.arrow}</span>`;
-  }
-
-  // クエリ/URL表示
-  const qEl = document.getElementById(`q-${platform}`);
-  if (qEl) qEl.textContent = cfg.urlText;
-
-  // <a> href セット（核心：ここでURLを確実に注入）
-  const aEl = document.getElementById(`a-${platform}`);
-  if (aEl) aEl.href = cfg.url;
-
-  // Instagram サブリンク（キーワード検索）
-  if (platform === 'instagram' && cfg.subURL) {
-    const subEl = document.getElementById('a-instagram-sub');
-    if (subEl) subEl.href = cfg.subURL;
-    const subQEl = document.getElementById('q-instagram-sub');
-    if (subQEl) subQEl.textContent = cfg.subURL;
-  }
-}
-
-/* ── TRACK OPEN ── */
-function trackOpen(platform, anchor) {
-  if (!anchor.href || anchor.href === location.href || anchor.href.endsWith('#')) {
-    anchor.href = _urls[platform]?.url || _urls[platform]?.tagURL || '#';
-  }
-  const orig = anchor.innerHTML;
-  anchor.innerHTML = '<span>✓ 開きます...</span>';
-  setTimeout(() => { anchor.innerHTML = orig; }, 1500);
-  return true;
-}
-
-/* ── COPY URL ── */
-async function copyURL(platform) {
-  const url = _urls[platform]?.url || _urls[platform]?.tagURL;
-  if (!url) return;
-  try {
-    await navigator.clipboard.writeText(url);
-    showCopyToast('✓ URLをコピーしました！\nアドレスバーに貼り付けてください');
-  } catch {
-    prompt('このURLをコピーしてください:', url);
-  }
-}
-
-function showCopyToast(msg) {
-  const t = document.createElement('div');
-  t.textContent = msg;
-  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1E3932;color:#D4E9E2;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;white-space:pre-line;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.3)';
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3000);
-}
-
-/* ── RESTART ── */
-function restart() {
-  S.area=''; S.purpose=''; S.conditions=[];
-  document.querySelectorAll('.area-chip').forEach(b=>{
-    b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A';
-  });
-  const nb = document.getElementById('step1-next');
-  nb.disabled=true; nb.style.background='#EDE0CC'; nb.style.color='#aaa';
+/* ─────────────────────────────
+   RESTART
+───────────────────────────── */
+function restart(){
+  S.area=''; S.purpose=''; S.conds=[];
+  document.querySelectorAll('.ac').forEach(b=>{b.style.background='#fff';b.style.borderColor='#EDE0CC';b.style.color='#1A1A1A';});
+  const nb=document.getElementById('s1next');
+  nb.disabled=true; nb.style.background='#EDE0CC'; nb.style.color='#bbb';
   nb.style.cursor='not-allowed'; nb.style.boxShadow='none';
-  goTo(1);
+  go(1);
 }
 
-/* ── INIT ── */
-updateProgress();
-updateHeader();
+/* ─────────────────────────────
+   INIT
+───────────────────────────── */
+updPg(); updHdr();
 </script>
-
 </body>
 </html>
