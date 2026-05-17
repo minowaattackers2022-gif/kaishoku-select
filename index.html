@@ -20,6 +20,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
 @keyframes sOutL {from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(-24px)}}
 @keyframes badgePop{0%{transform:scale(0) rotate(-12deg)}65%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
 @keyframes lineGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
 .slide-r{animation:sInR  .3s cubic-bezier(.4,0,.2,1) both}
 .slide-l{animation:sInL  .3s cubic-bezier(.4,0,.2,1) both}
@@ -227,7 +228,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
 /* ─────────────────────────────
    STATE
 ───────────────────────────── */
-const S = { area:'', purpose:'', conds:[] };
+const S = { area:'', purpose:'', conds:[], lat:null, lng:null };
 let cur = 1;
 
 /* ─────────────────────────────
@@ -552,16 +553,154 @@ function updPg() {
 function updHdr(){ document.getElementById('hdr-step').textContent=`STEP ${cur} / 4`; }
 
 /* ─────────────────────────────
-   AREA CHIPS
+   AREA CHIPS（現在地はGPS取得）
 ───────────────────────────── */
-document.querySelectorAll('.ac').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('.ac').forEach(x=>{x.style.background='#fff';x.style.borderColor='#EDE0CC';x.style.color='#1A1A1A';});
-    b.style.background='#006241'; b.style.borderColor='#006241'; b.style.color='#fff';
-    S.area=b.dataset.a;
-    const nb=document.getElementById('s1next');
-    nb.disabled=false; nb.style.background='#006241'; nb.style.color='#fff';
-    nb.style.cursor='pointer'; nb.style.boxShadow='0 4px 20px rgba(0,98,65,.42)';
+function setAreaChipActive(chip) {
+  document.querySelectorAll('.ac').forEach(x => {
+    x.style.background = '#fff';
+    x.style.borderColor = '#EDE0CC';
+    x.style.color = '#1A1A1A';
+  });
+  chip.style.background = '#006241';
+  chip.style.borderColor = '#006241';
+  chip.style.color = '#fff';
+}
+function enableNext() {
+  const nb = document.getElementById('s1next');
+  nb.disabled = false;
+  nb.style.background = '#006241';
+  nb.style.color = '#fff';
+  nb.style.cursor = 'pointer';
+  nb.style.boxShadow = '0 4px 20px rgba(0,98,65,.42)';
+}
+function disableNext() {
+  const nb = document.getElementById('s1next');
+  nb.disabled = true;
+  nb.style.background = '#EDE0CC';
+  nb.style.color = '#bbb';
+  nb.style.cursor = 'not-allowed';
+  nb.style.boxShadow = 'none';
+}
+
+/* GPS取得 → Nominatim逆ジオコーディング */
+async function getCurrentLocation(chip) {
+  if (!navigator.geolocation) {
+    alert('このブラウザは位置情報に対応していません。\n別のエリアを選択してください。');
+    return;
+  }
+
+  // ── Loading state ──
+  const origHTML = chip.innerHTML;
+  const origStyle = chip.getAttribute('style');
+  const spinner = `<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px"></span>`;
+  chip.innerHTML = `<div style="display:flex;align-items:center;gap:8px;width:100%">${spinner}<div><p style="font-weight:700;font-size:.8rem;margin:0">取得中...</p><p style="font-size:.68rem;opacity:.7;margin:0">GPS測位しています</p></div></div>`;
+  setAreaChipActive(chip);
+  chip.disabled = true;
+  disableNext();
+
+  /* Stage1: GPS高精度(8s) → 失敗時 Stage2: ネットワーク低精度(10s) */
+  function tryGPS(highAccuracy, timeout) {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: highAccuracy,
+        timeout,
+        maximumAge: 60000,
+      });
+    });
+  }
+
+  /* Nominatim逆ジオコーディング（日本語区・町名を取得） */
+  async function reverseGeocode(lat, lng) {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ja&zoom=14`,
+      { headers: { 'User-Agent': 'KaishokuSelect/1.0', 'Accept-Language': 'ja' } }
+    );
+    const data = await res.json();
+    const a = data.address || {};
+    // 優先順: 区市町村の「town/suburb/city_district」→ 「city」
+    return (
+      a.city_district ||  // 例: 新宿区
+      a.suburb ||          // 例: 渋谷
+      a.neighbourhood ||   // 例: 代官山
+      a.quarter ||
+      a.town ||
+      a.city ||            // 例: 横浜市
+      a.county ||
+      '現在地'
+    );
+  }
+
+  try {
+    let pos;
+
+    try {
+      // Stage 1: 高精度GPS（スマホ向け）
+      pos = await tryGPS(true, 8000);
+    } catch (e1) {
+      if (e1.code === 1) throw e1; // 権限拒否は即終了
+      // Stage 2: 低精度（PCのWiFi位置情報など）
+      chip.innerHTML = `<div style="display:flex;align-items:center;gap:8px;width:100%">${spinner}<div><p style="font-weight:700;font-size:.8rem;margin:0">再試行中...</p><p style="font-size:.68rem;opacity:.7;margin:0">通常精度で取得しています</p></div></div>`;
+      pos = await tryGPS(false, 10000);
+    }
+
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    S.lat = lat;
+    S.lng = lng;
+
+    // 逆ジオコーディング
+    let areaName;
+    try {
+      areaName = await reverseGeocode(lat, lng);
+    } catch (_) {
+      areaName = '現在地';
+    }
+
+    // S.areaを実際のエリア名に更新
+    S.area = areaName;
+
+    // チップのテキストを実エリア名に更新
+    chip.innerHTML = `
+      <span style="font-size:1.4rem;flex-shrink:0">📍</span>
+      <div style="text-align:left">
+        <p style="font-weight:700;font-size:.85rem;margin:0;line-height:1.2">${areaName}周辺</p>
+        <p style="font-size:.65rem;opacity:.75;margin:0">GPS取得済み ✓</p>
+      </div>`;
+
+    enableNext();
+
+  } catch (err) {
+    // エラー: チップを元に戻す
+    chip.innerHTML = origHTML;
+    chip.setAttribute('style', origStyle);
+    chip.style.background = '#fff';
+    chip.style.borderColor = '#EDE0CC';
+    chip.style.color = '#1A1A1A';
+
+    const errMsgs = {
+      1: 'GPSの利用が許可されていません。\n\nブラウザのアドレスバー横の🔒アイコン →「位置情報」→「許可」に変更してください。\n\n別のエリアを直接選択することもできます。',
+      2: '現在地を取得できませんでした。\n別のエリアを選択してください。',
+      3: 'GPS取得がタイムアウトしました。\nWi-Fiに接続するか、別のエリアを選択してください。',
+    };
+    alert(errMsgs[err.code] || `位置情報の取得に失敗しました (code: ${err.code})`);
+  } finally {
+    chip.disabled = false;
+  }
+}
+
+document.querySelectorAll('.ac').forEach(b => {
+  b.addEventListener('click', () => {
+    if (b.dataset.a === '現在地周辺') {
+      // GPS取得フロー
+      getCurrentLocation(b);
+    } else {
+      // 通常のエリア選択
+      setAreaChipActive(b);
+      S.area = b.dataset.a;
+      S.lat  = null;
+      S.lng  = null;
+      enableNext();
+    }
   });
 });
 
@@ -610,7 +749,7 @@ function buildConds(){
    RESTART
 ───────────────────────────── */
 function restart(){
-  S.area=''; S.purpose=''; S.conds=[];
+  S.area=''; S.purpose=''; S.conds=[]; S.lat=null; S.lng=null;
   document.querySelectorAll('.ac').forEach(b=>{b.style.background='#fff';b.style.borderColor='#EDE0CC';b.style.color='#1A1A1A';});
   const nb=document.getElementById('s1next');
   nb.disabled=true; nb.style.background='#EDE0CC'; nb.style.color='#bbb';
