@@ -547,21 +547,156 @@ const DB = [
 
 /* ─────────────────────────────
    SCORING ENGINE
+   エリア一致必須・未登録はSNS検索へ
 ───────────────────────────── */
 function scoreStore(s) {
   let sc = 0;
-  if (s.areas.includes(S.area))     sc += 12;  // エリア一致
-  if (s.purpose.includes(S.purpose)) sc += 10;  // 用途一致
-  S.conds.forEach(c => { if (s.tags.includes(c)) sc += 5; });  // 条件一致
-  sc += (s._r = s._r || Math.random() * 3);  // ランダム微差
+  if (s.purpose.includes(S.purpose)) sc += 10;
+  S.conds.forEach(c => { if (s.tags.includes(c)) sc += 5; });
+  sc += (s._r = s._r || Math.random() * 3);
   return sc;
 }
 
 function getTop3() {
-  return [...DB]
+  // エリア一致するお店だけ候補にする
+  const area = S.area.replace(/[都道府県]$/, ''); // "東京都" → "東京" で幅広くマッチ
+  const candidates = DB.filter(s =>
+    s.areas.some(a => a.includes(area) || area.includes(a.replace(/[都道府県]$/,'')))
+  );
+  // 候補ゼロ = 未登録エリア → null を返してSNS検索モードへ
+  if (!candidates.length) return null;
+  return candidates
     .map(s => ({...s, sc: scoreStore(s)}))
     .sort((a,b) => b.sc - a.sc)
     .slice(0, 3);
+}
+
+/* ─────────────────────────────
+   SNS検索フォールバック（未登録エリア用）
+───────────────────────────── */
+function buildSNSFallback() {
+  const area = S.area;
+  const PF_KW = {
+    tiktok: {
+      'クライアントと打合せ':'接待 会食','ガチ密談':'個室 ディナー',
+      'インフルエンサー会食':'飯テロ インスタ映え','社内懇親':'宴会 飲み放題',
+    },
+    instagram: {
+      'クライアントと打合せ':'グルメ','ガチ密談':'個室グルメ',
+      'インフルエンサー会食':'インスタ映えグルメ','社内懇親':'宴会グルメ',
+    },
+    google: {
+      'クライアントと打合せ':'レストラン 接待','ガチ密談':'レストラン 個室',
+      'インフルエンサー会食':'レストラン おしゃれ','社内懇親':'レストラン 宴会',
+    },
+  };
+  const condKw = S.conds.map(c =>
+    ({'個室必須':'個室','静かな空間':'静か','接待向け':'接待',
+      '映え重視':'映え','夜景':'夜景','大人数OK':'宴会','飲み放題あり':'飲み放題',
+      '防音個室':'完全個室','テラス席':'テラス','SNS映え':'フォトジェニック',
+      '駅チカ':'駅近'}[c] || c.replace(/必須|あり|OK$/,''))
+  ).filter(Boolean).slice(0,2).join(' ');
+
+  // プラットフォーム別URL生成
+  const tkKw  = [area, PF_KW.tiktok[S.purpose]||'グルメ', condKw, '飯テロ'].filter(Boolean);
+  const igTag = area.replace(/[都道府県]$/,'') + (PF_KW.instagram[S.purpose]||'グルメ');
+  const gmKw  = [area, PF_KW.google[S.purpose]||'レストラン', condKw].filter(Boolean);
+
+  const tkURL = 'https://www.tiktok.com/search?q=' + tkKw.map(encodeURIComponent).join('+');
+  const igURL = 'https://www.instagram.com/explore/tags/' + encodeURIComponent(igTag) + '/';
+  const gmURL = 'https://www.google.com/maps/search/' + gmKw.map(encodeURIComponent).join('+');
+  const queryPreview = tkKw.join(' ＋ ');
+
+  return `
+  <div style="animation:slideUp .4s ease both">
+    <!-- 未登録エリアの案内 -->
+    <div class="rounded-2xl p-4 mb-4 flex items-start gap-3"
+         style="background:#FBF8F3;border:1px solid #EDE0CC">
+      <span style="font-size:1.5rem;flex-shrink:0">🗺</span>
+      <div>
+        <p class="font-bold text-sm mb-1" style="color:#1E3932">
+          ${area}のお店はまだ未登録です
+        </p>
+        <p class="text-xs leading-relaxed" style="color:#6B7280">
+          SNSのリアルタイム検索で今すぐ見つけましょう。<br>
+          選んだ条件で最適なクエリを自動生成しました。
+        </p>
+      </div>
+    </div>
+
+    <!-- 生成クエリ表示 -->
+    <div class="rounded-xl px-4 py-3 mb-4 flex items-center gap-2"
+         style="background:#1E3932">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBA258" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <p class="text-xs font-bold font-mono" style="color:#D4E9E2">${queryPreview}</p>
+    </div>
+
+    <!-- TikTok -->
+    <a href="${tkURL}" target="_blank" rel="noopener"
+       class="rcard flex items-center gap-4 px-5 py-4 mb-3 no-underline"
+       style="text-decoration:none;background:#000;border-color:#000">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+           style="background:rgba(255,255,255,.12)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+          <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.37a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.8z"/>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <p class="font-bold text-sm" style="color:#fff">TikTokで飯テロ動画を探す</p>
+        <p class="text-xs mt-0.5" style="color:rgba(255,255,255,.5)">"${tkKw.join(' ')}"</p>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2.5">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
+
+    <!-- Instagram -->
+    <a href="${igURL}" target="_blank" rel="noopener"
+       class="rcard flex items-center gap-4 px-5 py-4 mb-3 no-underline"
+       style="text-decoration:none;background:linear-gradient(135deg,#833AB4,#FD1D1D);border-color:#C13584">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+           style="background:rgba(255,255,255,.15)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <rect x="2" y="2" width="20" height="20" rx="5"/>
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <p class="font-bold text-sm" style="color:#fff">Instagramで映え店を探す</p>
+        <p class="text-xs mt-0.5" style="color:rgba(255,255,255,.6)">#${igTag}</p>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2.5">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
+
+    <!-- Google Maps -->
+    <a href="${gmURL}" target="_blank" rel="noopener"
+       class="rcard flex items-center gap-4 px-5 py-4 mb-3 no-underline"
+       style="text-decoration:none;background:#4285F4;border-color:#4285F4">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+           style="background:rgba(255,255,255,.15)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <p class="font-bold text-sm" style="color:#fff">Googleマップで口コミを探す</p>
+        <p class="text-xs mt-0.5" style="color:rgba(255,255,255,.6)">"${gmKw.join(' ')}"</p>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2.5">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
+
+    <!-- ヒント -->
+    <p class="text-xs text-center mt-2" style="color:#9CA3AF">
+      ↑ タップすると別タブで開きます
+    </p>
+  </div>`;
 }
 
 /* ─────────────────────────────
@@ -633,7 +768,21 @@ function renderTop3() {
   ].join('');
 
   const wrap = document.getElementById('cards');
-  wrap.innerHTML = getTop3().map((s,i)=>buildCard(s,i+1)).join('');
+  const top3 = getTop3();
+
+  if (!top3) {
+    // 未登録エリア → SNS検索カードを表示
+    wrap.innerHTML = buildSNSFallback();
+    // Step4ヘッダーのタイトルを変更
+    document.querySelector('#step4 h2').innerHTML =
+      '${S.area}の店を<br><em style="font-style:normal;color:#D4E9E2">SNSで発見</em>';
+    return;
+  }
+
+  // 通常: トップ3カード表示
+  document.querySelector('#step4 h2').innerHTML =
+    'この条件なら<br><em style="font-style:normal;color:#D4E9E2">ここ</em>がベスト';
+  wrap.innerHTML = top3.map((s,i)=>buildCard(s,i+1)).join('');
 }
 
 /* ─────────────────────────────
