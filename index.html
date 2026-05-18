@@ -792,9 +792,9 @@ function resetDestCard() {
   const card = document.getElementById('dest-card');
   if (card) {
     card.style.borderColor = '#EDE0CC';
-    card.querySelector('p').textContent = '目的地で探す';
-    card.querySelector('p.text-xs').textContent = '場所名・駅名・施設名で指定';
-    card.querySelector('p.text-xs').style.color = '#9CA3AF';
+    const pList = card.querySelectorAll('p');
+    if (pList[0]) pList[0].textContent = '目的地で探す';
+    if (pList[1]) { pList[1].textContent = '場所名・駅名・施設名で指定'; pList[1].style.color = '#9CA3AF'; }
   }
   const da = document.getElementById('dest-area');
   if (da) da.style.display = 'none';
@@ -954,143 +954,6 @@ function clearArea() {
 }
 
 
-
-/* ── GPS アイコン状態切り替え（innerHTML操作なし・安全） ── */
-function gpsIconState(state) {
-  // state: 'default' | 'loading' | 'ok'
-  document.getElementById('gi-default').style.display = state === 'default'  ? '' : 'none';
-  document.getElementById('gi-spin').style.display    = state === 'loading'  ? '' : 'none';
-  document.getElementById('gi-ok').style.display      = state === 'ok'       ? '' : 'none';
-}
-
-/* ── エリアチップスの選択リセット ── */
-function resetAreaChips() {
-  document.querySelectorAll('.ac').forEach(b => {
-    b.style.background = '#fff'; b.style.borderColor = '#EDE0CC'; b.style.color = '#1A1A1A';
-  });
-}
-
-/* ── GPS ボタン状態リセット ── */
-function resetGPSBtn() {
-  gpsIconState('default');
-  document.getElementById('gps-label').textContent = '現在地から探す';
-  const sub = document.getElementById('gps-sub');
-  sub.textContent = 'GPSで自動取得（推奨）';
-  sub.style.color = 'rgba(212,233,226,.55)';
-  const btn = document.getElementById('gps-btn');
-  btn.style.borderColor = '#006241';
-  btn.disabled = false;
-}
-
-/* ── 東京エリアチップス ── */
-document.querySelectorAll('.ac').forEach(b => {
-  b.addEventListener('click', () => {
-    resetAreaChips();
-    resetGPSBtn();
-    S.area = b.dataset.a; S.lat = null; S.lng = null;
-    b.style.background = '#006241'; b.style.borderColor = '#006241'; b.style.color = '#fff';
-    enableNext();
-  });
-});
-
-/* ── GPS 取得（doGPS）── */
-async function doGPS() {
-  if (!navigator.geolocation) {
-    alert('このブラウザは位置情報に対応していません。\nエリアを選択してください。');
-    return;
-  }
-
-  // ① Loading 状態
-  resetAreaChips();
-  S.area = ''; S.lat = null; S.lng = null;
-  gpsIconState('loading');
-  document.getElementById('gps-label').textContent = '取得中...';
-  document.getElementById('gps-sub').textContent   = 'GPS測位しています';
-  document.getElementById('gps-sub').style.color   = 'rgba(212,233,226,.55)';
-  document.getElementById('gps-btn').disabled = true;
-  disableNext();
-
-  /* Stage 1: 高精度GPS(8s) → Stage 2: WiFi低精度(10s) */
-  function tryGPS(hi, t) {
-    return new Promise((res, rej) =>
-      navigator.geolocation.getCurrentPosition(res, rej,
-        { enableHighAccuracy: hi, timeout: t, maximumAge: 60000 })
-    );
-  }
-
-  /* Nominatim 逆ジオコーディング */
-  async function revGeo(lat, lng) {
-    const r = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ja&zoom=16`,
-      { headers: { 'User-Agent': 'KaishokuSelect/1.0', 'Accept-Language': 'ja' } }
-    );
-    const d = await r.json();
-    const a = d.address || {};
-    console.log('[GPS]', lat.toFixed(5), lng.toFixed(5), a);
-    const skip = new Set(['東京都','東京','大阪府','大阪','神奈川県','愛知県',
-                          '福岡県','北海道','京都府','兵庫県','日本','Japan']);
-    const ok = v => v && !skip.has(v.trim());
-    return (ok(a.neighbourhood) && a.neighbourhood)
-        || (ok(a.quarter)       && a.quarter)
-        || (ok(a.suburb)        && a.suburb)
-        || (ok(a.borough)       && a.borough)
-        || (ok(a.town)          && a.town)
-        || (ok(a.village)       && a.village)
-        || (ok(a.municipality)  && a.municipality)
-        || (ok(a.county)        && a.county)
-        || (ok(a.city)          && a.city)
-        || (ok(a.city_district) && a.city_district)
-        || '現在地';
-  }
-
-  try {
-    let pos;
-    try {
-      pos = await tryGPS(true, 8000);          // Stage 1: GPS
-    } catch (e1) {
-      if (e1.code === 1) throw e1;              // 権限拒否は即終了
-      document.getElementById('gps-label').textContent = '再試行中...';
-      document.getElementById('gps-sub').textContent   = '通常精度で取得しています';
-      pos = await tryGPS(false, 10000);         // Stage 2: WiFi
-    }
-
-    S.lat = pos.coords.latitude;
-    S.lng = pos.coords.longitude;
-
-    let areaName = '現在地';
-    try { areaName = await revGeo(S.lat, S.lng); } catch(_) {}
-    S.area = areaName;
-
-    // ② 成功 状態
-    gpsIconState('ok');
-    document.getElementById('gps-label').textContent = areaName + '周辺';
-    const sub = document.getElementById('gps-sub');
-    sub.textContent = 'GPS取得済み ✓';
-    sub.style.color = '#CBA258';
-    document.getElementById('gps-btn').style.borderColor = '#CBA258';
-    enableNext();
-
-  } catch (err) {
-    // ③ エラー 状態 → リセット
-    resetGPSBtn();
-    const msg = {
-      1: 'GPSの利用が許可されていません。\nブラウザの🔒→「位置情報」→「許可」\n\nまたは下のエリアを選択してください。',
-      2: '現在地を取得できませんでした。\n下のエリアを選択してください。',
-      3: 'GPSがタイムアウトしました。\n下のエリアを選択してください。',
-    };
-    alert(msg[err.code] || '位置情報の取得に失敗しました。');
-  } finally {
-    document.getElementById('gps-btn').disabled = false;
-  }
-}
-
-/* ── clearArea: やり直し ── */
-function clearArea() {
-  S.area = ''; S.lat = null; S.lng = null;
-  resetAreaChips();
-  resetGPSBtn();
-  disableNext();
-}
 
 /* ─────────────────────────────
    PURPOSE
