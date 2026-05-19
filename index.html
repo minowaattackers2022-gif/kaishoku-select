@@ -718,19 +718,46 @@ function renderTop3() {
    NAVIGATION
 ───────────────────────────── */
 function go(next) {
-  if (next===3) buildConds();
-  const dir = next > cur ? 'r' : 'l';
-  const from= document.getElementById('step'+cur);
-  const to  = document.getElementById('step'+next);
-  from.classList.add('out-'+dir);
-  setTimeout(()=>{
-    from.classList.add('hidden'); from.classList.remove('out-r','out-l');
-    to.classList.remove('hidden'); to.classList.add('slide-'+dir);
-    setTimeout(()=>to.classList.remove('slide-r','slide-l'),320);
-    if (next===4) renderTop3();
-  },200);
-  cur=next; updPg(); updHdr();
-  window.scrollTo({top:0,behavior:'smooth'});
+  const from = document.getElementById('step' + cur);
+  const to   = document.getElementById('step' + next);
+  if (!from || !to) { console.error('step not found', cur, next); return; }
+
+  const fwd = next > cur;
+
+  // ① 現在のステップをアニメーションで退場
+  from.style.animation = fwd
+    ? 'sOutL .2s cubic-bezier(.4,0,.2,1) forwards'
+    : 'sOutR .2s cubic-bezier(.4,0,.2,1) forwards';
+
+  setTimeout(() => {
+    // ② 現在のステップを隠す
+    from.style.animation = '';
+    from.classList.add('hidden');
+
+    // ③ 次のステップに必要なデータを準備（ここで実行すれば確実）
+    try {
+      if (next === 3) buildConds();
+    } catch(e) { console.error('buildConds error:', e); }
+
+    // ④ 次のステップを表示
+    to.classList.remove('hidden');
+    to.style.animation = fwd
+      ? 'sInR .28s cubic-bezier(.4,0,.2,1) both'
+      : 'sInL .28s cubic-bezier(.4,0,.2,1) both';
+
+    setTimeout(() => {
+      to.style.animation = '';
+      if (next === 4) { try { renderTop3(); } catch(e) { console.error('renderTop3 error:', e); } }
+    }, 300);
+
+    // ⑤ トップにスクロール（smoothはモバイルでフリーズする場合があるため auto）
+    window.scrollTo({ top: 0, behavior: 'auto' });
+
+  }, 190);
+
+  cur = next;
+  updPg();
+  updHdr();
 }
 
 /* ─────────────────────────────
@@ -959,11 +986,19 @@ function clearArea() {
    PURPOSE
 ───────────────────────────── */
 function selPurpose(btn){
-  document.querySelectorAll('.purpose-card').forEach(b=>{b.style.background='#fff';b.style.borderColor='#EDE0CC';});
-  btn.style.background='#EBF5F0'; btn.style.borderColor='#006241';
-  S.purpose=btn.dataset.p;
-  document.getElementById('s2a').textContent=S.area;
-  setTimeout(()=>go(3),200);
+  // 選択ハイライト
+  document.querySelectorAll('.purpose-card').forEach(b=>{
+    b.style.background='#fff'; b.style.borderColor='#EDE0CC';
+  });
+  btn.style.background='#EBF5F0';
+  btn.style.borderColor='#006241';
+  // 状態を保存
+  S.purpose = btn.dataset.p;
+  // エリアラベルを更新
+  const s2a = document.getElementById('s2a');
+  if (s2a) s2a.textContent = S.area || '';
+  // 次のステップへ（直接呼び出し・二重setTimeout不要）
+  go(3);
 }
 
 /* ─────────────────────────────
