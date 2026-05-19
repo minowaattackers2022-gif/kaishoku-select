@@ -233,7 +233,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
   </div>
 </div>
 
-<!-- ── STEP 3 ── -->
+<!-- ── STEP 3: 人数・予算 ── -->
 <div id="step3" class="px-5 pt-5 pb-6 hidden">
   <button onclick="go(2)" class="flex items-center gap-1 text-sm font-medium mb-4" style="color:#006241">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
@@ -244,17 +244,46 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
     <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:#1E3932;color:#D4E9E2"><span id="s3p"></span></span>
   </div>
   <p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">STEP 03</p>
-  <h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">こだわり条件</h2>
-  <p class="text-sm mb-5" style="color:#6B7280">複数選択OK・スキップも可能</p>
-  <div id="cwrap" class="flex flex-wrap gap-2.5 mb-6"></div>
-  <button onclick="go(4)"
-          class="w-full h-14 rounded-2xl font-bold text-base text-white"
-          style="background:#006241;box-shadow:0 4px 22px rgba(0,98,65,.42)">
+  <h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">人数と予算を<br>教えてください</h2>
+  <p class="text-sm mb-5" style="color:#6B7280">タップだけで選択できます</p>
+
+  <!-- 人数 -->
+  <p class="text-xs font-bold mb-2.5 flex items-center gap-2" style="color:#1E3932">
+    <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black" style="background:#1E3932;color:#D4E9E2">👥</span>
+    人数
+  </p>
+  <div class="grid grid-cols-4 gap-2 mb-5" id="pax-grid">
+    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="1"  data-paxnum="1"  style="border-color:#EDE0CC;background:#fff">1名</button>
+    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="2"  data-paxnum="2"  style="border-color:#EDE0CC;background:#fff">2名</button>
+    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="3"  data-paxnum="3"  style="border-color:#EDE0CC;background:#fff">3名</button>
+    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="4"  data-paxnum="4"  style="border-color:#EDE0CC;background:#fff">4名</button>
+    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="5"  data-paxnum="5"  style="border-color:#EDE0CC;background:#fff">5名</button>
+    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="6"  data-paxnum="6"  style="border-color:#EDE0CC;background:#fff">6名</button>
+    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="7-8" data-paxnum="8" style="border-color:#EDE0CC;background:#fff">7-8名</button>
+    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="9-10" data-paxnum="10" style="border-color:#EDE0CC;background:#fff">9-10名</button>
+    <button class="pax-chip col-span-4 py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="10名以上" data-paxnum="20" style="border-color:#EDE0CC;background:#fff">10名以上</button>
+  </div>
+
+  <!-- 予算 -->
+  <p class="text-xs font-bold mb-2.5 flex items-center gap-2" style="color:#1E3932">
+    <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black" style="background:#1E3932;color:#D4E9E2">💰</span>
+    お一人様予算
+  </p>
+  <div class="grid grid-cols-2 gap-2 mb-6" id="budget-grid">
+    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥5,000"      data-bdgmax="5000"  data-bdgmin="0"     style="border-color:#EDE0CC;background:#fff">〜¥5,000</button>
+    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥8,000"      data-bdgmax="8000"  data-bdgmin="0"     style="border-color:#EDE0CC;background:#fff">〜¥8,000</button>
+    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥12,000"     data-bdgmax="12000" data-bdgmin="0"     style="border-color:#EDE0CC;background:#fff">〜¥12,000</button>
+    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥18,000"     data-bdgmax="18000" data-bdgmin="0"     style="border-color:#EDE0CC;background:#fff">〜¥18,000</button>
+    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="¥18,000〜"     data-bdgmax="99999" data-bdgmin="18000" style="border-color:#EDE0CC;background:#fff">¥18,000〜</button>
+    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="こだわらない"  data-bdgmax="99999" data-bdgmin="0"     style="border-color:#EDE0CC;background:#fff">こだわらない</button>
+  </div>
+
+  <button id="s3next" onclick="go(4)" disabled
+          class="w-full h-14 rounded-2xl font-bold text-base transition-all duration-300"
+          style="background:#EDE0CC;color:#bbb;cursor:not-allowed">
     ✦ この条件でトップ3を見る
   </button>
 </div>
-
-<!-- ── STEP 4: 即決トップ3 ── -->
 <div id="step4" class="hidden pb-8">
 
   <!-- ダーク背景ヘッダー -->
@@ -294,7 +323,14 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
 /* ─────────────────────────────
    STATE
 ───────────────────────────── */
-const S = { area:'', purpose:'', conds:[], lat:null, lng:null };
+const S = { area:'', purpose:'', conds:[], lat:null, lng:null, pax:null, paxNum:0, budget:null, budgetMin:0, budgetMax:99999 };
+
+const PURPOSE_AUTO_CONDS = {
+  'クライアントと打合せ': ['個室必須','静かな空間','接待向け','予約可能'],
+  'ガチ密談':             ['個室必須','防音個室','静かな空間','人目につかない'],
+  'インフルエンサー会食': ['映え重視','SNS映え','フォトジェニック'],
+  '社内懇親':             ['大人数OK','飲み放題あり'],
+};
 let cur = 1;
 
 /* ─────────────────────────────
@@ -304,211 +340,272 @@ let cur = 1;
 const DB = [
   /* ── 六本木・麻布 ── */
   { name:'麻布 真田',     area:'六本木・麻布', loc:'麻布十番駅 徒歩3分', genre:'日本料理・割烹',
-    budget:'¥18,000〜', hook:'完全防音の個室で密談に最適。格式ある雰囲気で相手への敬意を示せる',
+    budget:'¥18,000〜', budgetNum:18000, hook:'完全防音の個室で密談に最適。格式ある雰囲気で相手への敬意を示せる',
     tags:['個室必須','静かな空間','接待向け','予約可能','防音個室'],
-    purpose:['クライアントと打合せ','ガチ密談'],
-    areas:['六本木・麻布','現在地周辺'],
+    purpose:['クライアントと打合せ','ガチ密談'], areas:['六本木・麻布','現在地周辺'],
+    reservation:true, hours:'18:00-23:00', maxPax:8,
     sns:{ tk:'麻布十番 割烹 個室 接待 グルメ', ig:'麻布十番グルメ' } },
 
   { name:'六本木 銀狐',   area:'六本木・麻布', loc:'六本木駅 徒歩2分', genre:'モダンフレンチ',
-    budget:'¥22,000〜', hook:'東京タワーを望む最上階テラス。インフルエンサー受け抜群のフォトジェニック空間',
+    budget:'¥22,000〜', budgetNum:22000, hook:'東京タワーを望む最上階テラス。インフルエンサー受け抜群のフォトジェニック空間',
     tags:['夜景','テラス席','映え重視','SNS映え','フォトジェニック'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'],
-    areas:['六本木・麻布','現在地周辺'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['六本木・麻布','現在地周辺'],
+    reservation:true, hours:'18:00-23:30', maxPax:12,
     sns:{ tk:'六本木 夜景 フレンチ 飯テロ', ig:'六本木グルメ' } },
 
   { name:'西麻布 杉乃屋', area:'六本木・麻布', loc:'広尾駅 徒歩8分', genre:'懐石料理',
-    budget:'¥25,000〜', hook:'路地裏の完全隠れ家。知る人ぞ知る密談御用達、外部に漏れない安心感',
+    budget:'¥25,000〜', budgetNum:25000, hook:'路地裏の完全隠れ家。知る人ぞ知る密談御用達、外部に漏れない安心感',
     tags:['個室必須','防音個室','人目につかない','静かな空間','隠れ家'],
-    purpose:['ガチ密談','クライアントと打合せ'],
-    areas:['六本木・麻布','現在地周辺'],
+    purpose:['ガチ密談','クライアントと打合せ'], areas:['六本木・麻布','現在地周辺'],
+    reservation:true, hours:'18:00-23:00', maxPax:6,
     sns:{ tk:'西麻布 懐石 隠れ家 グルメ', ig:'西麻布グルメ' } },
 
   { name:'麻布 Cielo',   area:'六本木・麻布', loc:'麻布十番駅 徒歩5分', genre:'イタリアン',
-    budget:'¥12,000〜', hook:'大型ライトとオープンキッチンが映え最強。料理の彩りでSNS投稿率ダントツ',
+    budget:'¥12,000〜', budgetNum:12000, hook:'大型ライトとオープンキッチンが映え最強。料理の彩りでSNS投稿率ダントツ',
     tags:['映え重視','SNS映え','フォトジェニック','テラス席','おしゃれ'],
-    purpose:['インフルエンサー会食','社内懇親'],
-    areas:['六本木・麻布','現在地周辺'],
+    purpose:['インフルエンサー会食','社内懇親'], areas:['六本木・麻布','現在地周辺'],
+    reservation:true, hours:'12:00-23:00', maxPax:20,
     sns:{ tk:'麻布十番 イタリアン 映え 飯テロ', ig:'麻布十番グルメ' } },
 
   { name:'六本木 月夜',  area:'六本木・麻布', loc:'六本木駅 徒歩4分', genre:'鉄板焼き',
-    budget:'¥20,000〜', hook:'カウンター鉄板でシェフのライブ感を演出。接待で「体験価値」を提供できる',
+    budget:'¥20,000〜', budgetNum:20000, hook:'カウンター鉄板でシェフのライブ感を演出。接待で「体験価値」を提供できる',
     tags:['接待向け','個室必須','夜景','高級感','予約可能'],
-    purpose:['クライアントと打合せ','ガチ密談'],
-    areas:['六本木・麻布','現在地周辺'],
+    purpose:['クライアントと打合せ','ガチ密談'], areas:['六本木・麻布','現在地周辺'],
+    reservation:true, hours:'18:00-23:00', maxPax:10,
     sns:{ tk:'六本木 鉄板焼き 接待 飯テロ', ig:'六本木グルメ' } },
 
   /* ── 恵比寿・中目黒 ── */
   { name:'恵比寿 木の葉', area:'恵比寿・中目黒', loc:'恵比寿駅 徒歩5分', genre:'和食・個室',
-    budget:'¥15,000〜', hook:'完全個室で商談が弾む。厳選食材と繊細な盛り付けで相手の心をつかめる',
+    budget:'¥15,000〜', budgetNum:15000, hook:'完全個室で商談が弾む。厳選食材と繊細な盛り付けで相手の心をつかめる',
     tags:['個室必須','静かな空間','接待向け','駅チカ','予約可能'],
-    purpose:['クライアントと打合せ','ガチ密談'],
-    areas:['恵比寿・中目黒','現在地周辺'],
+    purpose:['クライアントと打合せ','ガチ密談'], areas:['恵比寿・中目黒','現在地周辺'],
+    reservation:true, hours:'18:00-23:00', maxPax:10,
     sns:{ tk:'恵比寿 和食 個室 接待 飯テロ', ig:'恵比寿グルメ' } },
 
   { name:'中目黒 HARU',  area:'恵比寿・中目黒', loc:'中目黒駅 徒歩3分', genre:'モダンフレンチ',
-    budget:'¥16,000〜', hook:'目黒川沿いテラス×フォトジェニック料理が最強コンボ。春はサクラも映える',
+    budget:'¥16,000〜', budgetNum:16000, hook:'目黒川沿いテラス×フォトジェニック料理が最強コンボ。春はサクラも映える',
     tags:['テラス席','映え重視','SNS映え','おしゃれ','夜景','フォトジェニック'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'],
-    areas:['恵比寿・中目黒','現在地周辺'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['恵比寿・中目黒','現在地周辺'],
+    reservation:true, hours:'12:00-23:00', maxPax:20,
     sns:{ tk:'中目黒 フレンチ テラス 映え 飯テロ', ig:'中目黒グルメ' } },
 
   { name:'中目黒 静流',  area:'恵比寿・中目黒', loc:'中目黒駅 徒歩6分', genre:'日本料理',
-    budget:'¥20,000〜', hook:'完全予約制・防音完璧の静寂個室。声が外に漏れない安心感で密談に最適',
+    budget:'¥20,000〜', budgetNum:20000, hook:'完全予約制・防音完璧の静寂個室。声が外に漏れない安心感で密談最適',
     tags:['個室必須','防音個室','静かな空間','人目につかない','予約可能'],
-    purpose:['ガチ密談','クライアントと打合せ'],
-    areas:['恵比寿・中目黒','現在地周辺'],
+    purpose:['ガチ密談','クライアントと打合せ'], areas:['恵比寿・中目黒','現在地周辺'],
+    reservation:true, hours:'18:00-23:00', maxPax:6,
     sns:{ tk:'中目黒 日本料理 個室 グルメ', ig:'中目黒グルメ' } },
 
   { name:'恵比寿 炭火 零', area:'恵比寿・中目黒', loc:'恵比寿駅 徒歩4分', genre:'焼肉',
-    budget:'¥10,000〜', hook:'黒毛和牛の炭火焼きが飯テロ最強。テーブル間隔広く懇親でも騒げる',
+    budget:'¥10,000〜', budgetNum:10000, hook:'黒毛和牛の炭火焼きが飯テロ最強。テーブル間隔広く懇親でも騒げる',
     tags:['大人数OK','映え重視','駅チカ','飲み放題あり'],
-    purpose:['社内懇親','インフルエンサー会食'],
-    areas:['恵比寿・中目黒','現在地周辺'],
+    purpose:['社内懇親','インフルエンサー会食'], areas:['恵比寿・中目黒','現在地周辺'],
+    reservation:true, hours:'17:00-23:30', maxPax:30,
     sns:{ tk:'恵比寿 焼肉 黒毛和牛 飯テロ', ig:'恵比寿グルメ' } },
 
   /* ── 銀座・丸の内 ── */
   { name:'銀座 黒田',    area:'銀座・丸の内', loc:'銀座駅 徒歩2分', genre:'鮨',
-    budget:'¥30,000〜', hook:'ミシュラン掲載。大切なクライアントへの格式と信頼感が圧倒的',
+    budget:'¥30,000〜', budgetNum:30000, hook:'ミシュラン掲載。大切なクライアントへの格式と信頼感が圧倒的',
     tags:['接待向け','個室必須','高級感','予約可能','静かな空間'],
-    purpose:['クライアントと打合せ','ガチ密談'],
-    areas:['銀座・丸の内','現在地周辺'],
+    purpose:['クライアントと打合せ','ガチ密談'], areas:['銀座・丸の内','現在地周辺'],
+    reservation:true, hours:'18:00-22:00', maxPax:8,
     sns:{ tk:'銀座 鮨 高級 接待 グルメ', ig:'銀座グルメ' } },
 
   { name:'銀座 天空バー', area:'銀座・丸の内', loc:'銀座駅 徒歩3分', genre:'バー・ダイニング',
-    budget:'¥14,000〜', hook:'地上32階から見える夜景×シャンパンでSNS投稿率95%超。映え確定の絶景',
+    budget:'¥14,000〜', budgetNum:14000, hook:'地上32階から見える夜景×シャンパンでSNS投稿率95%超。映え確定の絶景',
     tags:['夜景','映え重視','SNS映え','フォトジェニック','おしゃれ','テラス席'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'],
-    areas:['銀座・丸の内','現在地周辺'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['銀座・丸の内','現在地周辺'],
+    reservation:true, hours:'17:00-01:00', maxPax:40,
     sns:{ tk:'銀座 夜景 バー 映え 飯テロ', ig:'銀座グルメ' } },
 
   { name:'丸の内 FORZA', area:'銀座・丸の内', loc:'東京駅 徒歩4分', genre:'フレンチイタリアン',
-    budget:'¥18,000〜', hook:'ビジネス街の正統派接待店。サービス水準が高く初対面相手にも安心感を与える',
+    budget:'¥18,000〜', budgetNum:18000, hook:'ビジネス街の正統派接待店。サービス水準が高く初対面相手にも安心感を与える',
     tags:['接待向け','個室必須','駅チカ','予約可能','ドレスコードあり'],
-    purpose:['クライアントと打合せ'],
-    areas:['銀座・丸の内','現在地周辺'],
+    purpose:['クライアントと打合せ'], areas:['銀座・丸の内','現在地周辺'],
+    reservation:true, hours:'11:30-23:00', maxPax:30,
     sns:{ tk:'丸の内 フレンチ 接待 グルメ', ig:'丸の内グルメ' } },
 
   { name:'銀座 囲炉裏 雅', area:'銀座・丸の内', loc:'銀座駅 徒歩5分', genre:'日本料理',
-    budget:'¥22,000〜', hook:'囲炉裏個室が密談特化。BGMをゼロにできるオプションあり、完全な静寂を確保',
+    budget:'¥22,000〜', budgetNum:22000, hook:'囲炉裏個室が密談特化。BGMをゼロにできるオプションあり、完全な静寂を確保',
     tags:['個室必須','防音個室','静かな空間','高級感','人目につかない'],
-    purpose:['ガチ密談','クライアントと打合せ'],
-    areas:['銀座・丸の内','現在地周辺'],
+    purpose:['ガチ密談','クライアントと打合せ'], areas:['銀座・丸の内','現在地周辺'],
+    reservation:true, hours:'18:00-23:00', maxPax:8,
     sns:{ tk:'銀座 和食 個室 隠れ家 グルメ', ig:'銀座グルメ' } },
 
   /* ── 新宿 ── */
   { name:'新宿 頂 極上焼肉', area:'新宿', loc:'新宿駅 徒歩6分', genre:'焼肉',
-    budget:'¥8,000〜', hook:'最大40名対応。飲み放題×黒毛和牛で懇親会の満足度がとにかく高い',
+    budget:'¥8,000〜', budgetNum:8000, hook:'最大40名対応。飲み放題×黒毛和牛で懇親会の満足度がとにかく高い',
     tags:['大人数OK','飲み放題あり','駅チカ','貸切可能'],
-    purpose:['社内懇親'],
-    areas:['新宿','現在地周辺'],
+    purpose:['社内懇親'], areas:['新宿','現在地周辺'],
+    reservation:true, hours:'17:00-23:30', maxPax:40,
     sns:{ tk:'新宿 焼肉 宴会 飲み放題 飯テロ', ig:'新宿グルメ' } },
 
   { name:'新宿 夜桜',    area:'新宿', loc:'西新宿駅 徒歩3分', genre:'割烹・個室',
-    budget:'¥15,000〜', hook:'個室で話しやすく格式もある。初回商談でも「また来たい」と思わせる品格',
+    budget:'¥15,000〜', budgetNum:15000, hook:'個室で話しやすく格式もある。初回商談でも「また来たい」と思わせる品格',
     tags:['個室必須','静かな空間','接待向け','駅チカ','予約可能'],
-    purpose:['クライアントと打合せ','ガチ密談'],
-    areas:['新宿','現在地周辺'],
+    purpose:['クライアントと打合せ','ガチ密談'], areas:['新宿','現在地周辺'],
+    reservation:true, hours:'17:30-23:00', maxPax:15,
     sns:{ tk:'新宿 割烹 個室 接待 グルメ', ig:'新宿グルメ' } },
 
   { name:'西新宿 Sky Lounge', area:'新宿', loc:'西新宿駅 徒歩2分', genre:'バー・夜景',
-    budget:'¥12,000〜', hook:'超高層から見える東京夜景がSNS投稿確定。インフルエンサーに大人気の絶景バー',
+    budget:'¥12,000〜', budgetNum:12000, hook:'超高層から見える東京夜景がSNS投稿確定。インフルエンサーに大人気の絶景バー',
     tags:['夜景','映え重視','SNS映え','フォトジェニック','おしゃれ'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'],
-    areas:['新宿','現在地周辺'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['新宿','現在地周辺'],
+    reservation:false, hours:'17:00-01:00', maxPax:60,
     sns:{ tk:'西新宿 夜景 バー 映え 飯テロ', ig:'新宿グルメ' } },
 
   /* ── 渋谷・表参道 ── */
   { name:'表参道 BLANC', area:'渋谷・表参道', loc:'表参道駅 徒歩3分', genre:'モダンフレンチ',
-    budget:'¥18,000〜', hook:'ファッション誌でも紹介される洗練空間。インフルエンサーと同じ空気感を演出',
+    budget:'¥18,000〜', budgetNum:18000, hook:'ファッション誌でも紹介される洗練空間。インフルエンサーと同じ空気感を演出',
     tags:['映え重視','SNS映え','おしゃれ','フォトジェニック','テラス席'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'],
-    areas:['渋谷・表参道','現在地周辺'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['渋谷・表参道','現在地周辺'],
+    reservation:true, hours:'12:00-23:00', maxPax:20,
     sns:{ tk:'表参道 フレンチ 映え フォトジェニック 飯テロ', ig:'表参道グルメ' } },
 
   { name:'渋谷 ROOT',    area:'渋谷・表参道', loc:'渋谷駅 徒歩5分', genre:'和モダン',
-    budget:'¥12,000〜', hook:'クリエイター業界のSNS人気No.1店。料理の盛り付けが毎回Twitterでも話題に',
+    budget:'¥12,000〜', budgetNum:12000, hook:'クリエイター業界のSNS人気No.1店。料理の盛り付けが毎回話題になる',
     tags:['映え重視','SNS映え','おしゃれ','フォトジェニック','駅チカ'],
-    purpose:['インフルエンサー会食','社内懇親'],
-    areas:['渋谷・表参道','現在地周辺'],
+    purpose:['インフルエンサー会食','社内懇親'], areas:['渋谷・表参道','現在地周辺'],
+    reservation:true, hours:'18:00-23:00', maxPax:20,
     sns:{ tk:'渋谷 和モダン SNS映え 飯テロ', ig:'渋谷グルメ' } },
 
   { name:'渋谷 円（まどか）', area:'渋谷・表参道', loc:'渋谷駅 徒歩4分', genre:'居酒屋・個室',
-    budget:'¥7,000〜', hook:'30名貸切OK×飲み放題。賑わいの中に個室ゾーンがあって懇親に最適',
+    budget:'¥7,000〜', budgetNum:7000, hook:'30名貸切OK×飲み放題。賑わいの中に個室ゾーンがあって懇親に最適',
     tags:['大人数OK','飲み放題あり','貸切可能','駅チカ'],
-    purpose:['社内懇親'],
-    areas:['渋谷・表参道','現在地周辺'],
+    purpose:['社内懇親'], areas:['渋谷・表参道','現在地周辺'],
+    reservation:true, hours:'17:00-23:30', maxPax:30,
     sns:{ tk:'渋谷 居酒屋 宴会 飲み放題 飯テロ', ig:'渋谷グルメ' } },
 
   /* ── 品川・天王洲 ── */
   { name:'天王洲 MARINA', area:'品川・天王洲', loc:'天王洲アイル駅 徒歩2分', genre:'シーフード',
-    budget:'¥14,000〜', hook:'運河ビューのテラス席が映え確定。夜のリフレクションは国内随一の絶景',
+    budget:'¥14,000〜', budgetNum:14000, hook:'運河ビューのテラス席が映え確定。夜のリフレクションは国内随一の絶景',
     tags:['テラス席','夜景','映え重視','SNS映え','フォトジェニック'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'],
-    areas:['品川・天王洲','現在地周辺'],
+    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['品川・天王洲','現在地周辺'],
+    reservation:true, hours:'11:00-22:00', maxPax:40,
     sns:{ tk:'天王洲 シーフード 運河 映え 飯テロ', ig:'天王洲グルメ' } },
 
   { name:'品川 風雅',    area:'品川・天王洲', loc:'品川駅 徒歩5分', genre:'日本料理・個室',
-    budget:'¥16,000〜', hook:'新幹線移動前後にも使いやすい品川の接待定番。個室で落ち着いて商談できる',
+    budget:'¥16,000〜', budgetNum:16000, hook:'新幹線移動前後にも使いやすい品川の接待定番。個室で落ち着いて商談できる',
     tags:['個室必須','接待向け','静かな空間','駅チカ','予約可能'],
-    purpose:['クライアントと打合せ','ガチ密談'],
-    areas:['品川・天王洲','現在地周辺'],
+    purpose:['クライアントと打合せ','ガチ密談'], areas:['品川・天王洲','現在地周辺'],
+    reservation:true, hours:'18:00-23:00', maxPax:10,
     sns:{ tk:'品川 日本料理 個室 接待 グルメ', ig:'品川グルメ' } },
 
   { name:'天王洲 BLUE',  area:'品川・天王洲', loc:'天王洲アイル駅 徒歩3分', genre:'バー・ダイニング',
-    budget:'¥11,000〜', hook:'水辺のおしゃれバー。インフルエンサーとのブランド協議が絵になる空間',
+    budget:'¥11,000〜', budgetNum:11000, hook:'水辺のおしゃれバー。インフルエンサーとのブランド協議が絵になる空間',
     tags:['テラス席','おしゃれ','映え重視','SNS映え'],
-    purpose:['インフルエンサー会食','社内懇親'],
-    areas:['品川・天王洲','現在地周辺'],
+    purpose:['インフルエンサー会食','社内懇親'], areas:['品川・天王洲','現在地周辺'],
+    reservation:false, hours:'16:00-01:00', maxPax:50,
     sns:{ tk:'天王洲 バー おしゃれ 映え 飯テロ', ig:'天王洲グルメ' } },
 
   { name:'品川 肉割烹 薫', area:'品川・天王洲', loc:'品川駅 徒歩7分', genre:'肉割烹',
-    budget:'¥12,000〜', hook:'黒毛和牛の創作肉料理でSNS投稿率が高い。懇親会で「選んだ人すごい」と言われる',
+    budget:'¥12,000〜', budgetNum:12000, hook:'黒毛和牛の創作肉料理でSNS投稿率が高い。懇親会で「選んだ人すごい」と言われる',
     tags:['大人数OK','映え重視','飲み放題あり','駅チカ'],
-    purpose:['社内懇親','インフルエンサー会食'],
-    areas:['品川・天王洲','現在地周辺'],
+    purpose:['社内懇親','インフルエンサー会食'], areas:['品川・天王洲','現在地周辺'],
+    reservation:true, hours:'17:00-23:00', maxPax:25,
     sns:{ tk:'品川 肉割烹 黒毛和牛 飯テロ', ig:'品川グルメ' } },
 
-  /* ── 汎用（現在地周辺のみ） ── */
+  /* ── 汎用（現在地周辺） ── */
   { name:'隠れ家 翡翠',  area:'現在地周辺', loc:'最寄駅 徒歩圏内', genre:'和食・完全個室',
-    budget:'¥20,000〜', hook:'完全予約制の完全個室。その場にいる人以外には存在すら知られない密談空間',
+    budget:'¥20,000〜', budgetNum:20000, hook:'完全予約制の完全個室。その場にいる人以外には存在すら知られない密談空間',
     tags:['個室必須','防音個室','人目につかない','静かな空間','高級感'],
-    purpose:['ガチ密談','クライアントと打合せ'],
-    areas:['現在地周辺'],
+    purpose:['ガチ密談','クライアントと打合せ'], areas:['現在地周辺'],
+    reservation:true, hours:'18:00-23:00', maxPax:6,
     sns:{ tk:'完全個室 和食 隠れ家 グルメ', ig:'和食グルメ' } },
 
   { name:'フォト食堂 凛', area:'現在地周辺', loc:'最寄駅 徒歩圏内', genre:'和洋折衷',
-    budget:'¥9,000〜', hook:'料理の盛り付けがすべてフォトジェニック。投稿するたびにフォロワーが増えると話題',
+    budget:'¥9,000〜', budgetNum:9000, hook:'料理の盛り付けがすべてフォトジェニック。投稿するたびにフォロワーが増えると話題',
     tags:['映え重視','SNS映え','フォトジェニック','おしゃれ'],
-    purpose:['インフルエンサー会食'],
-    areas:['現在地周辺'],
+    purpose:['インフルエンサー会食'], areas:['現在地周辺'],
+    reservation:false, hours:'11:00-22:00', maxPax:20,
     sns:{ tk:'フォトジェニック グルメ 映え 飯テロ', ig:'インスタグルメ' } },
 ];
+/* ─────────────────────────────
+   営業時間チェック
+───────────────────────────── */
+function getOpenStatus(hours) {
+  const now   = new Date();
+  const nowM  = now.getHours() * 60 + now.getMinutes();
+  // "17:30-23:00" → open/close minutes
+  const [openStr, closeStr] = hours.split('-');
+  const [oh, om] = openStr.split(':').map(Number);
+  let   [ch, cm] = closeStr.split(':').map(Number);
+  const openM  = oh * 60 + om;
+  let   closeM = ch * 60 + cm;
+  if (closeM < openM) closeM += 1440; // 深夜営業(25:00など)
+
+  if (nowM >= openM && nowM < closeM) {
+    return { open: true, badge: '🟢 営業中', color: '#16a34a' };
+  }
+  // 本日これから開く
+  if (nowM < openM) {
+    return { open: false, badge: `🟡 本日 ${openStr}〜`, color: '#d97706' };
+  }
+  // 本日は終了・翌日扱い（予約は可能）
+  return { open: false, badge: `📅 翌 ${openStr}〜`, color: '#6b7280' };
+}
+
+function willOpenToday(hours) {
+  const now  = new Date();
+  const nowM = now.getHours() * 60 + now.getMinutes();
+  const [openStr] = hours.split('-');
+  const [oh, om]  = openStr.split(':').map(Number);
+  const openM = oh * 60 + om;
+  return nowM < openM + 1440; // 今日か明日の開店まで
+}
 
 /* ─────────────────────────────
    SCORING ENGINE
-   エリア一致必須・未登録はSNS検索へ
+   エリア・予約可能・営業・人数・予算で絞り込み
 ───────────────────────────── */
 function scoreStore(s) {
   let sc = 0;
   if (s.purpose.includes(S.purpose)) sc += 10;
-  S.conds.forEach(c => { if (s.tags.includes(c)) sc += 5; });
+  (S.conds||[]).forEach(c => { if (s.tags.includes(c)) sc += 5; });
   sc += (s._r = s._r || Math.random() * 3);
   return sc;
 }
 
+/* 営業時間 & 予約チェック */
+function isAvailable(store) {
+  if (!store.reservation) return false;
+  const now  = new Date();
+  const nowM = now.getHours() * 60 + now.getMinutes();
+  const parse = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+  const [os, cs] = (store.hours||'00:00-23:59').split('-');
+  const openM  = parse(os);
+  let   closeM = parse(cs);
+  if (closeM < openM) closeM += 1440;
+  const lastOrderM = closeM - 60;
+  return nowM < lastOrderM || nowM < openM;
+}
+
 function getTop3() {
-  // エリア一致するお店だけ候補にする
-  const area = S.area.replace(/[都道府県]$/, ''); // "東京都" → "東京" で幅広くマッチ
-  const candidates = DB.filter(s =>
-    s.areas.some(a => a.includes(area) || area.includes(a.replace(/[都道府県]$/,'')))
+  const area = S.area.replace(/[都道府県]$/, '');
+  let candidates = DB.filter(s =>
+    s.areas.some(a => a.includes(area) || area.includes(a.replace(/[都道府県]$/, '')))
   );
-  // 候補ゼロ = 未登録エリア → null を返してSNS検索モードへ
   if (!candidates.length) return null;
-  return candidates
-    .map(s => ({...s, sc: scoreStore(s)}))
-    .sort((a,b) => b.sc - a.sc)
-    .slice(0, 3);
+
+  // ① 予約可 & 営業フィルター
+  const pool = candidates.filter(isAvailable).length
+    ? candidates.filter(isAvailable)
+    : candidates.filter(s => s.reservation);
+  if (!pool.length) return null;
+
+  // ② 人数フィルター（緩やかに）
+  const paxPool = (S.paxNum > 0 && pool.filter(s=>s.maxPax>=S.paxNum).length)
+    ? pool.filter(s=>s.maxPax>=S.paxNum) : pool;
+
+  // ③ 予算フィルター（緩やかに: ±5000円の余裕）
+  const bdgPool = (S.budgetMax<99999 && paxPool.filter(s=>s.budgetNum<=S.budgetMax+5000&&s.budgetNum>=Math.max(0,S.budgetMin-3000)).length)
+    ? paxPool.filter(s=>s.budgetNum<=S.budgetMax+5000&&s.budgetNum>=Math.max(0,S.budgetMin-3000))
+    : paxPool;
+
+  return bdgPool
+    .map(s=>({...s, sc:scoreStore(s)}))
+    .sort((a,b)=>b.sc-a.sc)
+    .slice(0,3);
 }
 
 /* ─────────────────────────────
@@ -723,29 +820,34 @@ function buildCard(store, rank) {
 }
 
 function renderTop3() {
-  // バッジ
   const bs = document.getElementById('s4badges');
+  const paxLabel    = S.pax    ? `👥 ${S.pax}` : '';
+  const budgetLabel = S.budget ? `💰 ${S.budget}` : '';
   bs.innerHTML = [
     `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(212,233,226,.18);color:#D4E9E2">📍 ${S.area}</span>`,
     `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(203,162,88,.2);color:#CBA258">🎯 ${S.purpose}</span>`,
-    ...S.conds.map(c=>`<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.1);color:rgba(212,233,226,.8)">✓ ${c}</span>`),
-  ].join('');
+    paxLabel    ? `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.12);color:rgba(212,233,226,.8)">${paxLabel}</span>` : '',
+    budgetLabel ? `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.12);color:rgba(212,233,226,.8)">${budgetLabel}</span>` : '',
+  ].filter(Boolean).join('');
 
   const wrap = document.getElementById('cards');
   const top3 = getTop3();
 
   if (!top3) {
-    // 未登録エリア → SNS検索カードを表示
     wrap.innerHTML = buildSNSFallback();
-    // Step4ヘッダーのタイトルを変更
-    document.querySelector('#step4 h2').innerHTML =
-      '${S.area}の店を<br><em style="font-style:normal;color:#D4E9E2">SNSで発見</em>';
+    document.querySelector('#step4 h2').innerHTML = S.area + 'の店を<br><em style="font-style:normal;color:#D4E9E2">SNSで発見</em>';
+    return;
+  }
+  if (!top3.length) {
+    wrap.innerHTML = `<div class="rounded-2xl p-5 text-center" style="background:#FBF8F3;border:1px solid #EDE0CC">
+      <p class="text-2xl mb-2">🔍</p>
+      <p class="font-bold text-sm mb-1" style="color:#1E3932">条件に合うお店が見つかりませんでした</p>
+      <p class="text-xs" style="color:#6B7280">人数・予算の条件を緩めてもう一度お試しください</p>
+    </div>`;
     return;
   }
 
-  // 通常: トップ3カード表示
-  document.querySelector('#step4 h2').innerHTML =
-    'この条件なら<br><em style="font-style:normal;color:#D4E9E2">ここ</em>がベスト';
+  document.querySelector('#step4 h2').innerHTML = 'この条件なら<br><em style="font-style:normal;color:#D4E9E2">ここ</em>がベスト';
   wrap.innerHTML = top3.map((s,i)=>buildCard(s,i+1)).join('');
 }
 
@@ -786,7 +888,8 @@ function go(next) {
     }, 300);
 
     // ⑤ トップにスクロール（smoothはモバイルでフリーズする場合があるため auto）
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({ top: 0, behavior: 'auto' },
+    hours:'17:30-23:00', reservation:true, maxPax:16, budgetNum:18000
 
   }, 190);
 
@@ -1020,24 +1123,67 @@ function clearArea() {
 /* ─────────────────────────────
    PURPOSE
 ───────────────────────────── */
+/* 用途別・自動条件マッピング（Step3には表示しない） */
+const PURPOSE_AUTO_CONDS = {
+  'クライアントと打合せ': ['個室必須','静かな空間','接待向け','予約可能'],
+  'ガチ密談':             ['個室必須','防音個室','人目につかない','静かな空間'],
+  'インフルエンサー会食': ['映え重視','SNS映え','テラス席','フォトジェニック'],
+  '社内懇親':             ['大人数OK','飲み放題あり'],
+};
+
 function selPurpose(btn){
-  // 選択ハイライト
   document.querySelectorAll('.purpose-card').forEach(b=>{
     b.style.background='#fff'; b.style.borderColor='#EDE0CC';
   });
   btn.style.background='#EBF5F0';
   btn.style.borderColor='#006241';
-  // 状態を保存
   S.purpose = btn.dataset.p;
-  // エリアラベルを更新
-  const s2a = document.getElementById('s2a');
-  if (s2a) s2a.textContent = S.area || '';
-  // 次のステップへ（直接呼び出し・二重setTimeout不要）
+  // 用途に応じた条件を自動設定（Step3では表示しない）
+  S.conds = PURPOSE_AUTO_CONDS[S.purpose] || [];
+  // Step3のラベル更新
+  const s3a = document.getElementById('s3a');
+  const s3p = document.getElementById('s3p');
+  if (s3a) s3a.textContent = S.area || '';
+  if (s3p) s3p.textContent = S.purpose;
+  // 人数・予算リセット
+  S.pax=null; S.paxNum=0; S.budget=null; S.budgetMin=0; S.budgetMax=99999;
   go(3);
 }
 
 /* ─────────────────────────────
-   CONDITIONS
+   人数・予算 チップ選択
+───────────────────────────── */
+function selPax(btn) {
+  document.querySelectorAll('.pax-chip').forEach(b => {
+    b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A';
+  });
+  btn.style.background='#1E3932'; btn.style.borderColor='#1E3932'; btn.style.color='#fff';
+  S.pax    = btn.dataset.pax;
+  S.paxNum = parseInt(btn.dataset.paxnum, 10) || 0;
+  tryEnableS3Next();
+}
+function selBudget(btn) {
+  document.querySelectorAll('.bdg-chip').forEach(b => {
+    b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A';
+  });
+  btn.style.background='#CBA258'; btn.style.borderColor='#9A7830'; btn.style.color='#1A1A1A';
+  S.budget    = btn.dataset.bdg;
+  S.budgetMin = parseInt(btn.dataset.bdgmin, 10) || 0;
+  S.budgetMax = parseInt(btn.dataset.bdgmax, 10) || 99999;
+  tryEnableS3Next();
+}
+function tryEnableS3Next() {
+  const nb = document.getElementById('s3next');
+  if (!nb) return;
+  if (S.pax && S.budget) {
+    nb.disabled=false; nb.style.background='#006241';
+    nb.style.color='#fff'; nb.style.cursor='pointer';
+    nb.style.boxShadow='0 4px 22px rgba(0,98,65,.42)';
+  }
+}
+
+/* ─────────────────────────────
+   CONDITIONS（後方互換・auto setで使用）
 ───────────────────────────── */
 const CMAP = {
   'クライアントと打合せ':[{i:'🔒',l:'個室必須'},{i:'🤫',l:'静かな空間'},{i:'🚉',l:'駅チカ'},{i:'🍷',l:'接待向け'},{i:'📅',l:'予約可能'},{i:'💼',l:'ドレスコードあり'},{i:'🌙',l:'夜景'},{i:'🚗',l:'駐車場あり'}],
