@@ -613,36 +613,23 @@ function getTop3() {
 ───────────────────────────── */
 function buildSNSFallback() {
   const area = S.area;
+  const areaShort = area.split('・')[0].replace(/[都道府県]$/,'').replace('現在地周辺','');
   const PF_KW = {
-    tiktok: {
-      'クライアントと打合せ':'接待 会食','ガチ密談':'個室 ディナー',
-      'インフルエンサー会食':'飯テロ インスタ映え','社内懇親':'宴会 飲み放題',
-    },
-    instagram: {
-      'クライアントと打合せ':'グルメ','ガチ密談':'個室グルメ',
-      'インフルエンサー会食':'インスタ映えグルメ','社内懇親':'宴会グルメ',
-    },
-    google: {
-      'クライアントと打合せ':'レストラン 接待','ガチ密談':'レストラン 個室',
-      'インフルエンサー会食':'レストラン おしゃれ','社内懇親':'レストラン 宴会',
-    },
+    tiktok:    {'クライアントと打合せ':'接待 会食','ガチ密談':'個室 ディナー','インフルエンサー会食':'飯テロ インスタ映え','社内懇親':'宴会 飲み放題'},
+    instagram: {'クライアントと打合せ':'グルメ','ガチ密談':'個室グルメ','インフルエンサー会食':'インスタ映えグルメ','社内懇親':'宴会グルメ'},
+    google:    {'クライアントと打合せ':'レストラン 接待','ガチ密談':'レストラン 個室','インフルエンサー会食':'レストラン おしゃれ','社内懇親':'レストラン 宴会'},
   };
-  const condKw = S.conds.map(c =>
-    ({'個室必須':'個室','静かな空間':'静か','接待向け':'接待',
-      '映え重視':'映え','夜景':'夜景','大人数OK':'宴会','飲み放題あり':'飲み放題',
-      '防音個室':'完全個室','テラス席':'テラス','SNS映え':'フォトジェニック',
-      '駅チカ':'駅近'}[c] || c.replace(/必須|あり|OK$/,''))
-  ).filter(Boolean).slice(0,2).join(' ');
+  const paxKW    = S.pax    || '';
+  const budgetKW = S.budget && S.budget !== 'こだわらない' ? S.budget : '';
 
-  // プラットフォーム別URL生成
-  const tkKw  = [area, PF_KW.tiktok[S.purpose]||'グルメ', condKw, '飯テロ'].filter(Boolean);
-  const igTag = area.replace(/[都道府県]$/,'') + (PF_KW.instagram[S.purpose]||'グルメ');
-  const gmKw  = [area, PF_KW.google[S.purpose]||'レストラン', condKw].filter(Boolean);
+  const tkKw  = [areaShort, PF_KW.tiktok[S.purpose]||'グルメ', paxKW, budgetKW, '飯テロ'].filter(Boolean);
+  const igTag = areaShort + (PF_KW.instagram[S.purpose]||'グルメ');
+  const gmKw  = [areaShort, PF_KW.google[S.purpose]||'レストラン', paxKW, budgetKW].filter(Boolean);
 
   const tkURL = 'https://www.tiktok.com/search?q=' + tkKw.map(encodeURIComponent).join('+');
   const igURL = 'https://www.instagram.com/explore/tags/' + encodeURIComponent(igTag) + '/';
   const gmURL = 'https://www.google.com/maps/search/' + gmKw.map(encodeURIComponent).join('+');
-  const queryPreview = tkKw.join(' ＋ ');
+  const queryPreview = tkKw.join(' + ');
 
   return `
   <div style="animation:slideUp .4s ease both">
@@ -743,24 +730,33 @@ function buildCard(store, rank) {
   const icons  = ['🥇','🥈','🥉'];
   const labels = ['1位','2位','3位'];
   const cls    = ['r1','r2','r3'];
-  const tkURL  = `https://www.tiktok.com/search?q=${encodeURIComponent(store.sns.tk)}`;
-  const igURL  = `https://www.instagram.com/explore/tags/${encodeURIComponent(store.sns.ig)}/`;
 
-  // Googleマップ ナビ開始URL
-  // maps/dir/?destination= でナビ直起動（モバイルはアプリ起動）
-  const navDest  = encodeURIComponent(store.name + ' ' + store.loc);
+  // 用途・人数・予算をSNSクエリに反映
+  const purposeKW = {'クライアントと打合せ':'接待 会食','ガチ密談':'個室 ディナー','インフルエンサー会食':'飯テロ インスタ映え','社内懇親':'宴会 飲み放題'}[S.purpose] || '会食';
+  const paxKW     = S.pax    ? S.pax    : '';
+  const budgetKW  = S.budget && S.budget !== 'こだわらない' ? S.budget : '';
+  const areaShort = S.area.split('・')[0].replace(/[都道府県]$/,'').replace('現在地周辺','');
+
+  const tkParts = [areaShort, store.name, purposeKW, '飯テロ'].filter(Boolean);
+  const igTag   = areaShort + ({'クライアントと打合せ':'グルメ','ガチ密談':'個室グルメ','インフルエンサー会食':'インスタ映えグルメ','社内懇親':'宴会グルメ'}[S.purpose]||'グルメ');
+  const gmParts = [areaShort, store.name, purposeKW, budgetKW].filter(Boolean);
+
+  const tkURL  = `https://www.tiktok.com/search?q=${tkParts.map(encodeURIComponent).join('+')}`;
+  const igURL  = `https://www.instagram.com/explore/tags/${encodeURIComponent(igTag)}/`;
+  const gmSrch = `https://www.google.com/maps/search/${gmParts.map(encodeURIComponent).join('+')}`;
+
+  // Googleマップ ナビ起動URL
+  const navDest    = encodeURIComponent(store.name + ' ' + store.loc);
   const mapsNavURL = `https://maps.google.com/maps/dir/?api=1&destination=${navDest}&travelmode=driving`;
 
-  // 条件マッチタグ（緑ハイライト）+ その他タグ
-  const matched = store.tags.filter(t => S.conds.includes(t)).slice(0,3);
-  const others  = store.tags.filter(t => !S.conds.includes(t)).slice(0,2);
+  const matched = store.tags.filter(t => (S.conds||[]).includes(t)).slice(0,3);
+  const others  = store.tags.filter(t => !(S.conds||[]).includes(t)).slice(0,2);
   const tagHtml = [
     ...matched.map(t=>`<span class="px-2 py-0.5 rounded-full text-xs font-bold" style="background:#006241;color:#fff">✓ ${t}</span>`),
     ...others.map(t =>`<span class="px-2 py-0.5 rounded-full text-xs"           style="background:#EDE0CC;color:#6B7280">${t}</span>`),
   ].join('');
 
   return `<div class="rcard">
-  <!-- ヘッダー -->
   <div class="flex items-start justify-between px-4 pt-4 pb-2">
     <div class="flex-1 min-w-0 pr-3">
       <div class="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -777,33 +773,20 @@ function buildCard(store, rank) {
       <p class="font-black" style="color:#1E3932;font-size:1.05rem">${store.budget}</p>
     </div>
   </div>
-
-  <!-- 決定打 -->
   <div class="mx-4 mb-2.5 px-3 py-2.5 rounded-xl" style="background:#EBF5F0;border-left:3px solid #006241">
     <p class="text-xs font-bold mb-0.5" style="color:#006241">✦ 決定打</p>
     <p class="text-sm font-medium leading-relaxed" style="color:#1E3932">${store.hook}</p>
   </div>
-
-  <!-- タグ -->
   ${tagHtml ? `<div class="px-4 pb-3 flex flex-wrap gap-1.5">${tagHtml}</div>` : ''}
-
-  <!-- ★ Googleマップ ナビボタン（大・目立つ） -->
   <div class="px-4 pb-3">
     <a href="${mapsNavURL}" target="_blank" rel="noopener"
        class="maps-nav-btn flex items-center justify-center gap-2 w-full rounded-2xl font-bold"
        style="padding:14px 0;font-size:1rem;text-decoration:none">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-        <circle cx="12" cy="10" r="3"/>
-      </svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
       このお店に案内する
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2.5">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </a>
   </div>
-
-  <!-- SNSで口コミを確認 -->
   <div class="flex gap-2 px-4 pb-4">
     <a href="${tkURL}" target="_blank" rel="noopener"
        class="tk-btn flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs">
@@ -1121,16 +1104,9 @@ function clearArea() {
 
 
 /* ─────────────────────────────
+/* ─────────────────────────────
    PURPOSE
 ───────────────────────────── */
-/* 用途別・自動条件マッピング（Step3には表示しない） */
-const PURPOSE_AUTO_CONDS = {
-  'クライアントと打合せ': ['個室必須','静かな空間','接待向け','予約可能'],
-  'ガチ密談':             ['個室必須','防音個室','人目につかない','静かな空間'],
-  'インフルエンサー会食': ['映え重視','SNS映え','テラス席','フォトジェニック'],
-  '社内懇親':             ['大人数OK','飲み放題あり'],
-};
-
 function selPurpose(btn){
   document.querySelectorAll('.purpose-card').forEach(b=>{
     b.style.background='#fff'; b.style.borderColor='#EDE0CC';
