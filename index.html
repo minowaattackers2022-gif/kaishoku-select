@@ -11,1196 +11,134 @@
 <style>
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavior:none;max-width:430px;margin:0 auto}
-::-webkit-scrollbar{display:none}
-
-@keyframes slideUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
-@keyframes sInR  {from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:translateX(0)}}
-@keyframes sInL  {from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
+::-webkit-scrollbar{display:none} @keyframes slideUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sInR {from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:translateX(0)}}
+@keyframes sInL {from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
 @keyframes sOutR {from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(24px)}}
 @keyframes sOutL {from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(-24px)}}
 @keyframes badgePop{0%{transform:scale(0) rotate(-12deg)}65%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
 @keyframes lineGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-
-.slide-r{animation:sInR  .3s cubic-bezier(.4,0,.2,1) both}
-.slide-l{animation:sInL  .3s cubic-bezier(.4,0,.2,1) both}
-.out-r  {animation:sOutR .22s cubic-bezier(.4,0,.2,1) forwards}
-.out-l  {animation:sOutL .22s cubic-bezier(.4,0,.2,1) forwards}
-
-.chip{transition:all .13s ease;user-select:none}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}} .slide-r{animation:sInR .3s cubic-bezier(.4,0,.2,1) both}
+.slide-l{animation:sInL .3s cubic-bezier(.4,0,.2,1) both}
+.out-r {animation:sOutR .22s cubic-bezier(.4,0,.2,1) forwards}
+.out-l {animation:sOutL .22s cubic-bezier(.4,0,.2,1) forwards} .chip{transition:all .13s ease;user-select:none}
 .chip:active{transform:scale(.92)}
 .purpose-card{transition:all .15s ease}
-.purpose-card:active{transform:scale(.96)}
-
-/* RESULT CARDS stagger */
+.purpose-card:active{transform:scale(.96)} /* RESULT CARDS stagger */
 .rcard{animation:slideUp .42s cubic-bezier(.16,1,.3,1) both;border:1px solid #E2D8C8;border-radius:20px;background:#fff;overflow:hidden}
 .rcard:nth-child(1){animation-delay:.04s}
 .rcard:nth-child(2){animation-delay:.17s}
-.rcard:nth-child(3){animation-delay:.30s}
-
-/* RANK BADGES */
+.rcard:nth-child(3){animation-delay:.30s} /* RANK BADGES */
 .r1{background:linear-gradient(135deg,#B8860B,#FFD700,#DAA520);color:#2d1f00}
 .r2{background:linear-gradient(135deg,#5c6670,#BCC4CC,#A8B4BC);color:#0d1214}
-.r3{background:linear-gradient(135deg,#7B3F0A,#CD853F,#B87333);color:#fff}
-
-/* SNS BUTTONS */
+.r3{background:linear-gradient(135deg,#7B3F0A,#CD853F,#B87333);color:#fff} /* SNS BUTTONS */
 .tk-btn{background:#000;color:#fff;transition:transform .12s,opacity .12s}
 .tk-btn:active{transform:scale(.93);opacity:.8}
 .ig-btn{background:linear-gradient(135deg,#833AB4,#C43474,#FD1D1D,#F77737);color:#fff;transition:transform .12s,opacity .12s}
-.ig-btn:active{transform:scale(.93);opacity:.8}
-
-/* PROGRESS LINE */
-.pgline{transition:background .4s ease}
-
-/* MAPS NAV BUTTON */
-.maps-nav-btn{
-  background:linear-gradient(135deg,#1a6b3a,#006241);
-  color:#fff;
-  box-shadow:0 4px 18px rgba(0,98,65,.45);
-  transition:transform .12s ease, box-shadow .12s ease;
+.ig-btn:active{transform:scale(.93);opacity:.8} /* PROGRESS LINE */
+.pgline{transition:background .4s ease} /* MAPS NAV BUTTON */
+.maps-nav-btn{ background:linear-gradient(135deg,#1a6b3a,#006241); color:#fff; box-shadow:0 4px 18px rgba(0,98,65,.45); transition:transform .12s ease, box-shadow .12s ease;
 }
 .maps-nav-btn:hover{box-shadow:0 6px 24px rgba(0,98,65,.6)}
-.maps-nav-btn:active{transform:scale(.96);box-shadow:0 2px 10px rgba(0,98,65,.35)}
-
-/* PREFECTURE GRID */
+.maps-nav-btn:active{transform:scale(.96);box-shadow:0 2px 10px rgba(0,98,65,.35)} /* PREFECTURE GRID */
 .pref-row{display:flex;align-items:flex-start;gap:0;padding:10px 14px}
 .pref-region{font-size:.72rem;font-weight:700;color:#1A1A1A;min-width:64px;padding-top:6px;flex-shrink:0;letter-spacing:-.01em;line-height:1.3}
 .pref-list{display:flex;flex-wrap:wrap;gap:1px 0}
 .pref-chip{padding:5px 11px;font-size:.8rem;color:#4A4A4A;background:none;border:none;cursor:pointer;border-radius:6px;transition:background .13s,color .13s;font-family:"Noto Sans JP",sans-serif;white-space:nowrap}
 .pref-chip:hover{background:#EBF5F0;color:#006241}
 .pref-chip:active{transform:scale(.92)}
-.pref-chip.selected{background:#006241;color:#fff;font-weight:700;border-radius:6px}
-
-/* GPS BUTTON STATES */
+.pref-chip.selected{background:#006241;color:#fff;font-weight:700;border-radius:6px} /* GPS BUTTON STATES */
 #gps-btn.loading{opacity:.75;pointer-events:none}
 #gps-btn.done{border-color:#CBA258;background:linear-gradient(135deg,#1E3932,#0d2b24)}
 </style>
 </head>
-<body class="min-h-screen flex flex-col">
-
-<!-- ═══════════════ HEADER ═══════════════ -->
-<header class="sticky top-0 z-50 flex items-center justify-between px-5 py-3.5"
-        style="background:#1E3932;box-shadow:0 2px 18px rgba(0,0,0,.3)">
-  <div class="flex items-center gap-3">
-    <svg width="36" height="36" viewBox="0 0 72 72" fill="none">
-      <circle cx="36" cy="36" r="34" stroke="#D4E9E2" stroke-width="2"/>
-      <path d="M22 36 Q36 20 50 36 Q36 52 22 36Z" fill="#00704A"/>
-      <circle cx="36" cy="36" r="10" fill="#1E3932"/>
-      <circle cx="36" cy="36" r="5"  fill="#D4E9E2"/>
-    </svg>
-    <div>
-      <p class="font-serif font-bold leading-none" style="color:#D4E9E2;letter-spacing:.03em">会食セレクト</p>
-      <p class="text-xs mt-0.5" style="color:rgba(212,233,226,.42);letter-spacing:.16em">KAISHOKU SELECT</p>
-    </div>
-  </div>
-  <span id="hdr-step" class="text-xs font-bold px-3 py-1.5 rounded-full"
-        style="background:rgba(212,233,226,.14);color:#D4E9E2">STEP 1 / 4</span>
-</header>
-
-<!-- ═══════════════ PROGRESS ═══════════════ -->
-<div class="bg-white px-5 py-3.5 border-b" style="border-color:#EDE0CC">
-  <div class="flex items-center">
-    <!-- S1 -->
-    <div class="flex flex-col items-center" style="min-width:52px">
-      <div id="pg1" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300"
-           style="background:#006241;border-color:#006241;color:#fff">1</div>
-      <p id="lb1" class="mt-1 font-bold" style="font-size:10px;color:#006241">エリア</p>
-    </div>
-    <div id="ln1" class="pgline flex-1 h-px mb-4" style="background:#006241"></div>
-    <!-- S2 -->
-    <div class="flex flex-col items-center" style="min-width:52px">
-      <div id="pg2" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300"
-           style="background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF">2</div>
-      <p id="lb2" class="mt-1 font-bold" style="font-size:10px;color:#9CA3AF">用途</p>
-    </div>
-    <div id="ln2" class="pgline flex-1 h-px mb-4" style="background:#EDE0CC"></div>
-    <!-- S3 -->
-    <div class="flex flex-col items-center" style="min-width:52px">
-      <div id="pg3" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300"
-           style="background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF">3</div>
-      <p id="lb3" class="mt-1 font-bold" style="font-size:10px;color:#9CA3AF">条件</p>
-    </div>
-    <div id="ln3" class="pgline flex-1 h-px mb-4" style="background:#EDE0CC"></div>
-    <!-- S4 -->
-    <div class="flex flex-col items-center" style="min-width:52px">
-      <div id="pg4" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300"
-           style="background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF">4</div>
-      <p id="lb4" class="mt-1 font-bold" style="font-size:10px;color:#9CA3AF">即決</p>
-    </div>
-  </div>
+<body class="min-h-screen flex flex-col"> <!-- ═══════════════ HEADER ═══════════════ -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-5 py-3.5" style="background:#1E3932;box-shadow:0 2px 18px rgba(0,0,0,.3)"> <div class="flex items-center gap-3"> <svg width="36" height="36" viewBox="0 0 72 72" fill="none"> <circle cx="36" cy="36" r="34" stroke="#D4E9E2" stroke-width="2"/> <path d="M22 36 Q36 20 50 36 Q36 52 22 36Z" fill="#00704A"/> <circle cx="36" cy="36" r="10" fill="#1E3932"/> <circle cx="36" cy="36" r="5" fill="#D4E9E2"/> </svg> <div> <p class="font-serif font-bold leading-none" style="color:#D4E9E2;letter-spacing:.03em">会食セレクト</p> <p class="text-xs mt-0.5" style="color:rgba(212,233,226,.42);letter-spacing:.16em">KAISHOKU SELECT</p> </div> </div> <span id="hdr-step" class="text-xs font-bold px-3 py-1.5 rounded-full" style="background:rgba(212,233,226,.14);color:#D4E9E2">STEP 1 / 4</span>
+</header> <!-- ═══════════════ PROGRESS ═══════════════ -->
+<div class="bg-white px-5 py-3.5 border-b" style="border-color:#EDE0CC"> <div class="flex items-center"> <!-- S1 --> <div class="flex flex-col items-center" style="min-width:52px"> <div id="pg1" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300" style="background:#006241;border-color:#006241;color:#fff">1</div> <p id="lb1" class="mt-1 font-bold" style="font-size:10px;color:#006241">エリア</p> </div> <div id="ln1" class="pgline flex-1 h-px mb-4" style="background:#006241"></div> <!-- S2 --> <div class="flex flex-col items-center" style="min-width:52px"> <div id="pg2" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300" style="background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF">2</div> <p id="lb2" class="mt-1 font-bold" style="font-size:10px;color:#9CA3AF">用途</p> </div> <div id="ln2" class="pgline flex-1 h-px mb-4" style="background:#EDE0CC"></div> <!-- S3 --> <div class="flex flex-col items-center" style="min-width:52px"> <div id="pg3" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300" style="background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF">3</div> <p id="lb3" class="mt-1 font-bold" style="font-size:10px;color:#9CA3AF">条件</p> </div> <div id="ln3" class="pgline flex-1 h-px mb-4" style="background:#EDE0CC"></div> <!-- S4 --> <div class="flex flex-col items-center" style="min-width:52px"> <div id="pg4" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300" style="background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF">4</div> <p id="lb4" class="mt-1 font-bold" style="font-size:10px;color:#9CA3AF">即決</p> </div> </div>
+</div> <!-- ═══════════════ PANELS ═══════════════ -->
+<div class="flex-1" style="overflow-y:auto;-webkit-overflow-scrolling:touch"> <!-- ── STEP 1 ── -->
+<div id="step1" class="px-5 pt-6 pb-6"> <p class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">STEP 01</p> <h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">どのエリアで<br>お探しですか？</h2> <p class="text-sm mb-5" style="color:#6B7280">現在地 または 目的地を入力</p> <!-- ── カード①：現在地 ── --> <button id="gps-btn" onclick="doGPS()" class="w-full flex items-center gap-3 px-4 py-4 rounded-2xl mb-3" style="background:#1E3932;border:2px solid #006241;color:#D4E9E2;transition:border-color .2s"> <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(0,98,65,.45)"> <svg id="gi-default" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4E9E2" stroke-width="2"> <circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/> <path d="M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l-1.41 1.41M6.34 17.66l-1.41 1.41"/> </svg> <span id="gi-spin" style="display:none;width:20px;height:20px;border:2.5px solid rgba(212,233,226,.25);border-top-color:#D4E9E2;border-radius:50%;animation:spin .7s linear infinite"></span> <svg id="gi-ok" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CBA258" stroke-width="2.5" style="display:none"><polyline points="20 6 9 17 4 12"/></svg> </div> <div class="flex-1 text-left"> <p id="gps-label" class="font-bold" style="font-size:.92rem">現在地から探す</p> <p id="gps-sub" class="text-xs mt-0.5" style="color:rgba(212,233,226,.55)">GPSで自動取得（推奨）</p> </div> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(212,233,226,.45)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg> </button> <!-- ── カード②：目的地 ── --> <button id="dest-card" onclick="openDestInput()" class="w-full flex items-center gap-3 px-4 py-4 rounded-2xl mb-4" style="background:#fff;border:2px solid #EDE0CC;color:#1A1A1A;transition:border-color .2s"> <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#EBF5F0"> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#006241" stroke-width="2"> <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/> </svg> </div> <div class="flex-1 text-left"> <p class="font-bold" style="font-size:.92rem">目的地で探す</p> <p class="text-xs mt-0.5" style="color:#9CA3AF">場所名・駅名・施設名で指定</p> </div> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg> </button> <!-- ── 目的地 入力エリア（初期非表示） ── --> <div id="dest-area" style="display:none" class="mb-4"> <div class="flex gap-2 mb-2"> <input id="dest-input" type="text" placeholder="例：六本木ヒルズ、伊那市駅、名古屋駅前" class="flex-1 px-4 rounded-xl text-sm font-medium" style="height:48px;border:2px solid #006241;background:#EBF5F0;color:#1A1A1A;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter') doDestSearch()"> <button onclick="doDestSearch()" id="dest-search-btn" class="flex items-center gap-1.5 px-4 rounded-xl font-bold text-sm flex-shrink-0" style="height:48px;background:#006241;color:#fff;min-width:64px;transition:opacity .15s"> <span id="dst-btn-txt">検索</span> <span id="dst-spin" style="display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></span> </button> </div> <p id="dest-err" class="text-xs px-1" style="color:#DC2626;display:none"></p> </div> <!-- 次へボタン --> <button id="s1next" onclick="go(2)" disabled class="w-full h-14 rounded-2xl font-bold text-base transition-all duration-300" style="background:#EDE0CC;color:#bbb;cursor:not-allowed">次へ進む →</button>
+</div><!-- /step1 --> <!-- ── STEP 2 ── -->
+<div id="step2" class="px-5 pt-5 pb-6 hidden"> <button onclick="go(1)" class="flex items-center gap-1 text-sm font-medium mb-4" style="color:#006241"> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg> エリアを変更 </button> <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold mb-4" style="background:#EBF5F0;color:#006241"> <span id="s2a"></span></span> <p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">STEP 02</p> <h2 class="font-serif text-2xl font-bold leading-tight mb-5" style="color:#1E3932">今夜の目的は？</h2> <div class="flex flex-col gap-3"> <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left" data-p="クライアントと打合せ" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC"> <div><p class="font-bold text-sm" style="color:#1A1A1A">クライアントと打合せ</p><p class="text-xs mt-0.5" style="color:#6B7280">商談・接待・ビジネス会食</p></div> </button> <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left" data-p="ガチ密談" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC"> <div><p class="font-bold text-sm" style="color:#1A1A1A">ガチ密談</p><p class="text-xs mt-0.5" style="color:#6B7280">極秘・重要な話し合い</p></div> </button> <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left" data-p="インフルエンサー会食" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC"> <div><p class="font-bold text-sm" style="color:#1A1A1A">インフルエンサー会食</p><p class="text-xs mt-0.5" style="color:#6B7280">SNS映え・投稿コラボ向け</p></div> </button> <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left" data-p="社内懇親" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC"> <div><p class="font-bold text-sm" style="color:#1A1A1A">社内懇親</p><p class="text-xs mt-0.5" style="color:#6B7280">チームビルディング・打ち上げ</p></div> </button> </div>
+</div> <!-- ── STEP 3: 人数・予算 ── -->
+<div id="step3" class="px-5 pt-5 pb-6 hidden"> <button onclick="go(2)" class="flex items-center gap-1 text-sm font-medium mb-4" style="color:#006241"> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg> 用途を変更 </button> <div class="flex flex-wrap gap-2 mb-4"> <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:#EBF5F0;color:#006241"> <span id="s3a"></span></span> <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:#1E3932;color:#D4E9E2"><span id="s3p"></span></span> </div> <p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">STEP 03</p> <h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">人数と予算を<br>教えてください</h2> <p class="text-sm mb-5" style="color:#6B7280">タップだけで選択できます</p> <!-- 人数 --> <p class="text-xs font-bold mb-2.5 flex items-center gap-2" style="color:#1E3932"> <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black" style="background:#1E3932;color:#D4E9E2"></span> 人数 </p> <div class="grid grid-cols-4 gap-2 mb-5" id="pax-grid"> <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="1" data-paxnum="1" style="border-color:#EDE0CC;background:#fff">1名</button> <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="2" data-paxnum="2" style="border-color:#EDE0CC;background:#fff">2名</button> <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="3" data-paxnum="3" style="border-color:#EDE0CC;background:#fff">3名</button> <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="4" data-paxnum="4" style="border-color:#EDE0CC;background:#fff">4名</button> <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="5" data-paxnum="5" style="border-color:#EDE0CC;background:#fff">5名</button> <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="6" data-paxnum="6" style="border-color:#EDE0CC;background:#fff">6名</button> <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="7-8" data-paxnum="8" style="border-color:#EDE0CC;background:#fff">7-8名</button> <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="9-10" data-paxnum="10" style="border-color:#EDE0CC;background:#fff">9-10名</button> <button class="pax-chip col-span-4 py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="10名以上" data-paxnum="20" style="border-color:#EDE0CC;background:#fff">10名以上</button> </div> <!-- 予算 --> <p class="text-xs font-bold mb-2.5 flex items-center gap-2" style="color:#1E3932"> <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black" style="background:#1E3932;color:#D4E9E2"></span> お一人様予算 </p> <div class="grid grid-cols-2 gap-2 mb-6" id="budget-grid"> <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥5,000" data-bdgmax="5000" data-bdgmin="0" style="border-color:#EDE0CC;background:#fff">〜¥5,000</button> <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥8,000" data-bdgmax="8000" data-bdgmin="0" style="border-color:#EDE0CC;background:#fff">〜¥8,000</button> <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥12,000" data-bdgmax="12000" data-bdgmin="0" style="border-color:#EDE0CC;background:#fff">〜¥12,000</button> <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥18,000" data-bdgmax="18000" data-bdgmin="0" style="border-color:#EDE0CC;background:#fff">〜¥18,000</button> <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="¥18,000〜" data-bdgmax="99999" data-bdgmin="18000" style="border-color:#EDE0CC;background:#fff">¥18,000〜</button> <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="こだわらない" data-bdgmax="99999" data-bdgmin="0" style="border-color:#EDE0CC;background:#fff">こだわらない</button> </div> <button id="s3next" onclick="go(4)" disabled class="w-full h-14 rounded-2xl font-bold text-base transition-all duration-300" style="background:#EDE0CC;color:#bbb;cursor:not-allowed"> ✦ この条件でトップ3を見る </button>
 </div>
-
-<!-- ═══════════════ PANELS ═══════════════ -->
-<div class="flex-1" style="overflow-y:auto;-webkit-overflow-scrolling:touch">
-
-<!-- ── STEP 1 ── -->
-<div id="step1" class="px-5 pt-6 pb-6">
-  <p class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">STEP 01</p>
-  <h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">どのエリアで<br>お探しですか？</h2>
-  <p class="text-sm mb-5" style="color:#6B7280">現在地 または 目的地を入力</p>
-
-  <!-- ── カード①：現在地 ── -->
-  <button id="gps-btn" onclick="doGPS()"
-    class="w-full flex items-center gap-3 px-4 py-4 rounded-2xl mb-3"
-    style="background:#1E3932;border:2px solid #006241;color:#D4E9E2;transition:border-color .2s">
-    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-         style="background:rgba(0,98,65,.45)">
-      <svg id="gi-default" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4E9E2" stroke-width="2">
-        <circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
-        <path d="M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l-1.41 1.41M6.34 17.66l-1.41 1.41"/>
-      </svg>
-      <span id="gi-spin" style="display:none;width:20px;height:20px;border:2.5px solid rgba(212,233,226,.25);border-top-color:#D4E9E2;border-radius:50%;animation:spin .7s linear infinite"></span>
-      <svg id="gi-ok" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CBA258" stroke-width="2.5" style="display:none"><polyline points="20 6 9 17 4 12"/></svg>
-    </div>
-    <div class="flex-1 text-left">
-      <p id="gps-label" class="font-bold" style="font-size:.92rem">現在地から探す</p>
-      <p id="gps-sub" class="text-xs mt-0.5" style="color:rgba(212,233,226,.55)">GPSで自動取得（推奨）</p>
-    </div>
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(212,233,226,.45)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-  </button>
-
-  <!-- ── カード②：目的地 ── -->
-  <button id="dest-card" onclick="openDestInput()"
-    class="w-full flex items-center gap-3 px-4 py-4 rounded-2xl mb-4"
-    style="background:#fff;border:2px solid #EDE0CC;color:#1A1A1A;transition:border-color .2s">
-    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-         style="background:#EBF5F0">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#006241" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-    </div>
-    <div class="flex-1 text-left">
-      <p class="font-bold" style="font-size:.92rem">目的地で探す</p>
-      <p class="text-xs mt-0.5" style="color:#9CA3AF">場所名・駅名・施設名で指定</p>
-    </div>
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-  </button>
-
-  <!-- ── 目的地 入力エリア（初期非表示） ── -->
-  <div id="dest-area" style="display:none" class="mb-4">
-    <div class="flex gap-2 mb-2">
-      <input id="dest-input" type="text" placeholder="例：六本木ヒルズ、伊那市駅、名古屋駅前"
-        class="flex-1 px-4 rounded-xl text-sm font-medium"
-        style="height:48px;border:2px solid #006241;background:#EBF5F0;color:#1A1A1A;outline:none;font-family:inherit"
-        onkeydown="if(event.key==='Enter') doDestSearch()">
-      <button onclick="doDestSearch()" id="dest-search-btn"
-        class="flex items-center gap-1.5 px-4 rounded-xl font-bold text-sm flex-shrink-0"
-        style="height:48px;background:#006241;color:#fff;min-width:64px;transition:opacity .15s">
-        <span id="dst-btn-txt">検索</span>
-        <span id="dst-spin" style="display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></span>
-      </button>
-    </div>
-    <p id="dest-err" class="text-xs px-1" style="color:#DC2626;display:none"></p>
-  </div>
-
-  <!-- 次へボタン -->
-  <button id="s1next" onclick="go(2)" disabled
-          class="w-full h-14 rounded-2xl font-bold text-base transition-all duration-300"
-          style="background:#EDE0CC;color:#bbb;cursor:not-allowed">次へ進む →</button>
-</div><!-- /step1 -->
-
-<!-- ── STEP 2 ── -->
-<div id="step2" class="px-5 pt-5 pb-6 hidden">
-  <button onclick="go(1)" class="flex items-center gap-1 text-sm font-medium mb-4" style="color:#006241">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-    エリアを変更
-  </button>
-  <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold mb-4"
-        style="background:#EBF5F0;color:#006241">📍 <span id="s2a"></span></span>
-  <p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">STEP 02</p>
-  <h2 class="font-serif text-2xl font-bold leading-tight mb-5" style="color:#1E3932">今夜の目的は？</h2>
-  <div class="flex flex-col gap-3">
-    <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left"
-            data-p="クライアントと打合せ" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC">
-      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style="background:#EBF5F0">👔</div>
-      <div><p class="font-bold text-sm" style="color:#1A1A1A">クライアントと打合せ</p><p class="text-xs mt-0.5" style="color:#6B7280">商談・接待・ビジネス会食</p></div>
-    </button>
-    <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left"
-            data-p="ガチ密談" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC">
-      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style="background:#EBF5F0">🤫</div>
-      <div><p class="font-bold text-sm" style="color:#1A1A1A">ガチ密談</p><p class="text-xs mt-0.5" style="color:#6B7280">極秘・重要な話し合い</p></div>
-    </button>
-    <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left"
-            data-p="インフルエンサー会食" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC">
-      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style="background:#EBF5F0">📱</div>
-      <div><p class="font-bold text-sm" style="color:#1A1A1A">インフルエンサー会食</p><p class="text-xs mt-0.5" style="color:#6B7280">SNS映え・投稿コラボ向け</p></div>
-    </button>
-    <button class="purpose-card flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left"
-            data-p="社内懇親" onclick="selPurpose(this)" style="background:#fff;border-color:#EDE0CC">
-      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style="background:#EBF5F0">🥂</div>
-      <div><p class="font-bold text-sm" style="color:#1A1A1A">社内懇親</p><p class="text-xs mt-0.5" style="color:#6B7280">チームビルディング・打ち上げ</p></div>
-    </button>
-  </div>
-</div>
-
-<!-- ── STEP 3: 人数・予算 ── -->
-<div id="step3" class="px-5 pt-5 pb-6 hidden">
-  <button onclick="go(2)" class="flex items-center gap-1 text-sm font-medium mb-4" style="color:#006241">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-    用途を変更
-  </button>
-  <div class="flex flex-wrap gap-2 mb-4">
-    <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:#EBF5F0;color:#006241">📍 <span id="s3a"></span></span>
-    <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:#1E3932;color:#D4E9E2"><span id="s3p"></span></span>
-  </div>
-  <p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">STEP 03</p>
-  <h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">人数と予算を<br>教えてください</h2>
-  <p class="text-sm mb-5" style="color:#6B7280">タップだけで選択できます</p>
-
-  <!-- 人数 -->
-  <p class="text-xs font-bold mb-2.5 flex items-center gap-2" style="color:#1E3932">
-    <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black" style="background:#1E3932;color:#D4E9E2">👥</span>
-    人数
-  </p>
-  <div class="grid grid-cols-4 gap-2 mb-5" id="pax-grid">
-    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="1"  data-paxnum="1"  style="border-color:#EDE0CC;background:#fff">1名</button>
-    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="2"  data-paxnum="2"  style="border-color:#EDE0CC;background:#fff">2名</button>
-    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="3"  data-paxnum="3"  style="border-color:#EDE0CC;background:#fff">3名</button>
-    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="4"  data-paxnum="4"  style="border-color:#EDE0CC;background:#fff">4名</button>
-    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="5"  data-paxnum="5"  style="border-color:#EDE0CC;background:#fff">5名</button>
-    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="6"  data-paxnum="6"  style="border-color:#EDE0CC;background:#fff">6名</button>
-    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="7-8" data-paxnum="8" style="border-color:#EDE0CC;background:#fff">7-8名</button>
-    <button class="pax-chip py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="9-10" data-paxnum="10" style="border-color:#EDE0CC;background:#fff">9-10名</button>
-    <button class="pax-chip col-span-4 py-2.5 rounded-xl border-2 font-bold text-sm" onclick="selPax(this)" data-pax="10名以上" data-paxnum="20" style="border-color:#EDE0CC;background:#fff">10名以上</button>
-  </div>
-
-  <!-- 予算 -->
-  <p class="text-xs font-bold mb-2.5 flex items-center gap-2" style="color:#1E3932">
-    <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black" style="background:#1E3932;color:#D4E9E2">💰</span>
-    お一人様予算
-  </p>
-  <div class="grid grid-cols-2 gap-2 mb-6" id="budget-grid">
-    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥5,000"      data-bdgmax="5000"  data-bdgmin="0"     style="border-color:#EDE0CC;background:#fff">〜¥5,000</button>
-    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥8,000"      data-bdgmax="8000"  data-bdgmin="0"     style="border-color:#EDE0CC;background:#fff">〜¥8,000</button>
-    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥12,000"     data-bdgmax="12000" data-bdgmin="0"     style="border-color:#EDE0CC;background:#fff">〜¥12,000</button>
-    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="〜¥18,000"     data-bdgmax="18000" data-bdgmin="0"     style="border-color:#EDE0CC;background:#fff">〜¥18,000</button>
-    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="¥18,000〜"     data-bdgmax="99999" data-bdgmin="18000" style="border-color:#EDE0CC;background:#fff">¥18,000〜</button>
-    <button class="bdg-chip py-3 rounded-xl border-2 font-bold text-sm" onclick="selBudget(this)" data-bdg="こだわらない"  data-bdgmax="99999" data-bdgmin="0"     style="border-color:#EDE0CC;background:#fff">こだわらない</button>
-  </div>
-
-  <button id="s3next" onclick="go(4)" disabled
-          class="w-full h-14 rounded-2xl font-bold text-base transition-all duration-300"
-          style="background:#EDE0CC;color:#bbb;cursor:not-allowed">
-    ✦ この条件でトップ3を見る
-  </button>
-</div>
-<div id="step4" class="hidden pb-8">
-
-  <!-- ダーク背景ヘッダー -->
-  <div class="px-5 pt-5 pb-5" style="background:#1E3932">
-    <button onclick="go(3)" class="flex items-center gap-1 text-sm font-medium mb-4" style="color:rgba(212,233,226,.65)">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-      条件を変更
-    </button>
-    <p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258;letter-spacing:.12em">STEP 04 — 即決アシスト</p>
-    <h2 class="font-serif text-2xl font-bold leading-tight mb-3" style="color:#fff">
-      この条件なら<br><em style="font-style:normal;color:#D4E9E2">ここ</em>がベスト
-    </h2>
-    <div id="s4badges" class="flex flex-wrap gap-2"></div>
-  </div>
-
-  <!-- カードリスト -->
-  <div class="px-4 pt-5 pb-4" style="background:#F0EBE1">
-    <p class="text-xs font-bold mb-4 flex items-center gap-2" style="color:#9A7830;letter-spacing:.08em">
-      ✦ リアルな評判トップ3
-    </p>
-    <div id="cards" class="flex flex-col gap-4"></div>
-  </div>
-
-  <!-- やり直し -->
-  <div class="px-4 pt-2 pb-6" style="background:#F0EBE1">
-    <button onclick="restart()"
-            class="w-full py-3.5 rounded-2xl text-sm font-bold border-2"
-            style="border-color:#D9CBBA;color:#6B7280;background:#fff">
-      ↺ 最初からやり直す
-    </button>
-  </div>
-</div>
-
-</div><!-- /panels -->
-
-<script>
-/* ─────────────────────────────
-   STATE
+<div id="step4" class="hidden pb-8"> <!-- ダーク背景ヘッダー --> <div class="px-5 pt-5 pb-5" style="background:#1E3932"> <button onclick="go(3)" class="flex items-center gap-1 text-sm font-medium mb-4" style="color:rgba(212,233,226,.65)"> <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg> 条件を変更 </button> <p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258;letter-spacing:.12em">STEP 04 — 即決アシスト</p> <h2 class="font-serif text-2xl font-bold leading-tight mb-3" style="color:#fff"> この条件なら<br><em style="font-style:normal;color:#D4E9E2">ここ</em>がベスト </h2> <div id="s4badges" class="flex flex-wrap gap-2"></div> </div> <!-- カードリスト --> <div class="px-4 pt-5 pb-4" style="background:#F0EBE1"> <p class="text-xs font-bold mb-4 flex items-center gap-2" style="color:#9A7830;letter-spacing:.08em"> ✦ リアルな評判トップ3 </p> <div id="cards" class="flex flex-col gap-4"></div> </div> <!-- やり直し --> <div class="px-4 pt-2 pb-6" style="background:#F0EBE1"> <button onclick="restart()" class="w-full py-3.5 rounded-2xl text-sm font-bold border-2" style="border-color:#D9CBBA;color:#6B7280;background:#fff"> ↺ 最初からやり直す </button> </div>
+</div> </div><!-- /panels --> <script>
+/* ───────────────────────────── STATE
 ───────────────────────────── */
-const S = { area:'', purpose:'', conds:[], lat:null, lng:null, pax:null, paxNum:0, budget:null, budgetMin:0, budgetMax:99999 };
-
-const PURPOSE_AUTO_CONDS = {
-  'クライアントと打合せ': ['個室必須','静かな空間','接待向け','予約可能'],
-  'ガチ密談':             ['個室必須','防音個室','静かな空間','人目につかない'],
-  'インフルエンサー会食': ['映え重視','SNS映え','フォトジェニック'],
-  '社内懇親':             ['大人数OK','飲み放題あり'],
+const S = { area:'', purpose:'', conds:[], lat:null, lng:null, pax:null, paxNum:0, budget:null, budgetMin:0, budgetMax:99999 }; const PURPOSE_AUTO_CONDS = { 'クライアントと打合せ': ['個室必須','静かな空間','接待向け','予約可能'], 'ガチ密談': ['個室必須','防音個室','静かな空間','人目につかない'], 'インフルエンサー会食': ['映え重視','SNS映え','フォトジェニック'], '社内懇親': ['大人数OK','飲み放題あり'],
 };
-let cur = 1;
-
-/* ─────────────────────────────
-   STORE DATABASE（25店舗）
-   スコアリング用メタデータ付き
+let cur = 1; /* ───────────────────────────── STORE DATABASE（25店舗） スコアリング用メタデータ付き
 ───────────────────────────── */
-const DB = [
-  /* ── 六本木・麻布 ── */
-  { name:'麻布 真田',     area:'六本木・麻布', loc:'麻布十番駅 徒歩3分', genre:'日本料理・割烹',
-    budget:'¥18,000〜', budgetNum:18000, hook:'完全防音の個室で密談に最適。格式ある雰囲気で相手への敬意を示せる',
-    tags:['個室必須','静かな空間','接待向け','予約可能','防音個室'],
-    purpose:['クライアントと打合せ','ガチ密談'], areas:['六本木・麻布','現在地周辺'],
-    reservation:true, hours:'18:00-23:00', maxPax:8,
-    sns:{ tk:'麻布十番 割烹 個室 接待 グルメ', ig:'麻布十番グルメ' } },
-
-  { name:'六本木 銀狐',   area:'六本木・麻布', loc:'六本木駅 徒歩2分', genre:'モダンフレンチ',
-    budget:'¥22,000〜', budgetNum:22000, hook:'東京タワーを望む最上階テラス。インフルエンサー受け抜群のフォトジェニック空間',
-    tags:['夜景','テラス席','映え重視','SNS映え','フォトジェニック'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['六本木・麻布','現在地周辺'],
-    reservation:true, hours:'18:00-23:30', maxPax:12,
-    sns:{ tk:'六本木 夜景 フレンチ 飯テロ', ig:'六本木グルメ' } },
-
-  { name:'西麻布 杉乃屋', area:'六本木・麻布', loc:'広尾駅 徒歩8分', genre:'懐石料理',
-    budget:'¥25,000〜', budgetNum:25000, hook:'路地裏の完全隠れ家。知る人ぞ知る密談御用達、外部に漏れない安心感',
-    tags:['個室必須','防音個室','人目につかない','静かな空間','隠れ家'],
-    purpose:['ガチ密談','クライアントと打合せ'], areas:['六本木・麻布','現在地周辺'],
-    reservation:true, hours:'18:00-23:00', maxPax:6,
-    sns:{ tk:'西麻布 懐石 隠れ家 グルメ', ig:'西麻布グルメ' } },
-
-  { name:'麻布 Cielo',   area:'六本木・麻布', loc:'麻布十番駅 徒歩5分', genre:'イタリアン',
-    budget:'¥12,000〜', budgetNum:12000, hook:'大型ライトとオープンキッチンが映え最強。料理の彩りでSNS投稿率ダントツ',
-    tags:['映え重視','SNS映え','フォトジェニック','テラス席','おしゃれ'],
-    purpose:['インフルエンサー会食','社内懇親'], areas:['六本木・麻布','現在地周辺'],
-    reservation:true, hours:'12:00-23:00', maxPax:20,
-    sns:{ tk:'麻布十番 イタリアン 映え 飯テロ', ig:'麻布十番グルメ' } },
-
-  { name:'六本木 月夜',  area:'六本木・麻布', loc:'六本木駅 徒歩4分', genre:'鉄板焼き',
-    budget:'¥20,000〜', budgetNum:20000, hook:'カウンター鉄板でシェフのライブ感を演出。接待で「体験価値」を提供できる',
-    tags:['接待向け','個室必須','夜景','高級感','予約可能'],
-    purpose:['クライアントと打合せ','ガチ密談'], areas:['六本木・麻布','現在地周辺'],
-    reservation:true, hours:'18:00-23:00', maxPax:10,
-    sns:{ tk:'六本木 鉄板焼き 接待 飯テロ', ig:'六本木グルメ' } },
-
-  /* ── 恵比寿・中目黒 ── */
-  { name:'恵比寿 木の葉', area:'恵比寿・中目黒', loc:'恵比寿駅 徒歩5分', genre:'和食・個室',
-    budget:'¥15,000〜', budgetNum:15000, hook:'完全個室で商談が弾む。厳選食材と繊細な盛り付けで相手の心をつかめる',
-    tags:['個室必須','静かな空間','接待向け','駅チカ','予約可能'],
-    purpose:['クライアントと打合せ','ガチ密談'], areas:['恵比寿・中目黒','現在地周辺'],
-    reservation:true, hours:'18:00-23:00', maxPax:10,
-    sns:{ tk:'恵比寿 和食 個室 接待 飯テロ', ig:'恵比寿グルメ' } },
-
-  { name:'中目黒 HARU',  area:'恵比寿・中目黒', loc:'中目黒駅 徒歩3分', genre:'モダンフレンチ',
-    budget:'¥16,000〜', budgetNum:16000, hook:'目黒川沿いテラス×フォトジェニック料理が最強コンボ。春はサクラも映える',
-    tags:['テラス席','映え重視','SNS映え','おしゃれ','夜景','フォトジェニック'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['恵比寿・中目黒','現在地周辺'],
-    reservation:true, hours:'12:00-23:00', maxPax:20,
-    sns:{ tk:'中目黒 フレンチ テラス 映え 飯テロ', ig:'中目黒グルメ' } },
-
-  { name:'中目黒 静流',  area:'恵比寿・中目黒', loc:'中目黒駅 徒歩6分', genre:'日本料理',
-    budget:'¥20,000〜', budgetNum:20000, hook:'完全予約制・防音完璧の静寂個室。声が外に漏れない安心感で密談最適',
-    tags:['個室必須','防音個室','静かな空間','人目につかない','予約可能'],
-    purpose:['ガチ密談','クライアントと打合せ'], areas:['恵比寿・中目黒','現在地周辺'],
-    reservation:true, hours:'18:00-23:00', maxPax:6,
-    sns:{ tk:'中目黒 日本料理 個室 グルメ', ig:'中目黒グルメ' } },
-
-  { name:'恵比寿 炭火 零', area:'恵比寿・中目黒', loc:'恵比寿駅 徒歩4分', genre:'焼肉',
-    budget:'¥10,000〜', budgetNum:10000, hook:'黒毛和牛の炭火焼きが飯テロ最強。テーブル間隔広く懇親でも騒げる',
-    tags:['大人数OK','映え重視','駅チカ','飲み放題あり'],
-    purpose:['社内懇親','インフルエンサー会食'], areas:['恵比寿・中目黒','現在地周辺'],
-    reservation:true, hours:'17:00-23:30', maxPax:30,
-    sns:{ tk:'恵比寿 焼肉 黒毛和牛 飯テロ', ig:'恵比寿グルメ' } },
-
-  /* ── 銀座・丸の内 ── */
-  { name:'銀座 黒田',    area:'銀座・丸の内', loc:'銀座駅 徒歩2分', genre:'鮨',
-    budget:'¥30,000〜', budgetNum:30000, hook:'ミシュラン掲載。大切なクライアントへの格式と信頼感が圧倒的',
-    tags:['接待向け','個室必須','高級感','予約可能','静かな空間'],
-    purpose:['クライアントと打合せ','ガチ密談'], areas:['銀座・丸の内','現在地周辺'],
-    reservation:true, hours:'18:00-22:00', maxPax:8,
-    sns:{ tk:'銀座 鮨 高級 接待 グルメ', ig:'銀座グルメ' } },
-
-  { name:'銀座 天空バー', area:'銀座・丸の内', loc:'銀座駅 徒歩3分', genre:'バー・ダイニング',
-    budget:'¥14,000〜', budgetNum:14000, hook:'地上32階から見える夜景×シャンパンでSNS投稿率95%超。映え確定の絶景',
-    tags:['夜景','映え重視','SNS映え','フォトジェニック','おしゃれ','テラス席'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['銀座・丸の内','現在地周辺'],
-    reservation:true, hours:'17:00-01:00', maxPax:40,
-    sns:{ tk:'銀座 夜景 バー 映え 飯テロ', ig:'銀座グルメ' } },
-
-  { name:'丸の内 FORZA', area:'銀座・丸の内', loc:'東京駅 徒歩4分', genre:'フレンチイタリアン',
-    budget:'¥18,000〜', budgetNum:18000, hook:'ビジネス街の正統派接待店。サービス水準が高く初対面相手にも安心感を与える',
-    tags:['接待向け','個室必須','駅チカ','予約可能','ドレスコードあり'],
-    purpose:['クライアントと打合せ'], areas:['銀座・丸の内','現在地周辺'],
-    reservation:true, hours:'11:30-23:00', maxPax:30,
-    sns:{ tk:'丸の内 フレンチ 接待 グルメ', ig:'丸の内グルメ' } },
-
-  { name:'銀座 囲炉裏 雅', area:'銀座・丸の内', loc:'銀座駅 徒歩5分', genre:'日本料理',
-    budget:'¥22,000〜', budgetNum:22000, hook:'囲炉裏個室が密談特化。BGMをゼロにできるオプションあり、完全な静寂を確保',
-    tags:['個室必須','防音個室','静かな空間','高級感','人目につかない'],
-    purpose:['ガチ密談','クライアントと打合せ'], areas:['銀座・丸の内','現在地周辺'],
-    reservation:true, hours:'18:00-23:00', maxPax:8,
-    sns:{ tk:'銀座 和食 個室 隠れ家 グルメ', ig:'銀座グルメ' } },
-
-  /* ── 新宿 ── */
-  { name:'新宿 頂 極上焼肉', area:'新宿', loc:'新宿駅 徒歩6分', genre:'焼肉',
-    budget:'¥8,000〜', budgetNum:8000, hook:'最大40名対応。飲み放題×黒毛和牛で懇親会の満足度がとにかく高い',
-    tags:['大人数OK','飲み放題あり','駅チカ','貸切可能'],
-    purpose:['社内懇親'], areas:['新宿','現在地周辺'],
-    reservation:true, hours:'17:00-23:30', maxPax:40,
-    sns:{ tk:'新宿 焼肉 宴会 飲み放題 飯テロ', ig:'新宿グルメ' } },
-
-  { name:'新宿 夜桜',    area:'新宿', loc:'西新宿駅 徒歩3分', genre:'割烹・個室',
-    budget:'¥15,000〜', budgetNum:15000, hook:'個室で話しやすく格式もある。初回商談でも「また来たい」と思わせる品格',
-    tags:['個室必須','静かな空間','接待向け','駅チカ','予約可能'],
-    purpose:['クライアントと打合せ','ガチ密談'], areas:['新宿','現在地周辺'],
-    reservation:true, hours:'17:30-23:00', maxPax:15,
-    sns:{ tk:'新宿 割烹 個室 接待 グルメ', ig:'新宿グルメ' } },
-
-  { name:'西新宿 Sky Lounge', area:'新宿', loc:'西新宿駅 徒歩2分', genre:'バー・夜景',
-    budget:'¥12,000〜', budgetNum:12000, hook:'超高層から見える東京夜景がSNS投稿確定。インフルエンサーに大人気の絶景バー',
-    tags:['夜景','映え重視','SNS映え','フォトジェニック','おしゃれ'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['新宿','現在地周辺'],
-    reservation:false, hours:'17:00-01:00', maxPax:60,
-    sns:{ tk:'西新宿 夜景 バー 映え 飯テロ', ig:'新宿グルメ' } },
-
-  /* ── 渋谷・表参道 ── */
-  { name:'表参道 BLANC', area:'渋谷・表参道', loc:'表参道駅 徒歩3分', genre:'モダンフレンチ',
-    budget:'¥18,000〜', budgetNum:18000, hook:'ファッション誌でも紹介される洗練空間。インフルエンサーと同じ空気感を演出',
-    tags:['映え重視','SNS映え','おしゃれ','フォトジェニック','テラス席'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['渋谷・表参道','現在地周辺'],
-    reservation:true, hours:'12:00-23:00', maxPax:20,
-    sns:{ tk:'表参道 フレンチ 映え フォトジェニック 飯テロ', ig:'表参道グルメ' } },
-
-  { name:'渋谷 ROOT',    area:'渋谷・表参道', loc:'渋谷駅 徒歩5分', genre:'和モダン',
-    budget:'¥12,000〜', budgetNum:12000, hook:'クリエイター業界のSNS人気No.1店。料理の盛り付けが毎回話題になる',
-    tags:['映え重視','SNS映え','おしゃれ','フォトジェニック','駅チカ'],
-    purpose:['インフルエンサー会食','社内懇親'], areas:['渋谷・表参道','現在地周辺'],
-    reservation:true, hours:'18:00-23:00', maxPax:20,
-    sns:{ tk:'渋谷 和モダン SNS映え 飯テロ', ig:'渋谷グルメ' } },
-
-  { name:'渋谷 円（まどか）', area:'渋谷・表参道', loc:'渋谷駅 徒歩4分', genre:'居酒屋・個室',
-    budget:'¥7,000〜', budgetNum:7000, hook:'30名貸切OK×飲み放題。賑わいの中に個室ゾーンがあって懇親に最適',
-    tags:['大人数OK','飲み放題あり','貸切可能','駅チカ'],
-    purpose:['社内懇親'], areas:['渋谷・表参道','現在地周辺'],
-    reservation:true, hours:'17:00-23:30', maxPax:30,
-    sns:{ tk:'渋谷 居酒屋 宴会 飲み放題 飯テロ', ig:'渋谷グルメ' } },
-
-  /* ── 品川・天王洲 ── */
-  { name:'天王洲 MARINA', area:'品川・天王洲', loc:'天王洲アイル駅 徒歩2分', genre:'シーフード',
-    budget:'¥14,000〜', budgetNum:14000, hook:'運河ビューのテラス席が映え確定。夜のリフレクションは国内随一の絶景',
-    tags:['テラス席','夜景','映え重視','SNS映え','フォトジェニック'],
-    purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['品川・天王洲','現在地周辺'],
-    reservation:true, hours:'11:00-22:00', maxPax:40,
-    sns:{ tk:'天王洲 シーフード 運河 映え 飯テロ', ig:'天王洲グルメ' } },
-
-  { name:'品川 風雅',    area:'品川・天王洲', loc:'品川駅 徒歩5分', genre:'日本料理・個室',
-    budget:'¥16,000〜', budgetNum:16000, hook:'新幹線移動前後にも使いやすい品川の接待定番。個室で落ち着いて商談できる',
-    tags:['個室必須','接待向け','静かな空間','駅チカ','予約可能'],
-    purpose:['クライアントと打合せ','ガチ密談'], areas:['品川・天王洲','現在地周辺'],
-    reservation:true, hours:'18:00-23:00', maxPax:10,
-    sns:{ tk:'品川 日本料理 個室 接待 グルメ', ig:'品川グルメ' } },
-
-  { name:'天王洲 BLUE',  area:'品川・天王洲', loc:'天王洲アイル駅 徒歩3分', genre:'バー・ダイニング',
-    budget:'¥11,000〜', budgetNum:11000, hook:'水辺のおしゃれバー。インフルエンサーとのブランド協議が絵になる空間',
-    tags:['テラス席','おしゃれ','映え重視','SNS映え'],
-    purpose:['インフルエンサー会食','社内懇親'], areas:['品川・天王洲','現在地周辺'],
-    reservation:false, hours:'16:00-01:00', maxPax:50,
-    sns:{ tk:'天王洲 バー おしゃれ 映え 飯テロ', ig:'天王洲グルメ' } },
-
-  { name:'品川 肉割烹 薫', area:'品川・天王洲', loc:'品川駅 徒歩7分', genre:'肉割烹',
-    budget:'¥12,000〜', budgetNum:12000, hook:'黒毛和牛の創作肉料理でSNS投稿率が高い。懇親会で「選んだ人すごい」と言われる',
-    tags:['大人数OK','映え重視','飲み放題あり','駅チカ'],
-    purpose:['社内懇親','インフルエンサー会食'], areas:['品川・天王洲','現在地周辺'],
-    reservation:true, hours:'17:00-23:00', maxPax:25,
-    sns:{ tk:'品川 肉割烹 黒毛和牛 飯テロ', ig:'品川グルメ' } },
-
-  /* ── 汎用（現在地周辺） ── */
-  { name:'隠れ家 翡翠',  area:'現在地周辺', loc:'最寄駅 徒歩圏内', genre:'和食・完全個室',
-    budget:'¥20,000〜', budgetNum:20000, hook:'完全予約制の完全個室。その場にいる人以外には存在すら知られない密談空間',
-    tags:['個室必須','防音個室','人目につかない','静かな空間','高級感'],
-    purpose:['ガチ密談','クライアントと打合せ'], areas:['現在地周辺'],
-    reservation:true, hours:'18:00-23:00', maxPax:6,
-    sns:{ tk:'完全個室 和食 隠れ家 グルメ', ig:'和食グルメ' } },
-
-  { name:'フォト食堂 凛', area:'現在地周辺', loc:'最寄駅 徒歩圏内', genre:'和洋折衷',
-    budget:'¥9,000〜', budgetNum:9000, hook:'料理の盛り付けがすべてフォトジェニック。投稿するたびにフォロワーが増えると話題',
-    tags:['映え重視','SNS映え','フォトジェニック','おしゃれ'],
-    purpose:['インフルエンサー会食'], areas:['現在地周辺'],
-    reservation:false, hours:'11:00-22:00', maxPax:20,
-    sns:{ tk:'フォトジェニック グルメ 映え 飯テロ', ig:'インスタグルメ' } },
+const DB = [ /* ── 六本木・麻布 ── */ { name:'麻布 真田', area:'六本木・麻布', loc:'麻布十番駅 徒歩3分', genre:'日本料理・割烹', budget:'¥18,000〜', budgetNum:18000, hook:'完全防音の個室で密談に最適。格式ある雰囲気で相手への敬意を示せる', tags:['個室必須','静かな空間','接待向け','予約可能','防音個室'], purpose:['クライアントと打合せ','ガチ密談'], areas:['六本木・麻布','現在地周辺'], reservation:true, hours:'18:00-23:00', maxPax:8, sns:{ tk:'麻布十番 割烹 個室 接待 グルメ', ig:'麻布十番グルメ' } }, { name:'六本木 銀狐', area:'六本木・麻布', loc:'六本木駅 徒歩2分', genre:'モダンフレンチ', budget:'¥22,000〜', budgetNum:22000, hook:'東京タワーを望む最上階テラス。インフルエンサー受け抜群のフォトジェニック空間', tags:['夜景','テラス席','映え重視','SNS映え','フォトジェニック'], purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['六本木・麻布','現在地周辺'], reservation:true, hours:'18:00-23:30', maxPax:12, sns:{ tk:'六本木 夜景 フレンチ 飯テロ', ig:'六本木グルメ' } }, { name:'西麻布 杉乃屋', area:'六本木・麻布', loc:'広尾駅 徒歩8分', genre:'懐石料理', budget:'¥25,000〜', budgetNum:25000, hook:'路地裏の完全隠れ家。知る人ぞ知る密談御用達、外部に漏れない安心感', tags:['個室必須','防音個室','人目につかない','静かな空間','隠れ家'], purpose:['ガチ密談','クライアントと打合せ'], areas:['六本木・麻布','現在地周辺'], reservation:true, hours:'18:00-23:00', maxPax:6, sns:{ tk:'西麻布 懐石 隠れ家 グルメ', ig:'西麻布グルメ' } }, { name:'麻布 Cielo', area:'六本木・麻布', loc:'麻布十番駅 徒歩5分', genre:'イタリアン', budget:'¥12,000〜', budgetNum:12000, hook:'大型ライトとオープンキッチンが映え最強。料理の彩りでSNS投稿率ダントツ', tags:['映え重視','SNS映え','フォトジェニック','テラス席','おしゃれ'], purpose:['インフルエンサー会食','社内懇親'], areas:['六本木・麻布','現在地周辺'], reservation:true, hours:'12:00-23:00', maxPax:20, sns:{ tk:'麻布十番 イタリアン 映え 飯テロ', ig:'麻布十番グルメ' } }, { name:'六本木 月夜', area:'六本木・麻布', loc:'六本木駅 徒歩4分', genre:'鉄板焼き', budget:'¥20,000〜', budgetNum:20000, hook:'カウンター鉄板でシェフのライブ感を演出。接待で「体験価値」を提供できる', tags:['接待向け','個室必須','夜景','高級感','予約可能'], purpose:['クライアントと打合せ','ガチ密談'], areas:['六本木・麻布','現在地周辺'], reservation:true, hours:'18:00-23:00', maxPax:10, sns:{ tk:'六本木 鉄板焼き 接待 飯テロ', ig:'六本木グルメ' } }, /* ── 恵比寿・中目黒 ── */ { name:'恵比寿 木の葉', area:'恵比寿・中目黒', loc:'恵比寿駅 徒歩5分', genre:'和食・個室', budget:'¥15,000〜', budgetNum:15000, hook:'完全個室で商談が弾む。厳選食材と繊細な盛り付けで相手の心をつかめる', tags:['個室必須','静かな空間','接待向け','駅チカ','予約可能'], purpose:['クライアントと打合せ','ガチ密談'], areas:['恵比寿・中目黒','現在地周辺'], reservation:true, hours:'18:00-23:00', maxPax:10, sns:{ tk:'恵比寿 和食 個室 接待 飯テロ', ig:'恵比寿グルメ' } }, { name:'中目黒 HARU', area:'恵比寿・中目黒', loc:'中目黒駅 徒歩3分', genre:'モダンフレンチ', budget:'¥16,000〜', budgetNum:16000, hook:'目黒川沿いテラス×フォトジェニック料理が最強コンボ。春はサクラも映える', tags:['テラス席','映え重視','SNS映え','おしゃれ','夜景','フォトジェニック'], purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['恵比寿・中目黒','現在地周辺'], reservation:true, hours:'12:00-23:00', maxPax:20, sns:{ tk:'中目黒 フレンチ テラス 映え 飯テロ', ig:'中目黒グルメ' } }, { name:'中目黒 静流', area:'恵比寿・中目黒', loc:'中目黒駅 徒歩6分', genre:'日本料理', budget:'¥20,000〜', budgetNum:20000, hook:'完全予約制・防音完璧の静寂個室。声が外に漏れない安心感で密談最適', tags:['個室必須','防音個室','静かな空間','人目につかない','予約可能'], purpose:['ガチ密談','クライアントと打合せ'], areas:['恵比寿・中目黒','現在地周辺'], reservation:true, hours:'18:00-23:00', maxPax:6, sns:{ tk:'中目黒 日本料理 個室 グルメ', ig:'中目黒グルメ' } }, { name:'恵比寿 炭火 零', area:'恵比寿・中目黒', loc:'恵比寿駅 徒歩4分', genre:'焼肉', budget:'¥10,000〜', budgetNum:10000, hook:'黒毛和牛の炭火焼きが飯テロ最強。テーブル間隔広く懇親でも騒げる', tags:['大人数OK','映え重視','駅チカ','飲み放題あり'], purpose:['社内懇親','インフルエンサー会食'], areas:['恵比寿・中目黒','現在地周辺'], reservation:true, hours:'17:00-23:30', maxPax:30, sns:{ tk:'恵比寿 焼肉 黒毛和牛 飯テロ', ig:'恵比寿グルメ' } }, /* ── 銀座・丸の内 ── */ { name:'銀座 黒田', area:'銀座・丸の内', loc:'銀座駅 徒歩2分', genre:'鮨', budget:'¥30,000〜', budgetNum:30000, hook:'ミシュラン掲載。大切なクライアントへの格式と信頼感が圧倒的', tags:['接待向け','個室必須','高級感','予約可能','静かな空間'], purpose:['クライアントと打合せ','ガチ密談'], areas:['銀座・丸の内','現在地周辺'], reservation:true, hours:'18:00-22:00', maxPax:8, sns:{ tk:'銀座 鮨 高級 接待 グルメ', ig:'銀座グルメ' } }, { name:'銀座 天空バー', area:'銀座・丸の内', loc:'銀座駅 徒歩3分', genre:'バー・ダイニング', budget:'¥14,000〜', budgetNum:14000, hook:'地上32階から見える夜景×シャンパンでSNS投稿率95%超。映え確定の絶景', tags:['夜景','映え重視','SNS映え','フォトジェニック','おしゃれ','テラス席'], purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['銀座・丸の内','現在地周辺'], reservation:true, hours:'17:00-01:00', maxPax:40, sns:{ tk:'銀座 夜景 バー 映え 飯テロ', ig:'銀座グルメ' } }, { name:'丸の内 FORZA', area:'銀座・丸の内', loc:'東京駅 徒歩4分', genre:'フレンチイタリアン', budget:'¥18,000〜', budgetNum:18000, hook:'ビジネス街の正統派接待店。サービス水準が高く初対面相手にも安心感を与える', tags:['接待向け','個室必須','駅チカ','予約可能','ドレスコードあり'], purpose:['クライアントと打合せ'], areas:['銀座・丸の内','現在地周辺'], reservation:true, hours:'11:30-23:00', maxPax:30, sns:{ tk:'丸の内 フレンチ 接待 グルメ', ig:'丸の内グルメ' } }, { name:'銀座 囲炉裏 雅', area:'銀座・丸の内', loc:'銀座駅 徒歩5分', genre:'日本料理', budget:'¥22,000〜', budgetNum:22000, hook:'囲炉裏個室が密談特化。BGMをゼロにできるオプションあり、完全な静寂を確保', tags:['個室必須','防音個室','静かな空間','高級感','人目につかない'], purpose:['ガチ密談','クライアントと打合せ'], areas:['銀座・丸の内','現在地周辺'], reservation:true, hours:'18:00-23:00', maxPax:8, sns:{ tk:'銀座 和食 個室 隠れ家 グルメ', ig:'銀座グルメ' } }, /* ── 新宿 ── */ { name:'新宿 頂 極上焼肉', area:'新宿', loc:'新宿駅 徒歩6分', genre:'焼肉', budget:'¥8,000〜', budgetNum:8000, hook:'最大40名対応。飲み放題×黒毛和牛で懇親会の満足度がとにかく高い', tags:['大人数OK','飲み放題あり','駅チカ','貸切可能'], purpose:['社内懇親'], areas:['新宿','現在地周辺'], reservation:true, hours:'17:00-23:30', maxPax:40, sns:{ tk:'新宿 焼肉 宴会 飲み放題 飯テロ', ig:'新宿グルメ' } }, { name:'新宿 夜桜', area:'新宿', loc:'西新宿駅 徒歩3分', genre:'割烹・個室', budget:'¥15,000〜', budgetNum:15000, hook:'個室で話しやすく格式もある。初回商談でも「また来たい」と思わせる品格', tags:['個室必須','静かな空間','接待向け','駅チカ','予約可能'], purpose:['クライアントと打合せ','ガチ密談'], areas:['新宿','現在地周辺'], reservation:true, hours:'17:30-23:00', maxPax:15, sns:{ tk:'新宿 割烹 個室 接待 グルメ', ig:'新宿グルメ' } }, { name:'西新宿 Sky Lounge', area:'新宿', loc:'西新宿駅 徒歩2分', genre:'バー・夜景', budget:'¥12,000〜', budgetNum:12000, hook:'超高層から見える東京夜景がSNS投稿確定。インフルエンサーに大人気の絶景バー', tags:['夜景','映え重視','SNS映え','フォトジェニック','おしゃれ'], purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['新宿','現在地周辺'], reservation:false, hours:'17:00-01:00', maxPax:60, sns:{ tk:'西新宿 夜景 バー 映え 飯テロ', ig:'新宿グルメ' } }, /* ── 渋谷・表参道 ── */ { name:'表参道 BLANC', area:'渋谷・表参道', loc:'表参道駅 徒歩3分', genre:'モダンフレンチ', budget:'¥18,000〜', budgetNum:18000, hook:'ファッション誌でも紹介される洗練空間。インフルエンサーと同じ空気感を演出', tags:['映え重視','SNS映え','おしゃれ','フォトジェニック','テラス席'], purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['渋谷・表参道','現在地周辺'], reservation:true, hours:'12:00-23:00', maxPax:20, sns:{ tk:'表参道 フレンチ 映え フォトジェニック 飯テロ', ig:'表参道グルメ' } }, { name:'渋谷 ROOT', area:'渋谷・表参道', loc:'渋谷駅 徒歩5分', genre:'和モダン', budget:'¥12,000〜', budgetNum:12000, hook:'クリエイター業界のSNS人気No.1店。料理の盛り付けが毎回話題になる', tags:['映え重視','SNS映え','おしゃれ','フォトジェニック','駅チカ'], purpose:['インフルエンサー会食','社内懇親'], areas:['渋谷・表参道','現在地周辺'], reservation:true, hours:'18:00-23:00', maxPax:20, sns:{ tk:'渋谷 和モダン SNS映え 飯テロ', ig:'渋谷グルメ' } }, { name:'渋谷 円（まどか）', area:'渋谷・表参道', loc:'渋谷駅 徒歩4分', genre:'居酒屋・個室', budget:'¥7,000〜', budgetNum:7000, hook:'30名貸切OK×飲み放題。賑わいの中に個室ゾーンがあって懇親に最適', tags:['大人数OK','飲み放題あり','貸切可能','駅チカ'], purpose:['社内懇親'], areas:['渋谷・表参道','現在地周辺'], reservation:true, hours:'17:00-23:30', maxPax:30, sns:{ tk:'渋谷 居酒屋 宴会 飲み放題 飯テロ', ig:'渋谷グルメ' } }, /* ── 品川・天王洲 ── */ { name:'天王洲 MARINA', area:'品川・天王洲', loc:'天王洲アイル駅 徒歩2分', genre:'シーフード', budget:'¥14,000〜', budgetNum:14000, hook:'運河ビューのテラス席が映え確定。夜のリフレクションは国内随一の絶景', tags:['テラス席','夜景','映え重視','SNS映え','フォトジェニック'], purpose:['インフルエンサー会食','クライアントと打合せ'], areas:['品川・天王洲','現在地周辺'], reservation:true, hours:'11:00-22:00', maxPax:40, sns:{ tk:'天王洲 シーフード 運河 映え 飯テロ', ig:'天王洲グルメ' } }, { name:'品川 風雅', area:'品川・天王洲', loc:'品川駅 徒歩5分', genre:'日本料理・個室', budget:'¥16,000〜', budgetNum:16000, hook:'新幹線移動前後にも使いやすい品川の接待定番。個室で落ち着いて商談できる', tags:['個室必須','接待向け','静かな空間','駅チカ','予約可能'], purpose:['クライアントと打合せ','ガチ密談'], areas:['品川・天王洲','現在地周辺'], reservation:true, hours:'18:00-23:00', maxPax:10, sns:{ tk:'品川 日本料理 個室 接待 グルメ', ig:'品川グルメ' } }, { name:'天王洲 BLUE', area:'品川・天王洲', loc:'天王洲アイル駅 徒歩3分', genre:'バー・ダイニング', budget:'¥11,000〜', budgetNum:11000, hook:'水辺のおしゃれバー。インフルエンサーとのブランド協議が絵になる空間', tags:['テラス席','おしゃれ','映え重視','SNS映え'], purpose:['インフルエンサー会食','社内懇親'], areas:['品川・天王洲','現在地周辺'], reservation:false, hours:'16:00-01:00', maxPax:50, sns:{ tk:'天王洲 バー おしゃれ 映え 飯テロ', ig:'天王洲グルメ' } }, { name:'品川 肉割烹 薫', area:'品川・天王洲', loc:'品川駅 徒歩7分', genre:'肉割烹', budget:'¥12,000〜', budgetNum:12000, hook:'黒毛和牛の創作肉料理でSNS投稿率が高い。懇親会で「選んだ人すごい」と言われる', tags:['大人数OK','映え重視','飲み放題あり','駅チカ'], purpose:['社内懇親','インフルエンサー会食'], areas:['品川・天王洲','現在地周辺'], reservation:true, hours:'17:00-23:00', maxPax:25, sns:{ tk:'品川 肉割烹 黒毛和牛 飯テロ', ig:'品川グルメ' } }, /* ── 汎用（現在地周辺） ── */ { name:'隠れ家 翡翠', area:'現在地周辺', loc:'最寄駅 徒歩圏内', genre:'和食・完全個室', budget:'¥20,000〜', budgetNum:20000, hook:'完全予約制の完全個室。その場にいる人以外には存在すら知られない密談空間', tags:['個室必須','防音個室','人目につかない','静かな空間','高級感'], purpose:['ガチ密談','クライアントと打合せ'], areas:['現在地周辺'], reservation:true, hours:'18:00-23:00', maxPax:6, sns:{ tk:'完全個室 和食 隠れ家 グルメ', ig:'和食グルメ' } }, { name:'フォト食堂 凛', area:'現在地周辺', loc:'最寄駅 徒歩圏内', genre:'和洋折衷', budget:'¥9,000〜', budgetNum:9000, hook:'料理の盛り付けがすべてフォトジェニック。投稿するたびにフォロワーが増えると話題', tags:['映え重視','SNS映え','フォトジェニック','おしゃれ'], purpose:['インフルエンサー会食'], areas:['現在地周辺'], reservation:false, hours:'11:00-22:00', maxPax:20, sns:{ tk:'フォトジェニック グルメ 映え 飯テロ', ig:'インスタグルメ' } },
 ];
-/* ─────────────────────────────
-   営業時間チェック
+/* ───────────────────────────── 営業時間チェック
 ───────────────────────────── */
-function getOpenStatus(hours) {
-  const now   = new Date();
-  const nowM  = now.getHours() * 60 + now.getMinutes();
-  // "17:30-23:00" → open/close minutes
-  const [openStr, closeStr] = hours.split('-');
-  const [oh, om] = openStr.split(':').map(Number);
-  let   [ch, cm] = closeStr.split(':').map(Number);
-  const openM  = oh * 60 + om;
-  let   closeM = ch * 60 + cm;
-  if (closeM < openM) closeM += 1440; // 深夜営業(25:00など)
-
-  if (nowM >= openM && nowM < closeM) {
-    return { open: true, badge: '🟢 営業中', color: '#16a34a' };
-  }
-  // 本日これから開く
-  if (nowM < openM) {
-    return { open: false, badge: `🟡 本日 ${openStr}〜`, color: '#d97706' };
-  }
-  // 本日は終了・翌日扱い（予約は可能）
-  return { open: false, badge: `📅 翌 ${openStr}〜`, color: '#6b7280' };
-}
-
-function willOpenToday(hours) {
-  const now  = new Date();
-  const nowM = now.getHours() * 60 + now.getMinutes();
-  const [openStr] = hours.split('-');
-  const [oh, om]  = openStr.split(':').map(Number);
-  const openM = oh * 60 + om;
-  return nowM < openM + 1440; // 今日か明日の開店まで
-}
-
-/* ─────────────────────────────
-   SCORING ENGINE
-   エリア・予約可能・営業・人数・予算で絞り込み
+function getOpenStatus(hours) { const now = new Date(); const nowM = now.getHours() * 60 + now.getMinutes(); // "17:30-23:00" → open/close minutes const [openStr, closeStr] = hours.split('-'); const [oh, om] = openStr.split(':').map(Number); let [ch, cm] = closeStr.split(':').map(Number); const openM = oh * 60 + om; let closeM = ch * 60 + cm; if (closeM < openM) closeM += 1440; // 深夜営業(25:00など) if (nowM >= openM && nowM < closeM) { return { open: true, badge: ' 営業中', color: '#16a34a' }; } // 本日これから開く if (nowM < openM) { return { open: false, badge: ` 本日 ${openStr}〜`, color: '#d97706' }; } // 本日は終了・翌日扱い（予約は可能） return { open: false, badge: ` 翌 ${openStr}〜`, color: '#6b7280' };
+} function willOpenToday(hours) { const now = new Date(); const nowM = now.getHours() * 60 + now.getMinutes(); const [openStr] = hours.split('-'); const [oh, om] = openStr.split(':').map(Number); const openM = oh * 60 + om; return nowM < openM + 1440; // 今日か明日の開店まで
+} /* ───────────────────────────── SCORING ENGINE エリア・予約可能・営業・人数・予算で絞り込み
 ───────────────────────────── */
-function scoreStore(s) {
-  let sc = 0;
-  if (s.purpose.includes(S.purpose)) sc += 10;
-  (S.conds||[]).forEach(c => { if (s.tags.includes(c)) sc += 5; });
-  sc += (s._r = s._r || Math.random() * 3);
-  return sc;
-}
-
-/* 営業時間 & 予約チェック */
-function isAvailable(store) {
-  if (!store.reservation) return false;
-  const now  = new Date();
-  const nowM = now.getHours() * 60 + now.getMinutes();
-  const parse = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
-  const [os, cs] = (store.hours||'00:00-23:59').split('-');
-  const openM  = parse(os);
-  let   closeM = parse(cs);
-  if (closeM < openM) closeM += 1440;
-  const lastOrderM = closeM - 60;
-  return nowM < lastOrderM || nowM < openM;
-}
-
-function getTop3() {
-  const area = S.area.replace(/[都道府県]$/, '');
-  let candidates = DB.filter(s =>
-    s.areas.some(a => a.includes(area) || area.includes(a.replace(/[都道府県]$/, '')))
-  );
-  if (!candidates.length) return null;
-
-  // ① 予約可 & 営業フィルター
-  const pool = candidates.filter(isAvailable).length
-    ? candidates.filter(isAvailable)
-    : candidates.filter(s => s.reservation);
-  if (!pool.length) return null;
-
-  // ② 人数フィルター（緩やかに）
-  const paxPool = (S.paxNum > 0 && pool.filter(s=>s.maxPax>=S.paxNum).length)
-    ? pool.filter(s=>s.maxPax>=S.paxNum) : pool;
-
-  // ③ 予算フィルター（緩やかに: ±5000円の余裕）
-  const bdgPool = (S.budgetMax<99999 && paxPool.filter(s=>s.budgetNum<=S.budgetMax+5000&&s.budgetNum>=Math.max(0,S.budgetMin-3000)).length)
-    ? paxPool.filter(s=>s.budgetNum<=S.budgetMax+5000&&s.budgetNum>=Math.max(0,S.budgetMin-3000))
-    : paxPool;
-
-  return bdgPool
-    .map(s=>({...s, sc:scoreStore(s)}))
-    .sort((a,b)=>b.sc-a.sc)
-    .slice(0,3);
-}
-
-/* ─────────────────────────────
-   SNS検索フォールバック（未登録エリア用）
+function scoreStore(s) { let sc = 0; if (s.purpose.includes(S.purpose)) sc += 10; (S.conds||[]).forEach(c => { if (s.tags.includes(c)) sc += 5; }); sc += (s._r = s._r || Math.random() * 3); return sc;
+} /* 営業時間 & 予約チェック */
+function isAvailable(store) { if (!store.reservation) return false; const now = new Date(); const nowM = now.getHours() * 60 + now.getMinutes(); const parse = t => { const [h,m] = t.split(':').map(Number); return h*60+m; }; const [os, cs] = (store.hours||'00:00-23:59').split('-'); const openM = parse(os); let closeM = parse(cs); if (closeM < openM) closeM += 1440; const lastOrderM = closeM - 60; return nowM < lastOrderM || nowM < openM;
+} function getTop3() { const area = S.area.replace(/[都道府県]$/, ''); let candidates = DB.filter(s => s.areas.some(a => a.includes(area) || area.includes(a.replace(/[都道府県]$/, ''))) ); if (!candidates.length) return null; // ① 予約可 & 営業フィルター const pool = candidates.filter(isAvailable).length ? candidates.filter(isAvailable) : candidates.filter(s => s.reservation); if (!pool.length) return null; // ② 人数フィルター（緩やかに） const paxPool = (S.paxNum > 0 && pool.filter(s=>s.maxPax>=S.paxNum).length) ? pool.filter(s=>s.maxPax>=S.paxNum) : pool; // ③ 予算フィルター（緩やかに: ±5000円の余裕） const bdgPool = (S.budgetMax<99999 && paxPool.filter(s=>s.budgetNum<=S.budgetMax+5000&&s.budgetNum>=Math.max(0,S.budgetMin-3000)).length) ? paxPool.filter(s=>s.budgetNum<=S.budgetMax+5000&&s.budgetNum>=Math.max(0,S.budgetMin-3000)) : paxPool; return bdgPool .map(s=>({...s, sc:scoreStore(s)})) .sort((a,b)=>b.sc-a.sc) .slice(0,3);
+} /* ───────────────────────────── SNS検索フォールバック（未登録エリア用）
 ───────────────────────────── */
-function buildSNSFallback() {
-  const area = S.area;
-  const areaShort = area.split('・')[0].replace(/[都道府県]$/,'').replace('現在地周辺','');
-  const PF_KW = {
-    tiktok:    {'クライアントと打合せ':'接待 会食','ガチ密談':'個室 ディナー','インフルエンサー会食':'飯テロ インスタ映え','社内懇親':'宴会 飲み放題'},
-    instagram: {'クライアントと打合せ':'グルメ','ガチ密談':'個室グルメ','インフルエンサー会食':'インスタ映えグルメ','社内懇親':'宴会グルメ'},
-    google:    {'クライアントと打合せ':'レストラン 接待','ガチ密談':'レストラン 個室','インフルエンサー会食':'レストラン おしゃれ','社内懇親':'レストラン 宴会'},
-  };
-  const paxKW    = S.pax    || '';
-  const budgetKW = S.budget && S.budget !== 'こだわらない' ? S.budget : '';
-
-  const tkKw  = [areaShort, PF_KW.tiktok[S.purpose]||'グルメ', paxKW, budgetKW, '飯テロ'].filter(Boolean);
-  const igTag = areaShort + (PF_KW.instagram[S.purpose]||'グルメ');
-  const gmKw  = [areaShort, PF_KW.google[S.purpose]||'レストラン', paxKW, budgetKW].filter(Boolean);
-
-  const tkURL = 'https://www.tiktok.com/search?q=' + tkKw.map(encodeURIComponent).join('+');
-  const igURL = 'https://www.instagram.com/explore/tags/' + encodeURIComponent(igTag) + '/';
-  const gmURL = 'https://www.google.com/maps/search/' + gmKw.map(encodeURIComponent).join('+');
-  const queryPreview = tkKw.join(' + ');
-
-  return `
-  <div style="animation:slideUp .4s ease both">
-    <!-- 未登録エリアの案内 -->
-    <div class="rounded-2xl p-4 mb-4 flex items-start gap-3"
-         style="background:#FBF8F3;border:1px solid #EDE0CC">
-      <span style="font-size:1.5rem;flex-shrink:0">🗺</span>
-      <div>
-        <p class="font-bold text-sm mb-1" style="color:#1E3932">
-          ${area}のお店はまだ未登録です
-        </p>
-        <p class="text-xs leading-relaxed" style="color:#6B7280">
-          SNSのリアルタイム検索で今すぐ見つけましょう。<br>
-          選んだ条件で最適なクエリを自動生成しました。
-        </p>
-      </div>
-    </div>
-
-    <!-- 生成クエリ表示 -->
-    <div class="rounded-xl px-4 py-3 mb-4 flex items-center gap-2"
-         style="background:#1E3932">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBA258" stroke-width="2.5">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <p class="text-xs font-bold font-mono" style="color:#D4E9E2">${queryPreview}</p>
-    </div>
-
-    <!-- TikTok -->
-    <a href="${tkURL}" target="_blank" rel="noopener"
-       class="rcard flex items-center gap-4 px-5 py-4 mb-3 no-underline"
-       style="text-decoration:none;background:#000;border-color:#000">
-      <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-           style="background:rgba(255,255,255,.12)">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
-          <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.37a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.8z"/>
-        </svg>
-      </div>
-      <div class="flex-1">
-        <p class="font-bold text-sm" style="color:#fff">TikTokで飯テロ動画を探す</p>
-        <p class="text-xs mt-0.5" style="color:rgba(255,255,255,.5)">"${tkKw.join(' ')}"</p>
-      </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2.5">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-    </a>
-
-    <!-- Instagram -->
-    <a href="${igURL}" target="_blank" rel="noopener"
-       class="rcard flex items-center gap-4 px-5 py-4 mb-3 no-underline"
-       style="text-decoration:none;background:linear-gradient(135deg,#833AB4,#FD1D1D);border-color:#C13584">
-      <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-           style="background:rgba(255,255,255,.15)">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-          <rect x="2" y="2" width="20" height="20" rx="5"/>
-          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-        </svg>
-      </div>
-      <div class="flex-1">
-        <p class="font-bold text-sm" style="color:#fff">Instagramで映え店を探す</p>
-        <p class="text-xs mt-0.5" style="color:rgba(255,255,255,.6)">#${igTag}</p>
-      </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2.5">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-    </a>
-
-    <!-- Google Maps -->
-    <a href="${gmURL}" target="_blank" rel="noopener"
-       class="rcard flex items-center gap-4 px-5 py-4 mb-3 no-underline"
-       style="text-decoration:none;background:#4285F4;border-color:#4285F4">
-      <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-           style="background:rgba(255,255,255,.15)">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
-        </svg>
-      </div>
-      <div class="flex-1">
-        <p class="font-bold text-sm" style="color:#fff">Googleマップで口コミを探す</p>
-        <p class="text-xs mt-0.5" style="color:rgba(255,255,255,.6)">"${gmKw.join(' ')}"</p>
-      </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2.5">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-    </a>
-
-    <!-- ヒント -->
-    <p class="text-xs text-center mt-2" style="color:#9CA3AF">
-      ↑ タップすると別タブで開きます
-    </p>
-  </div>`;
-}
-
-/* ─────────────────────────────
-   CARD BUILDER
+function buildSNSFallback() { const area = S.area; const areaShort = area.split('・')[0].replace(/[都道府県]$/,'').replace('現在地周辺',''); const PF_KW = { tiktok: {'クライアントと打合せ':'接待 会食','ガチ密談':'個室 ディナー','インフルエンサー会食':'飯テロ インスタ映え','社内懇親':'宴会 飲み放題'}, instagram: {'クライアントと打合せ':'グルメ','ガチ密談':'個室グルメ','インフルエンサー会食':'インスタ映えグルメ','社内懇親':'宴会グルメ'}, google: {'クライアントと打合せ':'レストラン 接待','ガチ密談':'レストラン 個室','インフルエンサー会食':'レストラン おしゃれ','社内懇親':'レストラン 宴会'}, }; const paxKW = S.pax || ''; const budgetKW = S.budget && S.budget !== 'こだわらない' ? S.budget : ''; const tkKw = [areaShort, PF_KW.tiktok[S.purpose]||'グルメ', paxKW, budgetKW, '飯テロ'].filter(Boolean); const igTag = areaShort + (PF_KW.instagram[S.purpose]||'グルメ'); const gmKw = [areaShort, PF_KW.google[S.purpose]||'レストラン', paxKW, budgetKW].filter(Boolean); const tkURL = 'https://www.tiktok.com/search?q=' + tkKw.map(encodeURIComponent).join('+'); const igURL = 'https://www.instagram.com/explore/tags/' + encodeURIComponent(igTag) + '/'; const gmURL = 'https://www.google.com/maps/search/' + gmKw.map(encodeURIComponent).join('+'); const queryPreview = tkKw.join(' + '); return ` <div style="animation:slideUp .4s ease both"> <!-- 未登録エリアの案内 --> <div class="rounded-2xl p-4 mb-4 flex items-start gap-3" style="background:#FBF8F3;border:1px solid #EDE0CC"> <span style="font-size:1.5rem;flex-shrink:0"></span> <div> <p class="font-bold text-sm mb-1" style="color:#1E3932"> ${area}のお店はまだ未登録です </p> <p class="text-xs leading-relaxed" style="color:#6B7280"> SNSのリアルタイム検索で今すぐ見つけましょう。<br> 選んだ条件で最適なクエリを自動生成しました。 </p> </div> </div> <!-- 生成クエリ表示 --> <div class="rounded-xl px-4 py-3 mb-4 flex items-center gap-2" style="background:#1E3932"> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBA258" stroke-width="2.5"> <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/> </svg> <p class="text-xs font-bold font-mono" style="color:#D4E9E2">${queryPreview}</p> </div> <!-- TikTok --> <a href="${tkURL}" target="_blank" rel="noopener" class="rcard flex items-center gap-4 px-5 py-4 mb-3 no-underline" style="text-decoration:none;background:#000;border-color:#000"> <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,.12)"> <svg width="22" height="22" viewBox="0 0 24 24" fill="white"> <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.37a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.8z"/> </svg> </div> <div class="flex-1"> <p class="font-bold text-sm" style="color:#fff">TikTokで飯テロ動画を探す</p> <p class="text-xs mt-0.5" style="color:rgba(255,255,255,.5)">"${tkKw.join(' ')}"</p> </div> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2.5"> <polyline points="9 18 15 12 9 6"/> </svg> </a> <!-- Instagram --> <a href="${igURL}" target="_blank" rel="noopener" class="rcard flex items-center gap-4 px-5 py-4 mb-3 no-underline" style="text-decoration:none;background:linear-gradient(135deg,#833AB4,#FD1D1D);border-color:#C13584"> <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,.15)"> <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"> <rect x="2" y="2" width="20" height="20" rx="5"/> <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/> <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/> </svg> </div> <div class="flex-1"> <p class="font-bold text-sm" style="color:#fff">Instagramで映え店を探す</p> <p class="text-xs mt-0.5" style="color:rgba(255,255,255,.6)">#${igTag}</p> </div> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2.5"> <polyline points="9 18 15 12 9 6"/> </svg> </a> <!-- Google Maps --> <a href="${gmURL}" target="_blank" rel="noopener" class="rcard flex items-center gap-4 px-5 py-4 mb-3 no-underline" style="text-decoration:none;background:#4285F4;border-color:#4285F4"> <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,.15)"> <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"> <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/> </svg> </div> <div class="flex-1"> <p class="font-bold text-sm" style="color:#fff">Googleマップで口コミを探す</p> <p class="text-xs mt-0.5" style="color:rgba(255,255,255,.6)">"${gmKw.join(' ')}"</p> </div> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2.5"> <polyline points="9 18 15 12 9 6"/> </svg> </a> <!-- ヒント --> <p class="text-xs text-center mt-2" style="color:#9CA3AF"> ↑ タップすると別タブで開きます </p> </div>`;
+} /* ───────────────────────────── CARD BUILDER
 ───────────────────────────── */
-function buildCard(store, rank) {
-  const icons  = ['🥇','🥈','🥉'];
-  const labels = ['1位','2位','3位'];
-  const cls    = ['r1','r2','r3'];
-
-  // 用途・人数・予算をSNSクエリに反映
-  const purposeKW = {'クライアントと打合せ':'接待 会食','ガチ密談':'個室 ディナー','インフルエンサー会食':'飯テロ インスタ映え','社内懇親':'宴会 飲み放題'}[S.purpose] || '会食';
-  const paxKW     = S.pax    ? S.pax    : '';
-  const budgetKW  = S.budget && S.budget !== 'こだわらない' ? S.budget : '';
-  const areaShort = S.area.split('・')[0].replace(/[都道府県]$/,'').replace('現在地周辺','');
-
-  const tkParts = [areaShort, store.name, purposeKW, '飯テロ'].filter(Boolean);
-  const igTag   = areaShort + ({'クライアントと打合せ':'グルメ','ガチ密談':'個室グルメ','インフルエンサー会食':'インスタ映えグルメ','社内懇親':'宴会グルメ'}[S.purpose]||'グルメ');
-  const gmParts = [areaShort, store.name, purposeKW, budgetKW].filter(Boolean);
-
-  const tkURL  = `https://www.tiktok.com/search?q=${tkParts.map(encodeURIComponent).join('+')}`;
-  const igURL  = `https://www.instagram.com/explore/tags/${encodeURIComponent(igTag)}/`;
-  const gmSrch = `https://www.google.com/maps/search/${gmParts.map(encodeURIComponent).join('+')}`;
-
-  // Googleマップ ナビ起動URL
-  const navDest    = encodeURIComponent(store.name + ' ' + store.loc);
-  const mapsNavURL = `https://maps.google.com/maps/dir/?api=1&destination=${navDest}&travelmode=driving`;
-
-  const matched = store.tags.filter(t => (S.conds||[]).includes(t)).slice(0,3);
-  const others  = store.tags.filter(t => !(S.conds||[]).includes(t)).slice(0,2);
-  const tagHtml = [
-    ...matched.map(t=>`<span class="px-2 py-0.5 rounded-full text-xs font-bold" style="background:#006241;color:#fff">✓ ${t}</span>`),
-    ...others.map(t =>`<span class="px-2 py-0.5 rounded-full text-xs"           style="background:#EDE0CC;color:#6B7280">${t}</span>`),
-  ].join('');
-
-  return `<div class="rcard">
-  <div class="flex items-start justify-between px-4 pt-4 pb-2">
-    <div class="flex-1 min-w-0 pr-3">
-      <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-        <span class="px-2.5 py-1 rounded-full text-xs font-black ${cls[rank-1]}" style="animation:badgePop .35s ${rank*.12}s ease both;display:inline-flex;align-items:center;gap:4px">
-          ${icons[rank-1]} ${labels[rank-1]}
-        </span>
-        <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:#EBF5F0;color:#006241">${store.genre}</span>
-      </div>
-      <h3 class="font-serif text-lg font-bold leading-tight" style="color:#1E3932">${store.name}</h3>
-      <p class="text-xs mt-0.5" style="color:#6B7280">📍 ${store.loc}</p>
-    </div>
-    <div class="text-right flex-shrink-0">
-      <p class="text-xs font-bold mb-0.5" style="color:#9A7830">予算</p>
-      <p class="font-black" style="color:#1E3932;font-size:1.05rem">${store.budget}</p>
-    </div>
-  </div>
-  <div class="mx-4 mb-2.5 px-3 py-2.5 rounded-xl" style="background:#EBF5F0;border-left:3px solid #006241">
-    <p class="text-xs font-bold mb-0.5" style="color:#006241">✦ 決定打</p>
-    <p class="text-sm font-medium leading-relaxed" style="color:#1E3932">${store.hook}</p>
-  </div>
-  ${tagHtml ? `<div class="px-4 pb-3 flex flex-wrap gap-1.5">${tagHtml}</div>` : ''}
-  <div class="px-4 pb-3">
-    <a href="${mapsNavURL}" target="_blank" rel="noopener"
-       class="maps-nav-btn flex items-center justify-center gap-2 w-full rounded-2xl font-bold"
-       style="padding:14px 0;font-size:1rem;text-decoration:none">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      このお店に案内する
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-    </a>
-  </div>
-  <div class="flex gap-2 px-4 pb-4">
-    <a href="${tkURL}" target="_blank" rel="noopener"
-       class="tk-btn flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.37a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.8z"/></svg>
-      TikTokで口コミ
-    </a>
-    <a href="${igURL}" target="_blank" rel="noopener"
-       class="ig-btn flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-      Instagramで口コミ
-    </a>
-  </div>
+function buildCard(store, rank) { const icons = ['','','']; const labels = ['1位','2位','3位']; const cls = ['r1','r2','r3']; // 用途・人数・予算をSNSクエリに反映 const purposeKW = {'クライアントと打合せ':'接待 会食','ガチ密談':'個室 ディナー','インフルエンサー会食':'飯テロ インスタ映え','社内懇親':'宴会 飲み放題'}[S.purpose] || '会食'; const paxKW = S.pax ? S.pax : ''; const budgetKW = S.budget && S.budget !== 'こだわらない' ? S.budget : ''; const areaShort = S.area.split('・')[0].replace(/[都道府県]$/,'').replace('現在地周辺',''); const tkParts = [areaShort, store.name, purposeKW, '飯テロ'].filter(Boolean); const igTag = areaShort + ({'クライアントと打合せ':'グルメ','ガチ密談':'個室グルメ','インフルエンサー会食':'インスタ映えグルメ','社内懇親':'宴会グルメ'}[S.purpose]||'グルメ'); const gmParts = [areaShort, store.name, purposeKW, budgetKW].filter(Boolean); const tkURL = `https://www.tiktok.com/search?q=${tkParts.map(encodeURIComponent).join('+')}`; const igURL = `https://www.instagram.com/explore/tags/${encodeURIComponent(igTag)}/`; const gmSrch = `https://www.google.com/maps/search/${gmParts.map(encodeURIComponent).join('+')}`; // Googleマップ ナビ起動URL const navDest = encodeURIComponent(store.name + ' ' + store.loc); const mapsNavURL = `https://maps.google.com/maps/dir/?api=1&destination=${navDest}&travelmode=driving`; const matched = store.tags.filter(t => (S.conds||[]).includes(t)).slice(0,3); const others = store.tags.filter(t => !(S.conds||[]).includes(t)).slice(0,2); const tagHtml = [ ...matched.map(t=>`<span class="px-2 py-0.5 rounded-full text-xs font-bold" style="background:#006241;color:#fff">✓ ${t}</span>`), ...others.map(t =>`<span class="px-2 py-0.5 rounded-full text-xs" style="background:#EDE0CC;color:#6B7280">${t}</span>`), ].join(''); return `<div class="rcard"> <div class="flex items-start justify-between px-4 pt-4 pb-2"> <div class="flex-1 min-w-0 pr-3"> <div class="flex items-center gap-2 mb-1.5 flex-wrap"> <span class="px-2.5 py-1 rounded-full text-xs font-black ${cls[rank-1]}" style="animation:badgePop .35s ${rank*.12}s ease both;display:inline-flex;align-items:center;gap:4px"> ${labels[rank-1]} </span> <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:#EBF5F0;color:#006241">${store.genre}</span> </div> <h3 class="font-serif text-lg font-bold leading-tight" style="color:#1E3932">${store.name}</h3> <p class="text-xs mt-0.5" style="color:#6B7280"> ${store.loc}</p> </div> <div class="text-right flex-shrink-0"> <p class="text-xs font-bold mb-0.5" style="color:#9A7830">予算</p> <p class="font-black" style="color:#1E3932;font-size:1.05rem">${store.budget}</p> </div> </div> <div class="mx-4 mb-2.5 px-3 py-2.5 rounded-xl" style="background:#EBF5F0;border-left:3px solid #006241"> <p class="text-xs font-bold mb-0.5" style="color:#006241">✦ 決定打</p> <p class="text-sm font-medium leading-relaxed" style="color:#1E3932">${store.hook}</p> </div> ${tagHtml ? `<div class="px-4 pb-3 flex flex-wrap gap-1.5">${tagHtml}</div>` : ''} <div class="px-4 pb-3"> <a href="${mapsNavURL}" target="_blank" rel="noopener" class="maps-nav-btn flex items-center justify-center gap-2 w-full rounded-2xl font-bold" style="padding:14px 0;font-size:1rem;text-decoration:none"> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> このお店に案内する <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg> </a> </div> <div class="flex gap-2 px-4 pb-4"> <a href="${tkURL}" target="_blank" rel="noopener" class="tk-btn flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs"> <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V9.37a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.8z"/></svg> TikTokで口コミ </a> <a href="${igURL}" target="_blank" rel="noopener" class="ig-btn flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs"> <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> Instagramで口コミ </a> </div>
 </div>`;
-}
-
-function renderTop3() {
-  const bs = document.getElementById('s4badges');
-  const paxLabel    = S.pax    ? `👥 ${S.pax}` : '';
-  const budgetLabel = S.budget ? `💰 ${S.budget}` : '';
-  bs.innerHTML = [
-    `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(212,233,226,.18);color:#D4E9E2">📍 ${S.area}</span>`,
-    `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(203,162,88,.2);color:#CBA258">🎯 ${S.purpose}</span>`,
-    paxLabel    ? `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.12);color:rgba(212,233,226,.8)">${paxLabel}</span>` : '',
-    budgetLabel ? `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.12);color:rgba(212,233,226,.8)">${budgetLabel}</span>` : '',
-  ].filter(Boolean).join('');
-
-  const wrap = document.getElementById('cards');
-  const top3 = getTop3();
-
-  if (!top3) {
-    wrap.innerHTML = buildSNSFallback();
-    document.querySelector('#step4 h2').innerHTML = S.area + 'の店を<br><em style="font-style:normal;color:#D4E9E2">SNSで発見</em>';
-    return;
-  }
-  if (!top3.length) {
-    wrap.innerHTML = `<div class="rounded-2xl p-5 text-center" style="background:#FBF8F3;border:1px solid #EDE0CC">
-      <p class="text-2xl mb-2">🔍</p>
-      <p class="font-bold text-sm mb-1" style="color:#1E3932">条件に合うお店が見つかりませんでした</p>
-      <p class="text-xs" style="color:#6B7280">人数・予算の条件を緩めてもう一度お試しください</p>
-    </div>`;
-    return;
-  }
-
-  document.querySelector('#step4 h2').innerHTML = 'この条件なら<br><em style="font-style:normal;color:#D4E9E2">ここ</em>がベスト';
-  wrap.innerHTML = top3.map((s,i)=>buildCard(s,i+1)).join('');
-}
-
-/* ─────────────────────────────
-   NAVIGATION
+} function renderTop3() { const bs = document.getElementById('s4badges'); const paxLabel = S.pax ? ` ${S.pax}` : ''; const budgetLabel = S.budget ? S.budget : ''; bs.innerHTML = [ `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(212,233,226,.18);color:#D4E9E2"> ${S.area}</span>`, `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(203,162,88,.2);color:#CBA258"> ${S.purpose}</span>`, paxLabel ? `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.12);color:rgba(212,233,226,.8)">${paxLabel}</span>` : '', budgetLabel ? `<span class="px-3 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.12);color:rgba(212,233,226,.8)">${budgetLabel}</span>` : '', ].filter(Boolean).join(''); const wrap = document.getElementById('cards'); const top3 = getTop3(); if (!top3) { wrap.innerHTML = buildSNSFallback(); document.querySelector('#step4 h2').innerHTML = S.area + 'の店を<br><em style="font-style:normal;color:#D4E9E2">SNSで発見</em>'; return; } if (!top3.length) { wrap.innerHTML = `<div class="rounded-2xl p-5 text-center" style="background:#FBF8F3;border:1px solid #EDE0CC"> <p class="text-2xl mb-2"></p> <p class="font-bold text-sm mb-1" style="color:#1E3932">条件に合うお店が見つかりませんでした</p> <p class="text-xs" style="color:#6B7280">人数・予算の条件を緩めてもう一度お試しください</p> </div>`; return; } document.querySelector('#step4 h2').innerHTML = 'この条件なら<br><em style="font-style:normal;color:#D4E9E2">ここ</em>がベスト'; wrap.innerHTML = top3.map((s,i)=>buildCard(s,i+1)).join('');
+} /* ───────────────────────────── NAVIGATION
 ───────────────────────────── */
-function go(next) {
-  const from = document.getElementById('step' + cur);
-  const to   = document.getElementById('step' + next);
-  if (!from || !to) { console.error('step not found', cur, next); return; }
-
-  const fwd = next > cur;
-
-  // ① 現在のステップをアニメーションで退場
-  from.style.animation = fwd
-    ? 'sOutL .2s cubic-bezier(.4,0,.2,1) forwards'
-    : 'sOutR .2s cubic-bezier(.4,0,.2,1) forwards';
-
-  setTimeout(() => {
-    // ② 現在のステップを隠す
-    from.style.animation = '';
-    from.classList.add('hidden');
-
-    // ③ 次のステップに必要なデータを準備（ここで実行すれば確実）
-    try {
-      if (next === 3) buildConds();
-    } catch(e) { console.error('buildConds error:', e); }
-
-    // ④ 次のステップを表示
-    to.classList.remove('hidden');
-    to.style.animation = fwd
-      ? 'sInR .28s cubic-bezier(.4,0,.2,1) both'
-      : 'sInL .28s cubic-bezier(.4,0,.2,1) both';
-
-    setTimeout(() => {
-      to.style.animation = '';
-      if (next === 4) { try { renderTop3(); } catch(e) { console.error('renderTop3 error:', e); } }
-    }, 300);
-
-    // ⑤ トップにスクロール（smoothはモバイルでフリーズする場合があるため auto）
-    window.scrollTo({ top: 0, behavior: 'auto' },
-    hours:'17:30-23:00', reservation:true, maxPax:16, budgetNum:18000
-
-  }, 190);
-
-  cur = next;
-  updPg();
-  updHdr();
-}
-
-/* ─────────────────────────────
-   PROGRESS
+function go(next) { const from = document.getElementById('step' + cur); const to = document.getElementById('step' + next); if (!from || !to) { console.error('step not found', cur, next); return; } const fwd = next > cur; // ① 現在のステップをアニメーションで退場 from.style.animation = fwd ? 'sOutL .2s cubic-bezier(.4,0,.2,1) forwards' : 'sOutR .2s cubic-bezier(.4,0,.2,1) forwards'; setTimeout(() => { // ② 現在のステップを隠す from.style.animation = ''; from.classList.add('hidden'); // ③ 次のステップに必要なデータを準備（ここで実行すれば確実） try { if (next === 3) buildConds(); } catch(e) { console.error('buildConds error:', e); } // ④ 次のステップを表示 to.classList.remove('hidden'); to.style.animation = fwd ? 'sInR .28s cubic-bezier(.4,0,.2,1) both' : 'sInL .28s cubic-bezier(.4,0,.2,1) both'; setTimeout(() => { to.style.animation = ''; if (next === 4) { try { renderTop3(); } catch(e) { console.error('renderTop3 error:', e); } } }, 300); // ⑤ トップにスクロール（smoothはモバイルでフリーズする場合があるため auto） window.scrollTo({ top: 0, behavior: 'auto' }, hours:'17:30-23:00', reservation:true, maxPax:16, budgetNum:18000 }, 190); cur = next; updPg(); updHdr();
+} /* ───────────────────────────── PROGRESS
 ───────────────────────────── */
-function updPg() {
-  [{pg:'pg1',ln:'ln1',lb:'lb1'},{pg:'pg2',ln:'ln2',lb:'lb2'},{pg:'pg3',ln:'ln3',lb:'lb3'},{pg:'pg4',ln:null,lb:'lb4'}]
-  .forEach(({pg,ln,lb},i)=>{
-    const n=i+1, el=document.getElementById(pg), lel=document.getElementById(lb);
-    const lnel=ln?document.getElementById(ln):null;
-    if(n<cur){
-      el.style.cssText='background:#006241;border-color:#006241;color:#fff;width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border-width:2px;transition:all .3s';
-      el.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
-      lel.style.color='#006241'; if(lnel)lnel.style.background='#006241';
-    } else if(n===cur){
-      el.style.cssText='background:#006241;border-color:#006241;color:#fff;width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border-width:2px;transition:all .3s';
-      el.innerHTML=n; lel.style.color='#006241'; if(lnel)lnel.style.background='#EDE0CC';
-    } else {
-      el.style.cssText='background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF;width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border-width:2px;transition:all .3s';
-      el.innerHTML=n; lel.style.color='#9CA3AF'; if(lnel)lnel.style.background='#EDE0CC';
-    }
-  });
+function updPg() { [{pg:'pg1',ln:'ln1',lb:'lb1'},{pg:'pg2',ln:'ln2',lb:'lb2'},{pg:'pg3',ln:'ln3',lb:'lb3'},{pg:'pg4',ln:null,lb:'lb4'}] .forEach(({pg,ln,lb},i)=>{ const n=i+1, el=document.getElementById(pg), lel=document.getElementById(lb); const lnel=ln?document.getElementById(ln):null; if(n<cur){ el.style.cssText='background:#006241;border-color:#006241;color:#fff;width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border-width:2px;transition:all .3s'; el.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'; lel.style.color='#006241'; if(lnel)lnel.style.background='#006241'; } else if(n===cur){ el.style.cssText='background:#006241;border-color:#006241;color:#fff;width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border-width:2px;transition:all .3s'; el.innerHTML=n; lel.style.color='#006241'; if(lnel)lnel.style.background='#EDE0CC'; } else { el.style.cssText='background:#EDE0CC;border-color:#EDE0CC;color:#9CA3AF;width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border-width:2px;transition:all .3s'; el.innerHTML=n; lel.style.color='#9CA3AF'; if(lnel)lnel.style.background='#EDE0CC'; } });
 }
-function updHdr(){ document.getElementById('hdr-step').textContent=`STEP ${cur} / 4`; }
-
-/* ═══════════════════════════════════════
-   AREA SELECTION — GPS + 目的地入力
-═══════════════════════════════════════ */
-
-function enableNext() {
-  const nb = document.getElementById('s1next');
-  nb.disabled = false; nb.style.background = '#006241';
-  nb.style.color = '#fff'; nb.style.cursor = 'pointer';
-  nb.style.boxShadow = '0 4px 20px rgba(0,98,65,.42)';
+function updHdr(){ document.getElementById('hdr-step').textContent=`STEP ${cur} / 4`; } /* ═══════════════════════════════════════ AREA SELECTION — GPS + 目的地入力
+═══════════════════════════════════════ */ function enableNext() { const nb = document.getElementById('s1next'); nb.disabled = false; nb.style.background = '#006241'; nb.style.color = '#fff'; nb.style.cursor = 'pointer'; nb.style.boxShadow = '0 4px 20px rgba(0,98,65,.42)';
 }
-function disableNext() {
-  const nb = document.getElementById('s1next');
-  nb.disabled = true; nb.style.background = '#EDE0CC';
-  nb.style.color = '#bbb'; nb.style.cursor = 'not-allowed';
-  nb.style.boxShadow = 'none';
+function disableNext() { const nb = document.getElementById('s1next'); nb.disabled = true; nb.style.background = '#EDE0CC'; nb.style.color = '#bbb'; nb.style.cursor = 'not-allowed'; nb.style.boxShadow = 'none';
+} /* ── GPS アイコン状態（innerHTML 不使用） ── */
+function gpsIconState(state) { document.getElementById('gi-default').style.display = state === 'default' ? '' : 'none'; document.getElementById('gi-spin').style.display = state === 'loading' ? '' : 'none'; document.getElementById('gi-ok').style.display = state === 'ok' ? '' : 'none';
 }
-
-/* ── GPS アイコン状態（innerHTML 不使用） ── */
-function gpsIconState(state) {
-  document.getElementById('gi-default').style.display = state === 'default' ? '' : 'none';
-  document.getElementById('gi-spin').style.display    = state === 'loading' ? '' : 'none';
-  document.getElementById('gi-ok').style.display      = state === 'ok'      ? '' : 'none';
+function resetGPSBtn() { gpsIconState('default'); document.getElementById('gps-label').textContent = '現在地から探す'; const sub = document.getElementById('gps-sub'); sub.textContent = 'GPSで自動取得（推奨）'; sub.style.color = 'rgba(212,233,226,.55)'; document.getElementById('gps-btn').style.borderColor = '#006241'; document.getElementById('gps-btn').disabled = false;
 }
-function resetGPSBtn() {
-  gpsIconState('default');
-  document.getElementById('gps-label').textContent = '現在地から探す';
-  const sub = document.getElementById('gps-sub');
-  sub.textContent = 'GPSで自動取得（推奨）';
-  sub.style.color = 'rgba(212,233,226,.55)';
-  document.getElementById('gps-btn').style.borderColor = '#006241';
-  document.getElementById('gps-btn').disabled = false;
+function resetDestCard() { const card = document.getElementById('dest-card'); if (card) { card.style.borderColor = '#EDE0CC'; const pList = card.querySelectorAll('p'); if (pList[0]) pList[0].textContent = '目的地で探す'; if (pList[1]) { pList[1].textContent = '場所名・駅名・施設名で指定'; pList[1].style.color = '#9CA3AF'; } } const da = document.getElementById('dest-area'); if (da) da.style.display = 'none'; const di = document.getElementById('dest-input'); if (di) di.value = ''; const de = document.getElementById('dest-err'); if (de) de.style.display = 'none';
+} /* ── チップリセット（後方互換） ── */
+function resetAreaChips() { document.querySelectorAll('.ac').forEach(b => { b.style.background = '#fff'; b.style.borderColor = '#EDE0CC'; b.style.color = '#1A1A1A'; });
+} /* ── 目的地 カードをタップ ── */
+function openDestInput() { // GPSをリセット resetGPSBtn(); S.lat = null; S.lng = null; // 入力エリアを表示 const da = document.getElementById('dest-area'); da.style.display = 'block'; document.getElementById('dest-card').style.borderColor = '#006241'; setTimeout(() => document.getElementById('dest-input').focus(), 100);
+} /* ── 目的地 検索（Nominatim） ── */
+async function doDestSearch() { const q = document.getElementById('dest-input').value.trim(); if (!q) { showDestErr('場所名を入力してください'); return; } // Loading const btn = document.getElementById('dest-search-btn'); document.getElementById('dst-btn-txt').style.display = 'none'; document.getElementById('dst-spin').style.display = ''; btn.disabled = true; document.getElementById('dest-err').style.display = 'none'; try { const res = await fetch( `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q + ' 日本')}&format=json&limit=1&countrycodes=jp&accept-language=ja`, { headers: { 'User-Agent': 'KaishokuSelect/1.0', 'Accept-Language': 'ja' } } ); const data = await res.json(); if (!data.length) { showDestErr(`「${q}」が見つかりませんでした。別のキーワードを試してください`); return; } S.lat = parseFloat(data[0].lat); S.lng = parseFloat(data[0].lon); // 表示名を短くきれいに（例: "東京タワー" だけ取り出す） const rawName = data[0].display_name || ''; S.area = rawName.split(',')[0].trim(); // 成功 UI — querySelector の代わりに直接IDや nth-child で確実に取得 const card = document.getElementById('dest-card'); const pList = card.querySelectorAll('p'); // pList[0] = タイトル行, pList[1] = サブテキスト行 if (pList[0]) pList[0].textContent = ' ' + S.area; if (pList[1]) { pList[1].textContent = '目的地を設定しました ✓'; pList[1].style.color = '#CBA258'; } card.style.borderColor = '#CBA258'; document.getElementById('dest-area').style.display = 'none'; enableNext(); } catch(e) { showDestErr('検索中にエラーが発生しました。もう一度お試しください'); } finally { document.getElementById('dst-btn-txt').style.display = ''; document.getElementById('dst-spin').style.display = 'none'; btn.disabled = false; }
 }
-function resetDestCard() {
-  const card = document.getElementById('dest-card');
-  if (card) {
-    card.style.borderColor = '#EDE0CC';
-    const pList = card.querySelectorAll('p');
-    if (pList[0]) pList[0].textContent = '目的地で探す';
-    if (pList[1]) { pList[1].textContent = '場所名・駅名・施設名で指定'; pList[1].style.color = '#9CA3AF'; }
-  }
-  const da = document.getElementById('dest-area');
-  if (da) da.style.display = 'none';
-  const di = document.getElementById('dest-input');
-  if (di) di.value = '';
-  const de = document.getElementById('dest-err');
-  if (de) de.style.display = 'none';
-}
-
-/* ── チップリセット（後方互換） ── */
-function resetAreaChips() {
-  document.querySelectorAll('.ac').forEach(b => {
-    b.style.background = '#fff'; b.style.borderColor = '#EDE0CC'; b.style.color = '#1A1A1A';
-  });
-}
-
-/* ── 目的地 カードをタップ ── */
-function openDestInput() {
-  // GPSをリセット
-  resetGPSBtn();
-  S.lat = null; S.lng = null;
-  // 入力エリアを表示
-  const da = document.getElementById('dest-area');
-  da.style.display = 'block';
-  document.getElementById('dest-card').style.borderColor = '#006241';
-  setTimeout(() => document.getElementById('dest-input').focus(), 100);
-}
-
-/* ── 目的地 検索（Nominatim） ── */
-async function doDestSearch() {
-  const q = document.getElementById('dest-input').value.trim();
-  if (!q) { showDestErr('場所名を入力してください'); return; }
-
-  // Loading
-  const btn = document.getElementById('dest-search-btn');
-  document.getElementById('dst-btn-txt').style.display = 'none';
-  document.getElementById('dst-spin').style.display    = '';
-  btn.disabled = true;
-  document.getElementById('dest-err').style.display = 'none';
-
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q + ' 日本')}&format=json&limit=1&countrycodes=jp&accept-language=ja`,
-      { headers: { 'User-Agent': 'KaishokuSelect/1.0', 'Accept-Language': 'ja' } }
-    );
-    const data = await res.json();
-
-    if (!data.length) {
-      showDestErr(`「${q}」が見つかりませんでした。別のキーワードを試してください`);
-      return;
-    }
-
-    S.lat  = parseFloat(data[0].lat);
-    S.lng  = parseFloat(data[0].lon);
-    // 表示名を短くきれいに（例: "東京タワー" だけ取り出す）
-    const rawName = data[0].display_name || '';
-    S.area = rawName.split(',')[0].trim();
-
-    // 成功 UI — querySelector の代わりに直接IDや nth-child で確実に取得
-    const card  = document.getElementById('dest-card');
-    const pList = card.querySelectorAll('p');
-    // pList[0] = タイトル行, pList[1] = サブテキスト行
-    if (pList[0]) pList[0].textContent = '📍 ' + S.area;
-    if (pList[1]) {
-      pList[1].textContent = '目的地を設定しました ✓';
-      pList[1].style.color = '#CBA258';
-    }
-    card.style.borderColor = '#CBA258';
-    document.getElementById('dest-area').style.display = 'none';
-    enableNext();
-
-  } catch(e) {
-    showDestErr('検索中にエラーが発生しました。もう一度お試しください');
-  } finally {
-    document.getElementById('dst-btn-txt').style.display = '';
-    document.getElementById('dst-spin').style.display    = 'none';
-    btn.disabled = false;
-  }
-}
-function showDestErr(msg) {
-  const el = document.getElementById('dest-err');
-  el.textContent = '⚠ ' + msg;
-  el.style.display = 'block';
-}
-
-/* ── GPS 取得 ── */
-async function doGPS() {
-  if (!navigator.geolocation) {
-    alert('このブラウザは位置情報に対応していません。\n目的地を入力してください。');
-    return;
-  }
-  resetDestCard();
-  S.lat = null; S.lng = null;
-  gpsIconState('loading');
-  document.getElementById('gps-label').textContent = '取得中...';
-  document.getElementById('gps-sub').textContent   = 'GPS測位しています';
-  document.getElementById('gps-btn').disabled = true;
-  disableNext();
-
-  function tryGPS(hi, t) {
-    return new Promise((res, rej) =>
-      navigator.geolocation.getCurrentPosition(res, rej,
-        { enableHighAccuracy: hi, timeout: t, maximumAge: 60000 })
-    );
-  }
-  async function revGeo(lat, lng) {
-    const r = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ja&zoom=16`,
-      { headers: { 'User-Agent': 'KaishokuSelect/1.0', 'Accept-Language': 'ja' } }
-    );
-    const d = await r.json(); const a = d.address || {};
-    const skip = new Set(['東京都','東京','大阪府','大阪','神奈川県','愛知県',
-                          '福岡県','北海道','京都府','兵庫県','日本','Japan']);
-    const ok = v => v && !skip.has(v.trim());
-    return (ok(a.neighbourhood)&&a.neighbourhood)||(ok(a.quarter)&&a.quarter)
-          ||(ok(a.suburb)&&a.suburb)||(ok(a.borough)&&a.borough)
-          ||(ok(a.town)&&a.town)||(ok(a.village)&&a.village)
-          ||(ok(a.municipality)&&a.municipality)||(ok(a.county)&&a.county)
-          ||(ok(a.city)&&a.city)||(ok(a.city_district)&&a.city_district)||'現在地';
-  }
-
-  try {
-    let pos;
-    try { pos = await tryGPS(true, 8000); }
-    catch(e1) {
-      if (e1.code === 1) throw e1;
-      document.getElementById('gps-label').textContent = '再試行中...';
-      document.getElementById('gps-sub').textContent   = '通常精度で取得しています';
-      pos = await tryGPS(false, 10000);
-    }
-    S.lat = pos.coords.latitude; S.lng = pos.coords.longitude;
-    let name = '現在地';
-    try { name = await revGeo(S.lat, S.lng); } catch(_) {}
-    S.area = name;
-    gpsIconState('ok');
-    document.getElementById('gps-label').textContent = name + '周辺';
-    document.getElementById('gps-sub').textContent   = 'GPS取得済み ✓';
-    document.getElementById('gps-sub').style.color   = '#CBA258';
-    document.getElementById('gps-btn').style.borderColor = '#CBA258';
-    enableNext();
-  } catch(err) {
-    resetGPSBtn();
-    const msg = {
-      1:'GPSの利用が許可されていません。\nブラウザの🔒→「位置情報」→「許可」\n\nまたは目的地を入力してください。',
-      2:'現在地を取得できませんでした。\n目的地を入力してください。',
-      3:'GPSがタイムアウトしました。\n目的地を入力してください。',
-    };
-    alert(msg[err.code] || '位置情報の取得に失敗しました。');
-  } finally {
-    document.getElementById('gps-btn').disabled = false;
-  }
-}
-
-function clearArea() {
-  S.area = ''; S.lat = null; S.lng = null;
-  resetAreaChips(); resetGPSBtn(); resetDestCard(); disableNext();
-}
-
-
-
-/* ─────────────────────────────
-/* ─────────────────────────────
-   PURPOSE
+function showDestErr(msg) { const el = document.getElementById('dest-err'); el.textContent = ' ' + msg; el.style.display = 'block';
+} /* ── GPS 取得 ── */
+async function doGPS() { if (!navigator.geolocation) { alert('このブラウザは位置情報に対応していません。\n目的地を入力してください。'); return; } resetDestCard(); S.lat = null; S.lng = null; gpsIconState('loading'); document.getElementById('gps-label').textContent = '取得中...'; document.getElementById('gps-sub').textContent = 'GPS測位しています'; document.getElementById('gps-btn').disabled = true; disableNext(); function tryGPS(hi, t) { return new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: hi, timeout: t, maximumAge: 60000 }) ); } async function revGeo(lat, lng) { const r = await fetch( `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ja&zoom=16`, { headers: { 'User-Agent': 'KaishokuSelect/1.0', 'Accept-Language': 'ja' } } ); const d = await r.json(); const a = d.address || {}; const skip = new Set(['東京都','東京','大阪府','大阪','神奈川県','愛知県', '福岡県','北海道','京都府','兵庫県','日本','Japan']); const ok = v => v && !skip.has(v.trim()); return (ok(a.neighbourhood)&&a.neighbourhood)||(ok(a.quarter)&&a.quarter) ||(ok(a.suburb)&&a.suburb)||(ok(a.borough)&&a.borough) ||(ok(a.town)&&a.town)||(ok(a.village)&&a.village) ||(ok(a.municipality)&&a.municipality)||(ok(a.county)&&a.county) ||(ok(a.city)&&a.city)||(ok(a.city_district)&&a.city_district)||'現在地'; } try { let pos; try { pos = await tryGPS(true, 8000); } catch(e1) { if (e1.code === 1) throw e1; document.getElementById('gps-label').textContent = '再試行中...'; document.getElementById('gps-sub').textContent = '通常精度で取得しています'; pos = await tryGPS(false, 10000); } S.lat = pos.coords.latitude; S.lng = pos.coords.longitude; let name = '現在地'; try { name = await revGeo(S.lat, S.lng); } catch(_) {} S.area = name; gpsIconState('ok'); document.getElementById('gps-label').textContent = name + '周辺'; document.getElementById('gps-sub').textContent = 'GPS取得済み ✓'; document.getElementById('gps-sub').style.color = '#CBA258'; document.getElementById('gps-btn').style.borderColor = '#CBA258'; enableNext(); } catch(err) { resetGPSBtn(); const msg = { 1:'GPSの利用が許可されていません。\nブラウザの→「位置情報」→「許可」\n\nまたは目的地を入力してください。', 2:'現在地を取得できませんでした。\n目的地を入力してください。', 3:'GPSがタイムアウトしました。\n目的地を入力してください。', }; alert(msg[err.code] || '位置情報の取得に失敗しました。'); } finally { document.getElementById('gps-btn').disabled = false; }
+} function clearArea() { S.area = ''; S.lat = null; S.lng = null; resetAreaChips(); resetGPSBtn(); resetDestCard(); disableNext();
+} /* ─────────────────────────────
+/* ───────────────────────────── PURPOSE
 ───────────────────────────── */
-function selPurpose(btn){
-  document.querySelectorAll('.purpose-card').forEach(b=>{
-    b.style.background='#fff'; b.style.borderColor='#EDE0CC';
-  });
-  btn.style.background='#EBF5F0';
-  btn.style.borderColor='#006241';
-  S.purpose = btn.dataset.p;
-  // 用途に応じた条件を自動設定（Step3では表示しない）
-  S.conds = PURPOSE_AUTO_CONDS[S.purpose] || [];
-  // Step3のラベル更新
-  const s3a = document.getElementById('s3a');
-  const s3p = document.getElementById('s3p');
-  if (s3a) s3a.textContent = S.area || '';
-  if (s3p) s3p.textContent = S.purpose;
-  // 人数・予算リセット
-  S.pax=null; S.paxNum=0; S.budget=null; S.budgetMin=0; S.budgetMax=99999;
-  go(3);
-}
-
-/* ─────────────────────────────
-   人数・予算 チップ選択
+function selPurpose(btn){ document.querySelectorAll('.purpose-card').forEach(b=>{ b.style.background='#fff'; b.style.borderColor='#EDE0CC'; }); btn.style.background='#EBF5F0'; btn.style.borderColor='#006241'; S.purpose = btn.dataset.p; // 用途に応じた条件を自動設定（Step3では表示しない） S.conds = PURPOSE_AUTO_CONDS[S.purpose] || []; // Step3のラベル更新 const s3a = document.getElementById('s3a'); const s3p = document.getElementById('s3p'); if (s3a) s3a.textContent = S.area || ''; if (s3p) s3p.textContent = S.purpose; // 人数・予算リセット S.pax=null; S.paxNum=0; S.budget=null; S.budgetMin=0; S.budgetMax=99999; go(3);
+} /* ───────────────────────────── 人数・予算 チップ選択
 ───────────────────────────── */
-function selPax(btn) {
-  document.querySelectorAll('.pax-chip').forEach(b => {
-    b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A';
-  });
-  btn.style.background='#1E3932'; btn.style.borderColor='#1E3932'; btn.style.color='#fff';
-  S.pax    = btn.dataset.pax;
-  S.paxNum = parseInt(btn.dataset.paxnum, 10) || 0;
-  tryEnableS3Next();
+function selPax(btn) { document.querySelectorAll('.pax-chip').forEach(b => { b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A'; }); btn.style.background='#1E3932'; btn.style.borderColor='#1E3932'; btn.style.color='#fff'; S.pax = btn.dataset.pax; S.paxNum = parseInt(btn.dataset.paxnum, 10) || 0; tryEnableS3Next();
 }
-function selBudget(btn) {
-  document.querySelectorAll('.bdg-chip').forEach(b => {
-    b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A';
-  });
-  btn.style.background='#CBA258'; btn.style.borderColor='#9A7830'; btn.style.color='#1A1A1A';
-  S.budget    = btn.dataset.bdg;
-  S.budgetMin = parseInt(btn.dataset.bdgmin, 10) || 0;
-  S.budgetMax = parseInt(btn.dataset.bdgmax, 10) || 99999;
-  tryEnableS3Next();
+function selBudget(btn) { document.querySelectorAll('.bdg-chip').forEach(b => { b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A'; }); btn.style.background='#CBA258'; btn.style.borderColor='#9A7830'; btn.style.color='#1A1A1A'; S.budget = btn.dataset.bdg; S.budgetMin = parseInt(btn.dataset.bdgmin, 10) || 0; S.budgetMax = parseInt(btn.dataset.bdgmax, 10) || 99999; tryEnableS3Next();
 }
-function tryEnableS3Next() {
-  const nb = document.getElementById('s3next');
-  if (!nb) return;
-  if (S.pax && S.budget) {
-    nb.disabled=false; nb.style.background='#006241';
-    nb.style.color='#fff'; nb.style.cursor='pointer';
-    nb.style.boxShadow='0 4px 22px rgba(0,98,65,.42)';
-  }
-}
-
-/* ─────────────────────────────
-   CONDITIONS（後方互換・auto setで使用）
+function tryEnableS3Next() { const nb = document.getElementById('s3next'); if (!nb) return; if (S.pax && S.budget) { nb.disabled=false; nb.style.background='#006241'; nb.style.color='#fff'; nb.style.cursor='pointer'; nb.style.boxShadow='0 4px 22px rgba(0,98,65,.42)'; }
+} /* ───────────────────────────── CONDITIONS（後方互換・auto setで使用）
 ───────────────────────────── */
-const CMAP = {
-  'クライアントと打合せ':[{i:'🔒',l:'個室必須'},{i:'🤫',l:'静かな空間'},{i:'🚉',l:'駅チカ'},{i:'🍷',l:'接待向け'},{i:'📅',l:'予約可能'},{i:'💼',l:'ドレスコードあり'},{i:'🌙',l:'夜景'},{i:'🚗',l:'駐車場あり'}],
-  'ガチ密談':            [{i:'🔒',l:'個室必須'},{i:'🔇',l:'防音個室'},{i:'🤫',l:'静かな空間'},{i:'👤',l:'人目につかない'},{i:'🚪',l:'隠れ家'},{i:'🌙',l:'深夜営業'},{i:'📵',l:'SNS禁止OK'},{i:'🍶',l:'和食・割烹'}],
-  'インフルエンサー会食':[{i:'📸',l:'映え重視'},{i:'🌿',l:'テラス席'},{i:'✨',l:'SNS映え'},{i:'🌃',l:'夜景'},{i:'🎨',l:'フォトジェニック'},{i:'💫',l:'おしゃれ'},{i:'🕙',l:'深夜営業'},{i:'🍽',l:'フォトメニュー'}],
-  '社内懇親':            [{i:'👥',l:'大人数OK'},{i:'🚉',l:'駅チカ'},{i:'🍺',l:'飲み放題あり'},{i:'🎉',l:'貸切可能'},{i:'💰',l:'コスパ重視'},{i:'🍕',l:'食べ放題あり'},{i:'🎤',l:'カラオケ付近'},{i:'🚗',l:'駐車場あり'}],
-};
-
-function buildConds(){
-  S.conds=[];
-  document.getElementById('s3a').textContent=S.area;
-  document.getElementById('s3p').textContent=S.purpose;
-  const w=document.getElementById('cwrap');
-  w.innerHTML='';
-  (CMAP[S.purpose]||[]).forEach(c=>{
-    const b=document.createElement('button');
-    b.className='chip px-4 py-2.5 rounded-full border-2 text-sm font-bold flex items-center gap-2';
-    b.style.cssText='background:#fff;border-color:#EDE0CC;color:#1A1A1A';
-    b.innerHTML=`<span>${c.i}</span>${c.l}`;
-    b.onclick=()=>{
-      const idx=S.conds.indexOf(c.l);
-      if(idx>=0){S.conds.splice(idx,1);b.style.cssText='background:#fff;border-color:#EDE0CC;color:#1A1A1A';}
-      else{S.conds.push(c.l);b.style.cssText='background:#006241;border-color:#006241;color:#fff';}
-    };
-    w.appendChild(b);
-  });
-}
-
-/* ─────────────────────────────
-   RESTART
+const CMAP = { 'クライアントと打合せ':[{i:'',l:'個室必須'},{i:'',l:'静かな空間'},{i:'',l:'駅チカ'},{i:'',l:'接待向け'},{i:'',l:'予約可能'},{i:'',l:'ドレスコードあり'},{i:'',l:'夜景'},{i:'',l:'駐車場あり'}], 'ガチ密談': [{i:'',l:'個室必須'},{i:'',l:'防音個室'},{i:'',l:'静かな空間'},{i:'',l:'人目につかない'},{i:'',l:'隠れ家'},{i:'',l:'深夜営業'},{i:'',l:'SNS禁止OK'},{i:'',l:'和食・割烹'}], 'インフルエンサー会食':[{i:'',l:'映え重視'},{i:'',l:'テラス席'},{i:'',l:'SNS映え'},{i:'',l:'夜景'},{i:'',l:'フォトジェニック'},{i:'',l:'おしゃれ'},{i:'',l:'深夜営業'},{i:'',l:'フォトメニュー'}], '社内懇親': [{i:'',l:'大人数OK'},{i:'',l:'駅チカ'},{i:'',l:'飲み放題あり'},{i:'',l:'貸切可能'},{i:'',l:'コスパ重視'},{i:'',l:'食べ放題あり'},{i:'',l:'カラオケ付近'},{i:'',l:'駐車場あり'}],
+}; function buildConds(){ S.conds=[]; document.getElementById('s3a').textContent=S.area; document.getElementById('s3p').textContent=S.purpose; const w=document.getElementById('cwrap'); w.innerHTML=''; (CMAP[S.purpose]||[]).forEach(c=>{ const b=document.createElement('button'); b.className='chip px-4 py-2.5 rounded-full border-2 text-sm font-bold flex items-center gap-2'; b.style.cssText='background:#fff;border-color:#EDE0CC;color:#1A1A1A'; b.innerHTML=`<span>${c.i}</span>${c.l}`; b.onclick=()=>{ const idx=S.conds.indexOf(c.l); if(idx>=0){S.conds.splice(idx,1);b.style.cssText='background:#fff;border-color:#EDE0CC;color:#1A1A1A';} else{S.conds.push(c.l);b.style.cssText='background:#006241;border-color:#006241;color:#fff';} }; w.appendChild(b); });
+} /* ───────────────────────────── RESTART
 ───────────────────────────── */
-function restart(){
-  S.area=''; S.purpose=''; S.conds=[]; S.lat=null; S.lng=null;
-  resetAreaChips();
-  resetGPSBtn();
-  disableNext();
-  go(1);
-}
-
-/* ─────────────────────────────
-   INIT
+function restart(){ S.area=''; S.purpose=''; S.conds=[]; S.lat=null; S.lng=null; resetAreaChips(); resetGPSBtn(); disableNext(); go(1);
+} /* ───────────────────────────── INIT
 ───────────────────────────── */
 updPg(); updHdr();
 </script>
