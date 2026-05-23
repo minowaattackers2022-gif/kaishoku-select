@@ -106,6 +106,9 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
         相手を登録
       </button>
     </div>
+    <button id="sync-btn" onclick="syncAllToSheets()" class="w-full py-2.5 rounded-xl text-xs font-bold mt-2" style="background:#EBF5F0;color:#006241;border:1px solid #D4E9E2">
+      シートに同期（URLを設定後に使用可能）
+    </button>
   </div>
 
   <!-- 相手一覧 -->
@@ -316,6 +319,35 @@ var REG = { p_type:'', p_status:'', p_atm:'' };
 var PM  = { pm_outcome:'', pm_next:'', pm_rating:'', storeId:'', storeName:'', partnerId:'' };
 var S   = { partner:'', purpose:'', atmosphere:'', ngConds:[], area:'', lat:null, lng:null, budgetMin:0, budgetMax:99999, budgetLabel:'' };
 var cur = 1;
+
+// ═══════════════ GOOGLE スプレッドシート連携 ═══════════════
+// ▼ デプロイ後にURLをここに貼り付ける（空のままでも動作します）
+var GAS_URL = '';
+
+function sendToSheets(data) {
+  if (!GAS_URL) return Promise.resolve({ skipped: true });
+  return fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(data)
+  }).then(function(r) { return r.json(); }).catch(function(err) {
+    console.warn('スプレッドシートへの送信に失敗:', err);
+    return { success: false };
+  });
+}
+function syncAllToSheets() {
+  if (!GAS_URL) {
+    alert('スプレッドシートのURLが設定されていません。\nkaishoku-concierge.html の GAS_URL を設定してください。');
+    return;
+  }
+  var btn = document.getElementById('sync-btn');
+  if (btn) { btn.textContent = '同期中...'; btn.disabled = true; }
+  sendToSheets({ type:'sync_all', partners:loadPartners(), meetings:loadMeetings() })
+    .then(function(res) {
+      if (btn) { btn.textContent = 'シートに同期'; btn.disabled = false; }
+      alert(res && res.success ? '同期が完了しました！' : '同期に失敗しました。URLを確認してください。');
+    });
+}
 
 // ═══════════════ VIEW NAVIGATION ═══════════════
 var VIEW_TITLES = { home:'会食コンシェルジュ', 'partner-reg':'相手を登録', 'post-meeting':'会食後の記録', history:'会食履歴', concierge:'会食を計画' };
