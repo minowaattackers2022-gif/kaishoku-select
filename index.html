@@ -848,9 +848,11 @@ function buildCard(store, rank) {
 
   var navURL = 'https://maps.google.com/maps/dir/?api=1&destination='
     + encodeURIComponent(store.name + ' ' + store.loc) + '&travelmode=driving';
-  var tkURL  = 'https://www.tiktok.com/search?q=' + encodeURIComponent(store.name);
-  var igURL  = 'https://www.instagram.com/explore/tags/'
-    + encodeURIComponent(store.name.replace(/[\s\u3000]/g,'')) + '/';
+  // ② TikTok：店名で検索欄に自動入力
+  var tkURL = 'https://www.tiktok.com/search?q=' + encodeURIComponent(store.name);
+
+  // ③ Instagram：店名でキーワード検索（検索欄に自動入力）
+  var igURL = 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(store.name);
 
   var tkBtn = '<a href="'+tkURL+'" target="_blank" rel="noopener" class="tk-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">TikTok 口コミ</a>';
   var igBtn = '<a href="'+igURL+'" target="_blank" rel="noopener" class="ig-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">Instagram 口コミ</a>';
