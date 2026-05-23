@@ -51,6 +51,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
 /* Googleマップ案内ボタン */
 .nav-btn{background:#1E3932;color:#fff;border-radius:50px;letter-spacing:.04em}
 .nav-btn:active{opacity:.8}
+.info-none{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;background:#F5F5F5;color:#BDBDBD;border:1px solid #E8E8E8;cursor:default}
 
 /* 進行バー */
 .pgline{transition:background .4s}
@@ -767,7 +768,7 @@ function selOne(btn, field, nextStep) {
 
 // ═══════════════ RESULTS ═══════════════
 // (DB + scoring — same as concierge version)
-var DB=[{name:"麻布 真田",area:"六本木・麻布",loc:"麻布十番駅 徒歩3分",genre:"日本料理・割烹",budget:"18,000円〜",budgetNum:18000,hook:"完全防音の個室で密談に最適。格式ある雰囲気で相手への敬意を伝えられる",partners:["役員・部長クラス","長期の取引先","経営者仲間"],purposes:["受注後の深耕","単価アップの布石","紹介のお礼"],atmosphere:["堅め・格式高く","安心感を重視","会話がしやすい"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:8,tk:"麻布十番 割烹 個室 接待",ig:"麻布十番グルメ"},{name:"六本木 銀狐",area:"六本木・麻布",loc:"六本木駅 徒歩2分",genre:"現代フランス料理",budget:"22,000円〜",budgetNum:22000,hook:"東京タワーを望む最上階テラス。選んだセンスが相手に自然に伝わる空間",partners:["インフルエンサー","経営者仲間","長期の取引先"],purposes:["関係を深める","単価アップの布石"],atmosphere:["感度の高い店","距離が縮まる"],areas:["六本木・麻布","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:30",maxPax:12,tk:"六本木 夜景 フレンチ 飯テロ",ig:"六本木グルメ"},{name:"西麻布 杉乃屋",area:"六本木・麻布",loc:"広尾駅 徒歩8分",genre:"懐石料理",budget:"25,000円〜",budgetNum:25000,hook:"路地裏の完全隠れ家。「なぜこの店を知っているのか」と相手が唸る特別感",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["単価アップの布石","紹介のお礼","受注後の深耕"],atmosphere:["堅め・格式高く","安心感を重視"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:6,tk:"西麻布 懐石 隠れ家",ig:"西麻布グルメ"},{name:"麻布 Cielo",area:"六本木・麻布",loc:"麻布十番駅 徒歩5分",genre:"イタリア料理",budget:"12,000円〜",budgetNum:12000,hook:"心理的負担が少ない単価感と自然にSNS投稿が生まれるオープンな雰囲気",partners:["インフルエンサー","新規の取引先","採用候補"],purposes:["関係を深める","採用の場"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["六本木・麻布","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:false,smoke:true,stairs:true,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"麻布十番 イタリア料理 映え 飯テロ",ig:"麻布十番グルメ"},{name:"六本木 月夜",area:"六本木・麻布",loc:"六本木駅 徒歩4分",genre:"鉄板焼き",budget:"20,000円〜",budgetNum:20000,hook:"目の前で焼き上げる演出が会話のきっかけに。特別な体験で距離が縮まる",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["受注後の深耕","単価アップの布石"],atmosphere:["堅め・格式高く","距離が縮まる"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"六本木 鉄板焼き 接待",ig:"六本木グルメ"},{name:"恵比寿 木の葉",area:"恵比寿・中目黒",loc:"恵比寿駅 徒歩5分",genre:"和食・個室",budget:"15,000円〜",budgetNum:15000,hook:"完全個室で商談が弾む。穏やかな和の空間が初対面の緊張を自然に和らげる",partners:["役員・部長クラス","長期の取引先","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["上品でカジュアル","安心感を重視","会話がしやすい"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"恵比寿 和食 個室 接待",ig:"恵比寿グルメ"},{name:"中目黒 HARU",area:"恵比寿・中目黒",loc:"中目黒駅 徒歩3分",genre:"現代フランス料理",budget:"16,000円〜",budgetNum:16000,hook:"目黒川沿いテラスと料理の彩りが自然な会話を生む",partners:["インフルエンサー","採用候補","新規の取引先"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:true,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"中目黒 フレンチ テラス 映え",ig:"中目黒グルメ"},{name:"中目黒 静流",area:"恵比寿・中目黒",loc:"中目黒駅 徒歩6分",genre:"日本料理",budget:"20,000円〜",budgetNum:20000,hook:"完全予約制・防音完璧の静寂個室。声が外に漏れない安心感で本音を引き出せる",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["受注後の深耕","単価アップの布石"],atmosphere:["堅め・格式高く","安心感を重視"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:6,tk:"中目黒 日本料理 個室",ig:"中目黒グルメ"},{name:"銀座 黒田",area:"銀座・丸の内",loc:"銀座駅 徒歩2分",genre:"鮨",budget:"30,000円〜",budgetNum:30000,hook:"格式と信頼感が圧倒的。重要な相手への最大限の敬意を示せる店",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["単価アップの布石","紹介のお礼","受注後の深耕"],atmosphere:["堅め・格式高く"],areas:["銀座・丸の内","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-22:00",maxPax:8,tk:"銀座 鮨 高級 接待",ig:"銀座グルメ"},{name:"丸の内 FORZA",area:"銀座・丸の内",loc:"東京駅 徒歩4分",genre:"欧風料理",budget:"18,000円〜",budgetNum:18000,hook:"ビジネス街の正統派接待店。初対面の相手にも安心感と信頼感を伝えられる",partners:["役員・部長クラス","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["堅め・格式高く","上品でカジュアル","安心感を重視"],areas:["銀座・丸の内","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"11:30-23:00",maxPax:30,tk:"丸の内 欧風料理 接待",ig:"丸の内グルメ"},{name:"新宿 夜桜",area:"新宿",loc:"西新宿駅 徒歩3分",genre:"割烹・個室",budget:"15,000円〜",budgetNum:15000,hook:"個室で話しやすく格式もある。初回商談でもまた来たいと思わせる品格",partners:["新規の取引先","役員・部長クラス"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["上品でカジュアル","安心感を重視"],areas:["新宿","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"17:30-23:00",maxPax:15,tk:"新宿 割烹 個室 接待",ig:"新宿グルメ"},{name:"表参道 BLANC",area:"渋谷・表参道",loc:"表参道駅 徒歩3分",genre:"現代フランス料理",budget:"18,000円〜",budgetNum:18000,hook:"ファッション誌でも紹介される洗練空間。選んだセンスが相手に自然に伝わる",partners:["インフルエンサー","採用候補","新規の取引先"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["渋谷・表参道","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"表参道 フレンチ 映え",ig:"表参道グルメ"},{name:"渋谷 ROOT",area:"渋谷・表参道",loc:"渋谷駅 徒歩5分",genre:"創作和食",budget:"12,000円〜",budgetNum:12000,hook:"料理の盛り付けが会話のきっかけになる。若手採用候補に好印象を与えやすい",partners:["インフルエンサー","採用候補","経営者仲間"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル","距離が縮まる"],areas:["渋谷・表参道","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:false,smoke:true,stairs:false,casual:false,dress:false},reservation:true,hours:"18:00-23:00",maxPax:20,tk:"渋谷 創作和食 SNS映え",ig:"渋谷グルメ"},{name:"品川 風雅",area:"品川・天王洲",loc:"品川駅 徒歩5分",genre:"日本料理・個室",budget:"16,000円〜",budgetNum:16000,hook:"新幹線移動の前後にも最適。静かな個室で相手の話にじっくり向き合える",partners:["役員・部長クラス","長期の取引先","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める","受注後の深耕"],atmosphere:["堅め・格式高く","安心感を重視","会話がしやすい"],areas:["品川・天王洲","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"品川 日本料理 個室 接待",ig:"品川グルメ"}];
+var DB=[{name:"麻布 真田",area:"六本木・麻布",loc:"麻布十番駅 徒歩3分",genre:"日本料理・割烹",budget:"18,000円〜",budgetNum:18000,hook:"完全防音の個室で密談に最適。格式ある雰囲気で相手への敬意を伝えられる",partners:["役員・部長クラス","長期の取引先","経営者仲間"],purposes:["受注後の深耕","単価アップの布石","紹介のお礼"],atmosphere:["堅め・格式高く","安心感を重視","会話がしやすい"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:8,tk:"麻布十番 割烹 個室 接待",ig:"麻布十番グルメ",hasTikTok:true,hasInstagram:true},{name:"六本木 銀狐",area:"六本木・麻布",loc:"六本木駅 徒歩2分",genre:"現代フランス料理",budget:"22,000円〜",budgetNum:22000,hook:"東京タワーを望む最上階テラス。選んだセンスが相手に自然に伝わる空間",partners:["インフルエンサー","経営者仲間","長期の取引先"],purposes:["関係を深める","単価アップの布石"],atmosphere:["感度の高い店","距離が縮まる"],areas:["六本木・麻布","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:30",maxPax:12,tk:"六本木 夜景 フレンチ 飯テロ",ig:"六本木グルメ",hasTikTok:true,hasInstagram:true},{name:"西麻布 杉乃屋",area:"六本木・麻布",loc:"広尾駅 徒歩8分",genre:"懐石料理",budget:"25,000円〜",budgetNum:25000,hook:"路地裏の完全隠れ家。「なぜこの店を知っているのか」と相手が唸る特別感",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["単価アップの布石","紹介のお礼","受注後の深耕"],atmosphere:["堅め・格式高く","安心感を重視"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:6,tk:"西麻布 懐石 隠れ家",ig:"西麻布グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"麻布 Cielo",area:"六本木・麻布",loc:"麻布十番駅 徒歩5分",genre:"イタリア料理",budget:"12,000円〜",budgetNum:12000,hook:"心理的負担が少ない単価感と自然にSNS投稿が生まれるオープンな雰囲気",partners:["インフルエンサー","新規の取引先","採用候補"],purposes:["関係を深める","採用の場"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["六本木・麻布","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:false,smoke:true,stairs:true,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"麻布十番 イタリア料理 映え 飯テロ",ig:"麻布十番グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"六本木 月夜",area:"六本木・麻布",loc:"六本木駅 徒歩4分",genre:"鉄板焼き",budget:"20,000円〜",budgetNum:20000,hook:"目の前で焼き上げる演出が会話のきっかけに。特別な体験で距離が縮まる",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["受注後の深耕","単価アップの布石"],atmosphere:["堅め・格式高く","距離が縮まる"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"六本木 鉄板焼き 接待",ig:"六本木グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"恵比寿 木の葉",area:"恵比寿・中目黒",loc:"恵比寿駅 徒歩5分",genre:"和食・個室",budget:"15,000円〜",budgetNum:15000,hook:"完全個室で商談が弾む。穏やかな和の空間が初対面の緊張を自然に和らげる",partners:["役員・部長クラス","長期の取引先","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["上品でカジュアル","安心感を重視","会話がしやすい"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"恵比寿 和食 個室 接待",ig:"恵比寿グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"中目黒 HARU",area:"恵比寿・中目黒",loc:"中目黒駅 徒歩3分",genre:"現代フランス料理",budget:"16,000円〜",budgetNum:16000,hook:"目黒川沿いテラスと料理の彩りが自然な会話を生む",partners:["インフルエンサー","採用候補","新規の取引先"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:true,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"中目黒 フレンチ テラス 映え",ig:"中目黒グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"中目黒 静流",area:"恵比寿・中目黒",loc:"中目黒駅 徒歩6分",genre:"日本料理",budget:"20,000円〜",budgetNum:20000,hook:"完全予約制・防音完璧の静寂個室。声が外に漏れない安心感で本音を引き出せる",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["受注後の深耕","単価アップの布石"],atmosphere:["堅め・格式高く","安心感を重視"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:6,tk:"中目黒 日本料理 個室",ig:"中目黒グルメ",hasTikTok:false,hasInstagram:false,hasTikTok:false,hasInstagram:false},{name:"銀座 黒田",area:"銀座・丸の内",loc:"銀座駅 徒歩2分",genre:"鮨",budget:"30,000円〜",budgetNum:30000,hook:"格式と信頼感が圧倒的。重要な相手への最大限の敬意を示せる店",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["単価アップの布石","紹介のお礼","受注後の深耕"],atmosphere:["堅め・格式高く"],areas:["銀座・丸の内","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-22:00",maxPax:8,tk:"銀座 鮨 高級 接待",ig:"銀座グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"丸の内 FORZA",area:"銀座・丸の内",loc:"東京駅 徒歩4分",genre:"欧風料理",budget:"18,000円〜",budgetNum:18000,hook:"ビジネス街の正統派接待店。初対面の相手にも安心感と信頼感を伝えられる",partners:["役員・部長クラス","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["堅め・格式高く","上品でカジュアル","安心感を重視"],areas:["銀座・丸の内","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"11:30-23:00",maxPax:30,tk:"丸の内 欧風料理 接待",ig:"丸の内グルメ",hasTikTok:false,hasInstagram:true},{name:"新宿 夜桜",area:"新宿",loc:"西新宿駅 徒歩3分",genre:"割烹・個室",budget:"15,000円〜",budgetNum:15000,hook:"個室で話しやすく格式もある。初回商談でもまた来たいと思わせる品格",partners:["新規の取引先","役員・部長クラス"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["上品でカジュアル","安心感を重視"],areas:["新宿","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"17:30-23:00",maxPax:15,tk:"新宿 割烹 個室 接待",ig:"新宿グルメ",hasTikTok:false,hasInstagram:true},{name:"表参道 BLANC",area:"渋谷・表参道",loc:"表参道駅 徒歩3分",genre:"現代フランス料理",budget:"18,000円〜",budgetNum:18000,hook:"ファッション誌でも紹介される洗練空間。選んだセンスが相手に自然に伝わる",partners:["インフルエンサー","採用候補","新規の取引先"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["渋谷・表参道","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"表参道 フレンチ 映え",ig:"表参道グルメ",hasTikTok:true,hasInstagram:true},{name:"渋谷 ROOT",area:"渋谷・表参道",loc:"渋谷駅 徒歩5分",genre:"創作和食",budget:"12,000円〜",budgetNum:12000,hook:"料理の盛り付けが会話のきっかけになる。若手採用候補に好印象を与えやすい",partners:["インフルエンサー","採用候補","経営者仲間"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル","距離が縮まる"],areas:["渋谷・表参道","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:false,smoke:true,stairs:false,casual:false,dress:false},reservation:true,hours:"18:00-23:00",maxPax:20,tk:"渋谷 創作和食 SNS映え",ig:"渋谷グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"品川 風雅",area:"品川・天王洲",loc:"品川駅 徒歩5分",genre:"日本料理・個室",budget:"16,000円〜",budgetNum:16000,hook:"新幹線移動の前後にも最適。静かな個室で相手の話にじっくり向き合える",partners:["役員・部長クラス","長期の取引先","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める","受注後の深耕"],atmosphere:["堅め・格式高く","安心感を重視","会話がしやすい"],areas:["品川・天王洲","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"品川 日本料理 個室 接待",ig:"品川グルメ",hasTikTok:false,hasInstagram:true}];
 
 function scoreStore(s) {
   var sc = 0;
@@ -792,10 +793,40 @@ function isOpen(s) {
 }
 function getTop3() {
   var area = S.area.replace(/[都道府県]$/, '');
-  var pool = DB.filter(function(s){ return s.areas.some(function(a){ return a.indexOf(area)>=0||area.indexOf(a.replace(/[都道府県]$/,''))>=0; }); });
-  if (!pool.length) return null;
-  var avail = pool.filter(isOpen); if (!avail.length) avail = pool.filter(function(s){ return s.reservation; }); if (!avail.length) avail = pool;
-  return avail.map(function(s){ return {s:s,sc:scoreStore(s)}; }).sort(function(a,b){ return b.sc-a.sc; }).slice(0,3).map(function(x){ return x.s; });
+
+  // ① エリア一致で候補を絞る（3件未満なら全DBに広げる）
+  var areaCands = DB.filter(function(s) {
+    return s.areas.some(function(a) {
+      return a.indexOf(area) >= 0 || area.indexOf(a.replace(/[都道府県]$/, '')) >= 0;
+    });
+  });
+  var cands = areaCands.length >= 3 ? areaCands : DB;
+
+  // ② 予約可＋営業フィルター（緩和しながら必ず3件確保）
+  var pool = cands.filter(isOpen);
+  if (pool.length < 3) pool = cands.filter(function(s) { return s.reservation; });
+  if (pool.length < 3) pool = cands;
+
+  // ③ 人数フィルター（3件未満なら緩和）
+  if (S.paxNum > 0) {
+    var paxF = pool.filter(function(s) { return s.maxPax >= S.paxNum; });
+    if (paxF.length >= 3) pool = paxF;
+  }
+
+  // ④ 予算フィルター（3件未満なら緩和）
+  if (S.budgetMax < 99999) {
+    var bdgF = pool.filter(function(s) {
+      return s.budgetNum <= S.budgetMax + 5000 && s.budgetNum >= Math.max(0, S.budgetMin - 3000);
+    });
+    if (bdgF.length >= 3) pool = bdgF;
+  }
+
+  // ⑤ スコア順で必ず3件返す
+  return pool
+    .map(function(s) { return { s: s, sc: scoreStore(s) }; })
+    .sort(function(a, b) { return b.sc - a.sc; })
+    .slice(0, 3)
+    .map(function(x) { return x.s; });
 }
 function successRate(s) { return Math.min(97, Math.max(52, Math.round(scoreStore(s)*1.6+28))); }
 function reasonLabels(store) {
@@ -812,47 +843,55 @@ function reasonLabels(store) {
   return labels.slice(0,4);
 }
 function buildCard(store, rank) {
-  var labels=['1位','2位','3位'], cls=['r1','r2','r3'], rate=successRate(store);
-  var navURL='https://maps.google.com/maps/dir/?api=1&destination='+encodeURIComponent(store.name+' '+store.loc)+'&travelmode=driving';
-  var tkQ=[store.area.split('・')[0],store.tk,'飯テロ'].filter(Boolean).map(encodeURIComponent).join('+');
-  var igTag=encodeURIComponent(store.area.split('・')[0]+'グルメ');
-  var rLabels=reasonLabels(store);
-  var rHtml=rLabels.map(function(l){ return '<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#EBF5F0;color:#006241;margin:2px 2px 2px 0">'+l+'</span>'; }).join('');
-  function spec(ok,label){ return '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:'+( ok?'#006241':'#9CA3AF')+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'+label+'</div>'; }
-  return '<div class="rcard">' +
-    '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 14px 8px">' +
-      '<div style="flex:1;min-width:0;padding-right:10px">' +
-        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">' +
-          '<span class="'+cls[rank-1]+'" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;animation:badgePop .3s '+rank*0.12+'s ease both;display:inline-block">'+labels[rank-1]+'</span>' +
-          '<span style="font-size:11px;padding:3px 8px;border-radius:10px;background:#EBF5F0;color:#006241;font-weight:500">'+store.genre+'</span>' +
-        '</div>' +
-        '<h3 style="font-family:\'Playfair Display\',serif;font-size:17px;font-weight:700;color:#1E3932;line-height:1.2">'+store.name+'</h3>' +
-        '<p style="font-size:11px;color:#6B7280;margin-top:2px">'+store.loc+'</p>' +
-      '</div>' +
-      '<div style="text-align:right;flex-shrink:0">' +
-        '<p style="font-size:10px;color:#CBA258;font-weight:700;margin-bottom:2px">条件一致度</p>' +
-        '<p style="font-size:22px;font-weight:700;color:#006241;line-height:1">'+rate+'<span style="font-size:13px">%</span></p>' +
-        '<div style="width:52px;height:5px;background:#EDE0CC;border-radius:3px;margin-top:4px;overflow:hidden"><div style="height:100%;border-radius:3px;background:#006241;width:'+rate+'%"></div></div>' +
-      '</div>' +
-    '</div>' +
-    (rHtml?'<div style="padding:0 14px 8px">'+rHtml+'</div>':'') +
-    '<div style="margin:0 14px 10px;padding:10px 12px;border-radius:12px;background:#EBF5F0;border-left:3px solid #006241">' +
-      '<p style="font-size:10px;font-weight:700;color:#006241;margin-bottom:3px">なぜ今回向きか</p>' +
-      '<p style="font-size:13px;font-weight:500;color:#1E3932;line-height:1.5">'+store.hook+'</p>' +
-    '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;padding:0 14px 10px">'+spec(store.ng.noise,'音漏れなし')+spec(store.ng.smoke,'禁煙対応')+spec(store.ng.loud,'静かな環境')+spec(store.reservation,'予約可能')+'</div>' +
-    '<div style="padding:0 14px 10px">' +
-      '<a href="'+navURL+'" target="_blank" rel="noopener" class="nav-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:14px;font-size:14px;font-weight:700;text-decoration:none">' +
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>このお店に案内する</a>' +
-    '</div>' +
-    '<div style="display:flex;gap:8px;padding:0 14px 6px">' +
-      '<a href="https://www.tiktok.com/search?q='+tkQ+'" target="_blank" rel="noopener" class="tk-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:9px;border-radius:10px;font-size:11px;font-weight:700;text-decoration:none">TikTokで口コミ</a>' +
-      '<a href="https://www.instagram.com/explore/tags/'+igTag+'/" target="_blank" rel="noopener" class="ig-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:9px;border-radius:10px;font-size:11px;font-weight:700;text-decoration:none">Instagramで口コミ</a>' +
-    '</div>' +
-    '<div style="padding:0 14px 14px">' +
-      '<button onclick="openPostMeeting(\''+ store.name +'\')" style="width:100%;padding:10px;border-radius:10px;border:1.5px solid #CBA258;background:rgba(203,162,88,.08);font-size:12px;font-weight:700;color:#9A7830;cursor:pointer">この店に決めた → 会食後に記録する</button>' +
-    '</div>' +
-  '</div>';
+  var labels = ['1位','2位','3位'], cls = ['r1','r2','r3'];
+  var rate = successRate(store);
+
+  var navURL = 'https://maps.google.com/maps/dir/?api=1&destination='
+    + encodeURIComponent(store.name + ' ' + store.loc) + '&travelmode=driving';
+  var tkURL  = 'https://www.tiktok.com/search?q=' + encodeURIComponent(store.name);
+  var igURL  = 'https://www.instagram.com/explore/tags/'
+    + encodeURIComponent(store.name.replace(/[\s\u3000]/g,'')) + '/';
+
+  var tkBtn = '<a href="'+tkURL+'" target="_blank" rel="noopener" class="tk-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">TikTok 口コミ</a>';
+  var igBtn = '<a href="'+igURL+'" target="_blank" rel="noopener" class="ig-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">Instagram 口コミ</a>';
+
+  var rLabels = reasonLabels(store);
+  var rHtml = rLabels.map(function(l){ return '<span style="display:inline-block;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;background:#F2EDE8;color:#5C4033;margin:2px 2px 2px 0">'+l+'</span>'; }).join('');
+
+  function spec(ok,label){ return '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:'+(ok?'#1E3932':'#BDBDBD')+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'+label+'</div>'; }
+
+  return '<div class="rcard">'
+    + '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 14px 8px">'
+      + '<div style="flex:1;min-width:0;padding-right:10px">'
+        + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'
+          + '<span class="'+cls[rank-1]+'" style="padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700;letter-spacing:.04em">'+labels[rank-1]+'</span>'
+          + '<span style="font-size:11px;padding:3px 10px;border-radius:50px;background:#F2EDE8;color:#5C4033;font-weight:500">'+store.genre+'</span>'
+        + '</div>'
+        + '<h3 style="font-family:\'Playfair Display\',serif;font-size:17px;font-weight:700;color:#1E3932;line-height:1.2">'+store.name+'</h3>'
+        + '<p style="font-size:11px;color:#9CA3AF;margin-top:2px">'+store.loc+'</p>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+        + '<p style="font-size:10px;color:#CBA258;font-weight:700;margin-bottom:2px;letter-spacing:.03em">条件一致度</p>'
+        + '<p style="font-size:22px;font-weight:700;color:#1E3932;line-height:1">'+rate+'<span style="font-size:13px">%</span></p>'
+        + '<div style="width:52px;height:4px;background:#F2EDE8;border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;border-radius:2px;background:#1E3932;width:'+rate+'%"></div></div>'
+      + '</div>'
+    + '</div>'
+    + (rHtml ? '<div style="padding:0 14px 8px;display:flex;flex-wrap:wrap;gap:4px">'+rHtml+'</div>' : '')
+    + '<div style="margin:0 14px 10px;padding:10px 14px;border-radius:4px;background:#F9F6F1;border-left:3px solid #1E3932">'
+      + '<p style="font-size:10px;font-weight:700;color:#1E3932;margin-bottom:3px;letter-spacing:.04em">なぜ今回向きか</p>'
+      + '<p style="font-size:13px;font-weight:500;color:#1E3932;line-height:1.6">'+store.hook+'</p>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;padding:0 14px 10px">'+spec(store.ng&&store.ng.noise,'音漏れなし')+spec(store.ng&&store.ng.smoke,'禁煙対応')+spec(store.ng&&store.ng.loud,'静かな環境')+spec(store.reservation,'予約可能')+'</div>'
+    + '<div style="padding:0 14px 10px">'
+      + '<a href="'+navURL+'" target="_blank" rel="noopener" class="nav-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:.04em">'
+        + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'+store.name+'に案内する'
+      + '</a>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;padding:0 14px 10px">'+tkBtn+igBtn+'</div>'
+    + '<div style="padding:0 14px 14px">'
+      + '<button onclick="openPostMeeting(\''+store.name+'\')" style="width:100%;padding:11px;border-radius:50px;border:1.5px solid #CBA258;background:transparent;font-size:12px;font-weight:700;color:#9A7830;cursor:pointer;letter-spacing:.04em">この店に決めた → 記録する</button>'
+    + '</div>'
+  + '</div>';
 }
 function renderResults() {
   var bs = document.getElementById('s6badges');
@@ -861,8 +900,7 @@ function renderResults() {
   }).join(' ');
   if (S.area) bs.innerHTML += ' <span style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(203,162,88,.2);color:#CBA258">'+S.area+'</span>';
   var top3 = getTop3(), wrap = document.getElementById('result-cards');
-  if (!top3||!top3.length) { wrap.innerHTML='<div style="border-radius:16px;padding:20px;text-align:center;background:#FBF8F3;border:1px solid #EDE0CC"><p style="font-weight:700;font-size:14px;color:#1E3932;margin-bottom:6px">条件に合うお店が見つかりませんでした</p><p style="font-size:12px;color:#6B7280">エリアまたは予算の条件を広げてみてください</p></div>'; return; }
-  var html=''; top3.forEach(function(s,i){ html+=buildCard(s,i+1); }); wrap.innerHTML=html;
+  var html = ''; top3.forEach(function(s, i) { html += buildCard(s, i+1); }); wrap.innerHTML = html;
 }
 
 // ═══════════════ POST MEETING ═══════════════
