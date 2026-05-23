@@ -19,37 +19,61 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes badgePop{0%{transform:scale(0)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
-.chip{transition:all .12s;user-select:none}
-.chip:active{transform:scale(.92)}
-.pcard{transition:all .14s;border:1.5px solid #EDE0CC;background:#fff;border-radius:16px}
-.pcard:active{transform:scale(.97)}
-.pcard.sel{background:#EBF5F0;border-color:#006241}
-.rcard{animation:slideUp .38s cubic-bezier(.16,1,.3,1) both;border:1px solid #E2D8C8;border-radius:20px;background:#fff;overflow:hidden}
+/* ━━━ Starbucks Japan ボタンスタイル ━━━ */
+/* ピル型・影なし・ゆったり余白 */
+
+/* 選択チップ共通 */
+.chip{transition:background .12s,border-color .12s,color .12s;user-select:none;cursor:pointer}
+.chip:active{opacity:.75}
+
+/* 相手・目的・空気感 選択カード */
+.pcard{transition:border-color .13s,background .13s;border:1.5px solid #D9CFC5;background:#fff;border-radius:4px}
+.pcard:active{opacity:.8}
+.pcard.sel{background:#EBF5F0;border-color:#1E3932;border-width:2px}
+
+/* 結果カード */
+.rcard{animation:slideUp .38s cubic-bezier(.16,1,.3,1) both;border:none;border-radius:4px;background:#fff;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.08)}
 .rcard:nth-child(1){animation-delay:.04s}
 .rcard:nth-child(2){animation-delay:.16s}
 .rcard:nth-child(3){animation-delay:.28s}
-.r1{background:linear-gradient(135deg,#B8860B,#FFD700);color:#2d1f00}
-.r2{background:linear-gradient(135deg,#5c6670,#BCC4CC);color:#0d1214}
-.r3{background:linear-gradient(135deg,#7B3F0A,#CD853F);color:#fff}
-.tk-btn{background:#000;color:#fff}
-.tk-btn:active{opacity:.8}
-.ig-btn{background:linear-gradient(135deg,#833AB4,#FD1D1D,#F77737);color:#fff}
-.ig-btn:active{opacity:.8}
-.nav-btn{background:linear-gradient(135deg,#1a6b3a,#006241);color:#fff;box-shadow:0 4px 14px rgba(0,98,65,.38)}
-.nav-btn:active{opacity:.9}
+
+/* ランクバッジ */
+.r1{background:#1E3932;color:#D4E9E2}
+.r2{background:#5C4033;color:#F5E6D3}
+.r3{background:#3E4A3D;color:#D4E9E2}
+
+/* SNS ボタン */
+.tk-btn{background:#000;color:#fff;border-radius:50px}
+.tk-btn:active{opacity:.75}
+.ig-btn{background:linear-gradient(135deg,#833AB4,#FD1D1D,#F77737);color:#fff;border-radius:50px}
+.ig-btn:active{opacity:.75}
+
+/* Googleマップ案内ボタン */
+.nav-btn{background:#1E3932;color:#fff;border-radius:50px;letter-spacing:.04em}
+.nav-btn:active{opacity:.8}
+
+/* 進行バー */
 .pgline{transition:background .4s}
-.partner-card{background:#fff;border:1px solid #E2D8C8;border-radius:16px;padding:14px;cursor:pointer;transition:all .13s;animation:slideUp .3s ease both}
-.partner-card:active{transform:scale(.97)}
-.status-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
-.status-初回{background:#EDE0CC;color:#6B7280}
-.status-進行中{background:#EBF5F0;color:#006241}
+
+/* 相手カード */
+.partner-card{background:#fff;border:1px solid #D9CFC5;border-radius:4px;padding:16px;cursor:pointer;transition:border-color .13s;animation:slideUp .3s ease both}
+.partner-card:active{opacity:.8}
+
+/* ステータスバッジ */
+.status-badge{padding:3px 12px;border-radius:50px;font-size:11px;font-weight:700;letter-spacing:.03em}
+.status-初回{background:#F2EDE8;color:#5C4033}
+.status-進行中{background:#EBF5F0;color:#1E3932}
 .status-深耕フェーズ{background:#1E3932;color:#D4E9E2}
-.status-重要顧客{background:linear-gradient(135deg,#B8860B,#DAA520);color:#fff}
-.out-chip{padding:8px 14px;border-radius:20px;font-size:13px;font-weight:700;border:1.5px solid #EDE0CC;background:#fff;cursor:pointer;transition:all .12s}
-.out-chip.sel{background:#006241;border-color:#006241;color:#fff}
-.out-chip:active{transform:scale(.93)}
-.form-input{width:100%;padding:12px 14px;border:1.5px solid #EDE0CC;border-radius:12px;font-size:14px;font-family:"Noto Sans JP",sans-serif;background:#fff;color:#1A1A1A;outline:none}
-.form-input:focus{border-color:#006241}
+.status-重要顧客{background:#CBA258;color:#fff}
+
+/* 選択チップ（NG条件・成果・評価） */
+.out-chip{padding:10px 20px;border-radius:50px;font-size:13px;font-weight:700;border:1.5px solid #D9CFC5;background:#fff;cursor:pointer;transition:background .12s,border-color .12s,color .12s;letter-spacing:.02em}
+.out-chip.sel{background:#1E3932;border-color:#1E3932;color:#fff}
+.out-chip:active{opacity:.75}
+
+/* テキスト入力 */
+.form-input{width:100%;padding:14px 16px;border:1.5px solid #D9CFC5;border-radius:50px;font-size:14px;font-family:"Noto Sans JP",sans-serif;background:#fff;color:#1A1A1A;outline:none}
+.form-input:focus{border-color:#1E3932;border-width:2px}
 </style>
 </head>
 <body>
@@ -99,14 +123,14 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
   <!-- クイックアクション -->
   <div class="px-5 pt-5 pb-3">
     <div class="flex gap-2.5">
-      <button onclick="startConcierge(null)" class="flex-1 py-3.5 rounded-2xl font-bold text-sm text-white" style="background:#006241;box-shadow:0 4px 16px rgba(0,98,65,.38)">
+      <button onclick="startConcierge(null)" class="flex-1 py-3.5 rounded-2xl font-bold text-sm text-white" style="background:#1E3932;border-radius:50px;letter-spacing:.05em">
         新しい会食を計画
       </button>
-      <button onclick="gotoView('partner-reg')" class="flex-1 py-3.5 rounded-2xl font-bold text-sm" style="background:#fff;border:1.5px solid #EDE0CC;color:#1A1A1A">
+      <button onclick="gotoView('partner-reg')" class="flex-1 py-3.5 rounded-2xl font-bold text-sm" style="background:#fff;border:1.5px solid #1E3932;color:#1E3932;border-radius:50px;letter-spacing:.05em">
         相手を登録
       </button>
     </div>
-    <button id="sync-btn" onclick="syncAllToSheets()" class="w-full py-2.5 rounded-xl text-xs font-bold mt-2" style="background:#EBF5F0;color:#006241;border:1px solid #D4E9E2">
+    <button id="sync-btn" onclick="syncAllToSheets()" class="w-full py-2.5 rounded-xl text-xs font-bold mt-2" style="background:#fff;color:#1E3932;border:1.5px solid #1E3932;border-radius:50px;letter-spacing:.04em">
       シートに同期（URLを設定後に使用可能）
     </button>
   </div>
@@ -188,7 +212,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
       </div>
     </div>
 
-    <button id="reg-submit-btn" onclick="savePartner()" class="w-full h-14 rounded-2xl font-bold text-base text-white mt-6" style="background:#006241;box-shadow:0 4px 20px rgba(0,98,65,.4)">登録する</button>
+    <button id="reg-submit-btn" onclick="savePartner()" class="w-full h-14 font-bold text-base text-white mt-6" style="background:#1E3932;border-radius:50px;letter-spacing:.05em">登録する</button>
     <p id="reg-err" class="text-xs text-center mt-3" style="color:#DC2626;display:none">氏名と属性は必須です</p>
   </div>
 </div>
@@ -527,7 +551,7 @@ function editPartner(id) {
   var title = document.getElementById('reg-form-title');
   if (title) title.textContent = p.name + ' さんを編集';
   var btn = document.getElementById('reg-submit-btn');
-  if (btn) btn.textContent = '変更を保存する';
+  if (btn) { btn.textContent = '変更を保存する'; btn.style.borderRadius='50px'; }
 
   gotoView('partner-reg');
 }
@@ -619,7 +643,7 @@ function buildSteps() {
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">避けたい条件は<br>ありますか？</h2>' +
       '<p class="text-sm mb-5" style="color:#6B7280">複数選択可・スキップも可能です</p>' +
       '<div class="flex flex-col gap-2.5 mb-6" id="ng-wrap"></div>' +
-      '<button onclick="go(5)" class="w-full h-14 rounded-2xl font-bold text-base text-white" style="background:#006241;box-shadow:0 4px 20px rgba(0,98,65,.4)">次へ進む</button>' +
+      '<button onclick="go(5)" class="w-full h-14 rounded-2xl font-bold text-base text-white" style="background:#1E3932;border-radius:50px;letter-spacing:.05em">次へ進む</button>' +
     '</div>' +
     '<!-- step5: 場所・予算 -->' +
     '<div id="step5" class="px-5 pt-5 pb-6 hidden">' +
@@ -658,7 +682,7 @@ function buildSteps() {
       '</div>' +
       '<div class="px-4 pt-5 pb-4" style="background:#F0EBE1"><div id="result-cards" class="flex flex-col gap-4"></div></div>' +
       '<div class="px-4 pt-2 pb-4" style="background:#F0EBE1">' +
-        '<button onclick="goBack()" class="w-full py-3.5 rounded-2xl text-sm font-bold border-2" style="border-color:#D9CBBA;color:#6B7280;background:#fff">ホームに戻る</button>' +
+        '<button onclick="goBack()" class="w-full py-3.5 rounded-2xl text-sm font-bold border-2" style="border:1.5px solid #1E3932;color:#1E3932;background:#fff;border-radius:50px;letter-spacing:.04em">ホームに戻る</button>' +
       '</div>' +
     '</div>';
 }
@@ -950,7 +974,7 @@ function toggleNG(btn){
 }
 function selArea(btn){ document.querySelectorAll('.area-chip').forEach(function(b){ b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A'; }); btn.style.background='#1E3932'; btn.style.borderColor='#1E3932'; btn.style.color='#D4E9E2'; S.area=btn.dataset.area; S.lat=null; S.lng=null; gpsReset(); tryS5(); }
 function selBudget(btn){ document.querySelectorAll('.bdg-chip').forEach(function(b){ b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A'; }); btn.style.background='#CBA258'; btn.style.borderColor='#9A7830'; btn.style.color='#1A1A1A'; S.budgetMin=parseInt(btn.dataset.min)||0; S.budgetMax=parseInt(btn.dataset.max)||99999; S.budgetLabel=btn.dataset.bdg; tryS5(); }
-function tryS5(){ if(!S.area||S.budgetLabel===undefined||!S.budgetLabel) return; var nb=document.getElementById('s5next'); if(!nb)return; nb.disabled=false; nb.style.background='#006241'; nb.style.color='#fff'; nb.style.cursor='pointer'; nb.style.boxShadow='0 4px 20px rgba(0,98,65,.42)'; }
+function tryS5(){ if(!S.area||S.budgetLabel===undefined||!S.budgetLabel) return; var nb=document.getElementById('s5next'); if(!nb)return; nb.disabled=false; nb.style.background='#1E3932'; nb.style.color='#fff'; nb.style.cursor='pointer'; nb.style.borderRadius='50px'; nb.style.letterSpacing='.05em'; nb.style.boxShadow='none'; }
 
 /* ─── 現在地取得ヘルパー ─── */
 function _gpsEl(id) { return document.getElementById(id); }
