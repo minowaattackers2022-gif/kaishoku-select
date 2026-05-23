@@ -346,7 +346,7 @@ var cur = 1;
 
 // ═══════════════ GOOGLE スプレッドシート連携 ═══════════════
 // ▼ デプロイ後にURLをここに貼り付ける（空のままでも動作します）
-var GAS_URL = '';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbwQ_RWBnFymOWYhvsqvDVqf0iflvijW2GyLg151IH51L_xk_siEr-j0xRfs3tTSSPGHgA/exec';
 
 function sendToSheets(data) {
   if (!GAS_URL) return Promise.resolve({ skipped: true });
