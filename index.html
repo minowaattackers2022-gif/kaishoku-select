@@ -129,7 +129,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
 <!-- ═══ VIEW: 相手登録 ═══ -->
 <div id="view-partner-reg" class="view" style="padding-bottom:32px">
   <div class="px-5 pt-5 pb-6">
-    <p class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">相手を登録する</p>
+    <p id="reg-form-title" class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">相手を登録する</p>
     <h2 class="font-serif text-2xl font-bold leading-tight mb-5" style="color:#1E3932">どんな相手ですか？</h2>
 
     <div class="flex flex-col gap-4">
@@ -185,9 +185,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
       </div>
     </div>
 
-    <button onclick="savePartner()" class="w-full h-14 rounded-2xl font-bold text-base text-white mt-6" style="background:#006241;box-shadow:0 4px 20px rgba(0,98,65,.4)">
-      登録する
-    </button>
+    <button id="reg-submit-btn" onclick="savePartner()" class="w-full h-14 rounded-2xl font-bold text-base text-white mt-6" style="background:#006241;box-shadow:0 4px 20px rgba(0,98,65,.4)">登録する</button>
     <p id="reg-err" class="text-xs text-center mt-3" style="color:#DC2626;display:none">氏名と属性は必須です</p>
   </div>
 </div>
@@ -234,13 +232,12 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
       </div>
       <div>
         <p class="text-sm font-bold mb-2" style="color:#1E3932">評価</p>
-        <div class="flex gap-2">
+        <div class="flex gap-2" id="pm-rating-group">
           <button class="out-chip" data-val="5" onclick="selRegChip(this,'pm-rating-group','pm_rating')">最高</button>
           <button class="out-chip" data-val="4" onclick="selRegChip(this,'pm-rating-group','pm_rating')">良かった</button>
           <button class="out-chip" data-val="3" onclick="selRegChip(this,'pm-rating-group','pm_rating')">普通</button>
           <button class="out-chip" data-val="2" onclick="selRegChip(this,'pm-rating-group','pm_rating')">イマイチ</button>
         </div>
-        <div id="pm-rating-group" style="display:none"></div>
       </div>
     </div>
 
@@ -382,21 +379,23 @@ function renderHome() {
       '</div>' +
       (p.ng || p.memo ? '<div style="margin-top:8px;padding:6px 10px;border-radius:8px;background:#FBF8F3;font-size:11px;color:#6B7280">' +
         (p.ng ? 'NG: ' + p.ng + ' ' : '') + (p.memo ? p.memo : '') + '</div>' : '') +
+      '<div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #F0EBE1">' +
+        '<button onclick="startConcierge(\'' + p.id + '\')" style="flex:1;padding:8px;background:#006241;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">この相手で計画する</button>' +
+        '<button onclick="editPartner(\'' + p.id + '\')" style="padding:8px 12px;background:#EBF5F0;color:#006241;border:1px solid #D4E9E2;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">編集</button>' +
+        '<button onclick="deletePartner(\'' + p.id + '\')" style="padding:8px 12px;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">削除</button>' +
+      '</div>' +
     '</div>';
   }).join('');
 }
 
 // ═══════════════ PARTNER CRUD ═══════════════
 function selRegChip(btn, groupId, stateKey) {
-  var group = document.getElementById(groupId);
-  if (group) {
-    group.querySelectorAll('.pcard, .out-chip').forEach(function(b){ b.classList.remove('sel'); });
-  } else {
-    btn.parentElement.querySelectorAll('.pcard, .out-chip').forEach(function(b){ b.classList.remove('sel'); });
-  }
+  // グループ内の全ボタンから sel を外す
+  btn.parentElement.querySelectorAll('button').forEach(function(b){ b.classList.remove('sel'); });
   btn.classList.add('sel');
-  REG[stateKey] = btn.dataset.val;
-  PM[stateKey] = btn.dataset.val;
+  // REG か PM どちらに書くかをキーの先頭で判断
+  if (stateKey.indexOf('pm_') === 0) { PM[stateKey] = btn.dataset.val; }
+  else                               { REG[stateKey] = btn.dataset.val; }
 }
 
 function savePartner() {
@@ -407,26 +406,98 @@ function savePartner() {
   }
   document.getElementById('reg-err').style.display = 'none';
   var partners = loadPartners();
-  var p = {
-    id: 'p' + Date.now(),
-    name: name,
-    company: document.getElementById('p-company').value.trim(),
-    role: document.getElementById('p-role').value.trim(),
-    type: REG.p_type,
-    status: REG.p_status || '初回',
-    atmosphere: REG.p_atm,
-    ng: document.getElementById('p-ng').value.trim(),
-    memo: document.getElementById('p-memo').value.trim(),
-    lastMet: '', lastRestaurant:'', nextGoal:'',
-    createdAt: new Date().toISOString().slice(0,10)
-  };
-  partners.push(p);
+
+  // 編集モードか新規登録かを判断
+  var editId = document.getElementById('view-partner-reg').dataset.editId || '';
+  var today = new Date().toISOString().slice(0,10);
+
+  if (editId) {
+    // 既存の相手を編集
+    var idx = partners.findIndex(function(x){ return x.id === editId; });
+    if (idx >= 0) {
+      partners[idx].name      = name;
+      partners[idx].company   = document.getElementById('p-company').value.trim();
+      partners[idx].role      = document.getElementById('p-role').value.trim();
+      partners[idx].type      = REG.p_type      || partners[idx].type;
+      partners[idx].status    = REG.p_status    || partners[idx].status;
+      partners[idx].atmosphere= REG.p_atm       || partners[idx].atmosphere;
+      partners[idx].ng        = document.getElementById('p-ng').value.trim();
+      partners[idx].memo      = document.getElementById('p-memo').value.trim();
+    }
+  } else {
+    // 新規登録
+    partners.push({
+      id: 'p' + Date.now(),
+      name: name,
+      company: document.getElementById('p-company').value.trim(),
+      role: document.getElementById('p-role').value.trim(),
+      type: REG.p_type,
+      status: REG.p_status || '初回',
+      atmosphere: REG.p_atm || '',
+      ng: document.getElementById('p-ng').value.trim(),
+      memo: document.getElementById('p-memo').value.trim(),
+      lastMet: '', lastRestaurant: '', nextGoal: '',
+      createdAt: today
+    });
+  }
+
   savePartners(partners);
-  // フォームリセット
-  ['p-name','p-company','p-role','p-ng','p-memo'].forEach(function(id){ document.getElementById(id).value=''; });
-  document.querySelectorAll('#view-partner-reg .pcard, #view-partner-reg .out-chip').forEach(function(b){ b.classList.remove('sel'); });
-  REG = { p_type:'', p_status:'', p_atm:'' };
+  resetPartnerForm();
   gotoView('home');
+}
+
+function resetPartnerForm() {
+  ['p-name','p-company','p-role','p-ng','p-memo'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.querySelectorAll('#view-partner-reg button').forEach(function(b){ b.classList.remove('sel'); });
+  REG = { p_type:'', p_status:'', p_atm:'' };
+  document.getElementById('view-partner-reg').dataset.editId = '';
+  var title = document.getElementById('reg-form-title');
+  if (title) title.textContent = '相手を登録する';
+  var btn = document.getElementById('reg-submit-btn');
+  if (btn) btn.textContent = '登録する';
+}
+
+function deletePartner(id) {
+  if (!confirm('この相手を削除しますか？（会食履歴も一緒に削除されます）')) return;
+  var partners = loadPartners().filter(function(p){ return p.id !== id; });
+  savePartners(partners);
+  var meetings = loadMeetings().filter(function(m){ return m.partnerId !== id; });
+  saveMeetings(meetings);
+  renderHome();
+}
+
+function editPartner(id) {
+  var partners = loadPartners();
+  var p = partners.find(function(x){ return x.id === id; });
+  if (!p) return;
+
+  resetPartnerForm();
+  document.getElementById('view-partner-reg').dataset.editId = id;
+  document.getElementById('p-name').value    = p.name    || '';
+  document.getElementById('p-company').value = p.company || '';
+  document.getElementById('p-role').value    = p.role    || '';
+  document.getElementById('p-ng').value      = p.ng      || '';
+  document.getElementById('p-memo').value    = p.memo    || '';
+
+  // チップを復元
+  function restoreChip(groupSel, val) {
+    document.querySelectorAll(groupSel + ' button').forEach(function(b){
+      if (b.dataset.val === val) b.classList.add('sel');
+    });
+  }
+  if (p.type)       { REG.p_type   = p.type;       restoreChip('#p-type-group',   p.type); }
+  if (p.status)     { REG.p_status = p.status;     restoreChip('#p-status-group', p.status); }
+  if (p.atmosphere) { REG.p_atm    = p.atmosphere; restoreChip('#p-atm-group',    p.atmosphere); }
+
+  var title = document.getElementById('reg-form-title');
+  if (title) title.textContent = p.name + ' さんを編集';
+  var btn = document.getElementById('reg-submit-btn');
+  if (btn) btn.textContent = '変更を保存する';
+
+  gotoView('partner-reg');
 }
 
 // ═══════════════ START CONCIERGE ═══════════════
