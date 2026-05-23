@@ -26,7 +26,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
 .chip{transition:background .12s,border-color .12s,color .12s;user-select:none;cursor:pointer}
 .chip:active{opacity:.75}
 
-/* 相手・目的・空気感 選択カード */
+/* パートナー・目的・空気感 選択カード */
 .pcard{transition:border-color .13s,background .13s;border:1.5px solid #D9CFC5;background:#fff;border-radius:4px}
 .pcard:active{opacity:.8}
 .pcard.sel{background:#EBF5F0;border-color:#1E3932;border-width:2px}
@@ -56,7 +56,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
 /* 進行バー */
 .pgline{transition:background .4s}
 
-/* 相手カード */
+/* パートナーカード */
 .partner-card{background:#fff;border:1px solid #D9CFC5;border-radius:4px;padding:16px;cursor:pointer;transition:border-color .13s;animation:slideUp .3s ease both}
 .partner-card:active{opacity:.8}
 
@@ -106,7 +106,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
     <div class="flex gap-4">
       <div style="text-align:center">
         <p id="stat-partners" class="font-bold text-xl" style="color:#D4E9E2">0</p>
-        <p style="font-size:10px;color:rgba(212,233,226,.6)">登録中の相手</p>
+        <p style="font-size:10px;color:rgba(212,233,226,.6)">登録中のパートナー</p>
       </div>
       <div style="width:1px;background:rgba(212,233,226,.2)"></div>
       <div style="text-align:center">
@@ -128,15 +128,15 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
         新しい会食を計画
       </button>
       <button onclick="gotoView('partner-reg')" class="flex-1 py-3.5 rounded-2xl font-bold text-sm" style="background:#fff;border:1.5px solid #1E3932;color:#1E3932;border-radius:50px;letter-spacing:.05em">
-        相手を登録
+        パートナーを登録
       </button>
     </div>
   </div>
 
-  <!-- 相手一覧 -->
+  <!-- パートナー一覧 -->
   <div class="px-5">
     <div class="flex items-center justify-between mb-3">
-      <p class="font-bold text-sm" style="color:#1E3932">登録済みの相手</p>
+      <p class="font-bold text-sm" style="color:#1E3932">登録済みのパートナー</p>
       <button onclick="gotoView('history')" class="text-xs font-medium" style="color:#006241">会食履歴を見る</button>
     </div>
     <div id="partner-list-home"></div>
@@ -145,17 +145,17 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
       <div style="width:56px;height:56px;border-radius:50%;background:#EBF5F0;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#006241" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
-      <p class="font-bold text-sm mb-1" style="color:#1E3932">まだ相手が登録されていません</p>
-      <p class="text-xs" style="color:#6B7280">相手を登録すると会食後の記録が蓄積されます</p>
+      <p class="font-bold text-sm mb-1" style="color:#1E3932">まだパートナーが登録されていません</p>
+      <p class="text-xs" style="color:#6B7280">パートナーを登録すると会食後の記録が蓄積されます</p>
     </div>
   </div>
 </div>
 
-<!-- ═══ VIEW: 相手登録 ═══ -->
+<!-- ═══ VIEW: パートナー登録 ═══ -->
 <div id="view-partner-reg" class="view" style="padding-bottom:32px">
   <div class="px-5 pt-5 pb-6">
-    <p id="reg-form-title" class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">相手を登録する</p>
-    <h2 class="font-serif text-2xl font-bold leading-tight mb-5" style="color:#1E3932">どんな相手ですか？</h2>
+    <p id="reg-form-title" class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">パートナーを登録する</p>
+    <h2 class="font-serif text-2xl font-bold leading-tight mb-5" style="color:#1E3932">どんなパートナーですか？</h2>
 
     <div class="flex flex-col gap-4">
       <div>
@@ -171,7 +171,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
         <input class="form-input" id="p-role" type="text" placeholder="例：マーケティング部長">
       </div>
       <div>
-        <p class="text-sm font-bold mb-2" style="color:#1E3932">相手の属性</p>
+        <p class="text-sm font-bold mb-2" style="color:#1E3932">パートナーの属性</p>
         <div class="flex flex-col gap-2" id="p-type-group">
           <button class="pcard p-3 text-left" data-val="役員・部長クラス" onclick="selRegChip(this,'p-type-group','p_type')"><p class="font-bold text-sm" style="color:#1A1A1A">役員・部長クラス</p></button>
           <button class="pcard p-3 text-left" data-val="新規の取引先" onclick="selRegChip(this,'p-type-group','p_type')"><p class="font-bold text-sm" style="color:#1A1A1A">新規の取引先</p></button>
@@ -225,7 +225,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
       <div class="px-4 py-3 rounded-2xl" style="background:#1E3932">
         <p class="text-xs mb-1" style="color:rgba(212,233,226,.6)">今回の会食</p>
         <p id="pm-store-label" class="font-bold" style="color:#D4E9E2">店舗名</p>
-        <p id="pm-partner-label" class="text-xs mt-1" style="color:rgba(212,233,226,.6)">相手</p>
+        <p id="pm-partner-label" class="text-xs mt-1" style="color:rgba(212,233,226,.6)">パートナー</p>
       </div>
       <div>
         <p class="text-sm font-bold mb-2" style="color:#1E3932">成果</p>
@@ -252,7 +252,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
         </div>
       </div>
       <div>
-        <p class="text-sm font-bold mb-2" style="color:#1E3932">相手の好み・新たに気づいたこと</p>
+        <p class="text-sm font-bold mb-2" style="color:#1E3932">パートナーの好み・新たに気づいたこと</p>
         <input class="form-input" id="pm-memo" type="text" placeholder="例：白ワインが好き、静かな個室を好む">
       </div>
       <div>
@@ -297,7 +297,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
     <div class="flex items-center">
       <div class="flex flex-col items-center" style="min-width:40px">
         <div id="pg1" class="w-7 h-7 rounded-full flex items-center justify-center font-bold border-2" style="font-size:11px;background:#006241;border-color:#006241;color:#fff">1</div>
-        <p id="lb1" style="font-size:9px;margin-top:3px;font-weight:700;color:#006241">相手</p>
+        <p id="lb1" style="font-size:9px;margin-top:3px;font-weight:700;color:#006241">パートナー</p>
       </div>
       <div id="ln1" class="pgline flex-1 h-px mb-3" style="background:#006241"></div>
       <div class="flex flex-col items-center" style="min-width:40px">
@@ -431,7 +431,7 @@ function syncAllToSheets() {
 }
 
 // ═══════════════ VIEW NAVIGATION ═══════════════
-var VIEW_TITLES = { home:'会食コンシェルジュ', 'partner-reg':'相手を登録', 'post-meeting':'会食後の記録', history:'会食履歴', concierge:'会食を計画' };
+var VIEW_TITLES = { home:'会食コンシェルジュ', 'partner-reg':'パートナーを登録', 'post-meeting':'会食後の記録', history:'会食履歴', concierge:'会食を計画' };
 function gotoView(v) {
   APP.prevView = APP.view;
   APP.view = v;
@@ -493,7 +493,7 @@ function renderHome() {
       (p.ng || p.memo ? '<div style="margin-top:8px;padding:6px 10px;border-radius:8px;background:#FBF8F3;font-size:11px;color:#6B7280">' +
         (p.ng ? 'NG: ' + p.ng + ' ' : '') + (p.memo ? p.memo : '') + '</div>' : '') +
       '<div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #F0EBE1">' +
-        '<button onclick="startConcierge(\'' + p.id + '\')" style="flex:1;padding:8px;background:#006241;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">この相手で計画する</button>' +
+        '<button onclick="startConcierge(\'' + p.id + '\')" style="flex:1;padding:8px;background:#006241;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">このパートナーで計画する</button>' +
         '<button onclick="editPartner(\'' + p.id + '\')" style="padding:8px 12px;background:#EBF5F0;color:#006241;border:1px solid #D4E9E2;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">編集</button>' +
         '<button onclick="deletePartner(\'' + p.id + '\')" style="padding:8px 12px;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">削除</button>' +
       '</div>' +
@@ -525,7 +525,7 @@ function savePartner() {
   var today = new Date().toISOString().slice(0,10);
 
   if (editId) {
-    // 既存の相手を編集
+    // 既存のパートナーを編集
     var idx = partners.findIndex(function(x){ return x.id === editId; });
     if (idx >= 0) {
       partners[idx].name      = name;
@@ -569,13 +569,13 @@ function resetPartnerForm() {
   REG = { p_type:'', p_status:'', p_atm:'' };
   document.getElementById('view-partner-reg').dataset.editId = '';
   var title = document.getElementById('reg-form-title');
-  if (title) title.textContent = '相手を登録する';
+  if (title) title.textContent = 'パートナーを登録する';
   var btn = document.getElementById('reg-submit-btn');
   if (btn) btn.textContent = '登録する';
 }
 
 function deletePartner(id) {
-  if (!confirm('この相手を削除しますか？（会食履歴も一緒に削除されます）')) return;
+  if (!confirm('このパートナーを削除しますか？（会食履歴も一緒に削除されます）')) return;
   var partners = loadPartners().filter(function(p){ return p.id !== id; });
   savePartners(partners);
   var meetings = loadMeetings().filter(function(m){ return m.partnerId !== id; });
@@ -654,10 +654,10 @@ function buildSteps() {
       partner_hint +
       '<p class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">手順 01</p>' +
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">誰と会いますか？</h2>' +
-      '<p class="text-sm mb-5" style="color:#6B7280">相手に合わせて最適な店を提案します</p>' +
+      '<p class="text-sm mb-5" style="color:#6B7280">パートナーに合わせて最適な店を提案します</p>' +
       '<div class="grid grid-cols-2 gap-3">' +
-        '<button class="pcard p-4 text-left' + (S.partner==='役員・部長クラス'?' sel':'') + '" data-val="役員・部長クラス" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">役員・部長クラス</p><p class="text-xs leading-snug" style="color:#6B7280">格式・信頼感が重要な相手</p></button>' +
-        '<button class="pcard p-4 text-left' + (S.partner==='新規の取引先'?' sel':'') + '" data-val="新規の取引先" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">新規の取引先</p><p class="text-xs leading-snug" style="color:#6B7280">初対面・まだ距離がある相手</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='役員・部長クラス'?' sel':'') + '" data-val="役員・部長クラス" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">役員・部長クラス</p><p class="text-xs leading-snug" style="color:#6B7280">格式・信頼感が重要なパートナー</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='新規の取引先'?' sel':'') + '" data-val="新規の取引先" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">新規の取引先</p><p class="text-xs leading-snug" style="color:#6B7280">初対面・まだ距離があるパートナー</p></button>' +
         '<button class="pcard p-4 text-left' + (S.partner==='経営者仲間'?' sel':'') + '" data-val="経営者仲間" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">経営者仲間</p><p class="text-xs leading-snug" style="color:#6B7280">対等・互いに価値ある関係</p></button>' +
         '<button class="pcard p-4 text-left' + (S.partner==='採用候補'?' sel':'') + '" data-val="採用候補" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">採用候補</p><p class="text-xs leading-snug" style="color:#6B7280">入社意思を高める場</p></button>' +
         '<button class="pcard p-4 text-left' + (S.partner==='インフルエンサー'?' sel':'') + '" data-val="インフルエンサー" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">インフルエンサー</p><p class="text-xs leading-snug" style="color:#6B7280">発信力・SNS連携が鍵</p></button>' +
@@ -684,7 +684,7 @@ function buildSteps() {
       '<div id="badge3" class="mb-4"></div>' +
       '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 03</p>' +
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">どんな空気感に<br>したいですか？</h2>' +
-      '<p class="text-sm mb-5" style="color:#6B7280">相手に与えたい印象を選んでください</p>' +
+      '<p class="text-sm mb-5" style="color:#6B7280">パートナーに与えたい印象を選んでください</p>' +
       '<div class="grid grid-cols-2 gap-3">' +
         '<button class="pcard p-4 text-left' + (S.atmosphere==='堅め・格式高く'?' sel':'') + '" data-val="堅め・格式高く" onclick="selOne(this,\'atmosphere\',4)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">堅め・格式高く</p><p class="text-xs leading-snug" style="color:#6B7280">信頼感・本気度を示す</p></button>' +
         '<button class="pcard p-4 text-left' + (S.atmosphere==='上品でカジュアル'?' sel':'') + '" data-val="上品でカジュアル" onclick="selOne(this,\'atmosphere\',4)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">上品でカジュアル</p><p class="text-xs leading-snug" style="color:#6B7280">距離感をほどよく縮める</p></button>' +
@@ -735,7 +735,7 @@ function buildSteps() {
     '<div id="step6" class="hidden pb-8">' +
       '<div class="px-5 pt-5 pb-5" style="background:#1E3932">' +
         '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 06 — 即決提案</p>' +
-        '<h2 class="font-serif text-xl font-bold leading-tight mb-3" style="color:#fff">今回の相手なら<br><em style="font-style:normal;color:#D4E9E2">この3店</em>が最適です</h2>' +
+        '<h2 class="font-serif text-xl font-bold leading-tight mb-3" style="color:#fff">今回のパートナーなら<br><em style="font-style:normal;color:#D4E9E2">この3店</em>が最適です</h2>' +
         '<div id="s6badges" class="flex flex-wrap gap-1.5"></div>' +
       '</div>' +
       '<div class="px-4 pt-5 pb-4" style="background:#F0EBE1"><div id="result-cards" class="flex flex-col gap-4"></div></div>' +
@@ -773,20 +773,39 @@ function selOne(btn, field, nextStep) {
 
 // ═══════════════ RESULTS ═══════════════
 // (DB + scoring — same as concierge version)
-var DB=[{name:"麻布 真田",area:"六本木・麻布",loc:"麻布十番駅 徒歩3分",genre:"日本料理・割烹",budget:"18,000円〜",budgetNum:18000,hook:"完全防音の個室で密談に最適。格式ある雰囲気で相手への敬意を伝えられる",partners:["役員・部長クラス","長期の取引先","経営者仲間"],purposes:["受注後の深耕","単価アップの布石","紹介のお礼"],atmosphere:["堅め・格式高く","安心感を重視","会話がしやすい"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:8,tk:"麻布十番 割烹 個室 接待",ig:"麻布十番グルメ",hasTikTok:true,hasInstagram:true},{name:"六本木 銀狐",area:"六本木・麻布",loc:"六本木駅 徒歩2分",genre:"現代フランス料理",budget:"22,000円〜",budgetNum:22000,hook:"東京タワーを望む最上階テラス。選んだセンスが相手に自然に伝わる空間",partners:["インフルエンサー","経営者仲間","長期の取引先"],purposes:["関係を深める","単価アップの布石"],atmosphere:["感度の高い店","距離が縮まる"],areas:["六本木・麻布","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:30",maxPax:12,tk:"六本木 夜景 フレンチ 飯テロ",ig:"六本木グルメ",hasTikTok:true,hasInstagram:true},{name:"西麻布 杉乃屋",area:"六本木・麻布",loc:"広尾駅 徒歩8分",genre:"懐石料理",budget:"25,000円〜",budgetNum:25000,hook:"路地裏の完全隠れ家。「なぜこの店を知っているのか」と相手が唸る特別感",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["単価アップの布石","紹介のお礼","受注後の深耕"],atmosphere:["堅め・格式高く","安心感を重視"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:6,tk:"西麻布 懐石 隠れ家",ig:"西麻布グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"麻布 Cielo",area:"六本木・麻布",loc:"麻布十番駅 徒歩5分",genre:"イタリア料理",budget:"12,000円〜",budgetNum:12000,hook:"心理的負担が少ない単価感と自然にSNS投稿が生まれるオープンな雰囲気",partners:["インフルエンサー","新規の取引先","採用候補"],purposes:["関係を深める","採用の場"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["六本木・麻布","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:false,smoke:true,stairs:true,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"麻布十番 イタリア料理 映え 飯テロ",ig:"麻布十番グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"六本木 月夜",area:"六本木・麻布",loc:"六本木駅 徒歩4分",genre:"鉄板焼き",budget:"20,000円〜",budgetNum:20000,hook:"目の前で焼き上げる演出が会話のきっかけに。特別な体験で距離が縮まる",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["受注後の深耕","単価アップの布石"],atmosphere:["堅め・格式高く","距離が縮まる"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"六本木 鉄板焼き 接待",ig:"六本木グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"恵比寿 木の葉",area:"恵比寿・中目黒",loc:"恵比寿駅 徒歩5分",genre:"和食・個室",budget:"15,000円〜",budgetNum:15000,hook:"完全個室で商談が弾む。穏やかな和の空間が初対面の緊張を自然に和らげる",partners:["役員・部長クラス","長期の取引先","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["上品でカジュアル","安心感を重視","会話がしやすい"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"恵比寿 和食 個室 接待",ig:"恵比寿グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"中目黒 HARU",area:"恵比寿・中目黒",loc:"中目黒駅 徒歩3分",genre:"現代フランス料理",budget:"16,000円〜",budgetNum:16000,hook:"目黒川沿いテラスと料理の彩りが自然な会話を生む",partners:["インフルエンサー","採用候補","新規の取引先"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:true,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"中目黒 フレンチ テラス 映え",ig:"中目黒グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"中目黒 静流",area:"恵比寿・中目黒",loc:"中目黒駅 徒歩6分",genre:"日本料理",budget:"20,000円〜",budgetNum:20000,hook:"完全予約制・防音完璧の静寂個室。声が外に漏れない安心感で本音を引き出せる",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["受注後の深耕","単価アップの布石"],atmosphere:["堅め・格式高く","安心感を重視"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:6,tk:"中目黒 日本料理 個室",ig:"中目黒グルメ",hasTikTok:false,hasInstagram:false,hasTikTok:false,hasInstagram:false},{name:"銀座 黒田",area:"銀座・丸の内",loc:"銀座駅 徒歩2分",genre:"鮨",budget:"30,000円〜",budgetNum:30000,hook:"格式と信頼感が圧倒的。重要な相手への最大限の敬意を示せる店",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["単価アップの布石","紹介のお礼","受注後の深耕"],atmosphere:["堅め・格式高く"],areas:["銀座・丸の内","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-22:00",maxPax:8,tk:"銀座 鮨 高級 接待",ig:"銀座グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"丸の内 FORZA",area:"銀座・丸の内",loc:"東京駅 徒歩4分",genre:"欧風料理",budget:"18,000円〜",budgetNum:18000,hook:"ビジネス街の正統派接待店。初対面の相手にも安心感と信頼感を伝えられる",partners:["役員・部長クラス","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["堅め・格式高く","上品でカジュアル","安心感を重視"],areas:["銀座・丸の内","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"11:30-23:00",maxPax:30,tk:"丸の内 欧風料理 接待",ig:"丸の内グルメ",hasTikTok:false,hasInstagram:true},{name:"新宿 夜桜",area:"新宿",loc:"西新宿駅 徒歩3分",genre:"割烹・個室",budget:"15,000円〜",budgetNum:15000,hook:"個室で話しやすく格式もある。初回商談でもまた来たいと思わせる品格",partners:["新規の取引先","役員・部長クラス"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["上品でカジュアル","安心感を重視"],areas:["新宿","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"17:30-23:00",maxPax:15,tk:"新宿 割烹 個室 接待",ig:"新宿グルメ",hasTikTok:false,hasInstagram:true},{name:"表参道 BLANC",area:"渋谷・表参道",loc:"表参道駅 徒歩3分",genre:"現代フランス料理",budget:"18,000円〜",budgetNum:18000,hook:"ファッション誌でも紹介される洗練空間。選んだセンスが相手に自然に伝わる",partners:["インフルエンサー","採用候補","新規の取引先"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["渋谷・表参道","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"表参道 フレンチ 映え",ig:"表参道グルメ",hasTikTok:true,hasInstagram:true},{name:"渋谷 ROOT",area:"渋谷・表参道",loc:"渋谷駅 徒歩5分",genre:"創作和食",budget:"12,000円〜",budgetNum:12000,hook:"料理の盛り付けが会話のきっかけになる。若手採用候補に好印象を与えやすい",partners:["インフルエンサー","採用候補","経営者仲間"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル","距離が縮まる"],areas:["渋谷・表参道","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:false,smoke:true,stairs:false,casual:false,dress:false},reservation:true,hours:"18:00-23:00",maxPax:20,tk:"渋谷 創作和食 SNS映え",ig:"渋谷グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"品川 風雅",area:"品川・天王洲",loc:"品川駅 徒歩5分",genre:"日本料理・個室",budget:"16,000円〜",budgetNum:16000,hook:"新幹線移動の前後にも最適。静かな個室で相手の話にじっくり向き合える",partners:["役員・部長クラス","長期の取引先","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める","受注後の深耕"],atmosphere:["堅め・格式高く","安心感を重視","会話がしやすい"],areas:["品川・天王洲","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"品川 日本料理 個室 接待",ig:"品川グルメ",hasTikTok:false,hasInstagram:true}];
+var DB=[{name:"麻布 真田",area:"六本木・麻布",loc:"麻布十番駅 徒歩3分",genre:"日本料理・割烹",budget:"18,000円〜",budgetNum:18000,hook:"完全防音の個室で密談に最適。格式ある雰囲気でパートナーへの敬意を伝えられる",partners:["役員・部長クラス","長期の取引先","経営者仲間"],purposes:["受注後の深耕","単価アップの布石","紹介のお礼"],atmosphere:["堅め・格式高く","安心感を重視","会話がしやすい"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:8,tk:"麻布十番 割烹 個室 接待",ig:"麻布十番グルメ",hasTikTok:true,hasInstagram:true},{name:"六本木 銀狐",area:"六本木・麻布",loc:"六本木駅 徒歩2分",genre:"現代フランス料理",budget:"22,000円〜",budgetNum:22000,hook:"東京タワーを望む最上階テラス。選んだセンスがパートナーに自然に伝わる空間",partners:["インフルエンサー","経営者仲間","長期の取引先"],purposes:["関係を深める","単価アップの布石"],atmosphere:["感度の高い店","距離が縮まる"],areas:["六本木・麻布","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:30",maxPax:12,tk:"六本木 夜景 フレンチ 飯テロ",ig:"六本木グルメ",hasTikTok:true,hasInstagram:true},{name:"西麻布 杉乃屋",area:"六本木・麻布",loc:"広尾駅 徒歩8分",genre:"懐石料理",budget:"25,000円〜",budgetNum:25000,hook:"路地裏の完全隠れ家。「なぜこの店を知っているのか」とパートナーが唸る特別感",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["単価アップの布石","紹介のお礼","受注後の深耕"],atmosphere:["堅め・格式高く","安心感を重視"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:6,tk:"西麻布 懐石 隠れ家",ig:"西麻布グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"麻布 Cielo",area:"六本木・麻布",loc:"麻布十番駅 徒歩5分",genre:"イタリア料理",budget:"12,000円〜",budgetNum:12000,hook:"心理的負担が少ない単価感と自然にSNS投稿が生まれるオープンな雰囲気",partners:["インフルエンサー","新規の取引先","採用候補"],purposes:["関係を深める","採用の場"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["六本木・麻布","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:false,smoke:true,stairs:true,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"麻布十番 イタリア料理 映え 飯テロ",ig:"麻布十番グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"六本木 月夜",area:"六本木・麻布",loc:"六本木駅 徒歩4分",genre:"鉄板焼き",budget:"20,000円〜",budgetNum:20000,hook:"目の前で焼き上げる演出が会話のきっかけに。特別な体験で距離が縮まる",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["受注後の深耕","単価アップの布石"],atmosphere:["堅め・格式高く","距離が縮まる"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"六本木 鉄板焼き 接待",ig:"六本木グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"恵比寿 木の葉",area:"恵比寿・中目黒",loc:"恵比寿駅 徒歩5分",genre:"和食・個室",budget:"15,000円〜",budgetNum:15000,hook:"完全個室で商談が弾む。穏やかな和の空間が初対面の緊張を自然に和らげる",partners:["役員・部長クラス","長期の取引先","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["上品でカジュアル","安心感を重視","会話がしやすい"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"恵比寿 和食 個室 接待",ig:"恵比寿グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"中目黒 HARU",area:"恵比寿・中目黒",loc:"中目黒駅 徒歩3分",genre:"現代フランス料理",budget:"16,000円〜",budgetNum:16000,hook:"目黒川沿いテラスと料理の彩りが自然な会話を生む",partners:["インフルエンサー","採用候補","新規の取引先"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:true,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"中目黒 フレンチ テラス 映え",ig:"中目黒グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"中目黒 静流",area:"恵比寿・中目黒",loc:"中目黒駅 徒歩6分",genre:"日本料理",budget:"20,000円〜",budgetNum:20000,hook:"完全予約制・防音完璧の静寂個室。声が外に漏れない安心感で本音を引き出せる",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["受注後の深耕","単価アップの布石"],atmosphere:["堅め・格式高く","安心感を重視"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:6,tk:"中目黒 日本料理 個室",ig:"中目黒グルメ",hasTikTok:false,hasInstagram:false,hasTikTok:false,hasInstagram:false},{name:"銀座 黒田",area:"銀座・丸の内",loc:"銀座駅 徒歩2分",genre:"鮨",budget:"30,000円〜",budgetNum:30000,hook:"格式と信頼感が圧倒的。重要なパートナーへの最大限の敬意を示せる店",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["単価アップの布石","紹介のお礼","受注後の深耕"],atmosphere:["堅め・格式高く"],areas:["銀座・丸の内","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-22:00",maxPax:8,tk:"銀座 鮨 高級 接待",ig:"銀座グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"丸の内 FORZA",area:"銀座・丸の内",loc:"東京駅 徒歩4分",genre:"欧風料理",budget:"18,000円〜",budgetNum:18000,hook:"ビジネス街の正統派接待店。初対面のパートナーにも安心感と信頼感を伝えられる",partners:["役員・部長クラス","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["堅め・格式高く","上品でカジュアル","安心感を重視"],areas:["銀座・丸の内","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"11:30-23:00",maxPax:30,tk:"丸の内 欧風料理 接待",ig:"丸の内グルメ",hasTikTok:false,hasInstagram:true},{name:"新宿 夜桜",area:"新宿",loc:"西新宿駅 徒歩3分",genre:"割烹・個室",budget:"15,000円〜",budgetNum:15000,hook:"個室で話しやすく格式もある。初回商談でもまた来たいと思わせる品格",partners:["新規の取引先","役員・部長クラス"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["上品でカジュアル","安心感を重視"],areas:["新宿","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"17:30-23:00",maxPax:15,tk:"新宿 割烹 個室 接待",ig:"新宿グルメ",hasTikTok:false,hasInstagram:true},{name:"表参道 BLANC",area:"渋谷・表参道",loc:"表参道駅 徒歩3分",genre:"現代フランス料理",budget:"18,000円〜",budgetNum:18000,hook:"ファッション誌でも紹介される洗練空間。選んだセンスがパートナーに自然に伝わる",partners:["インフルエンサー","採用候補","新規の取引先"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["渋谷・表参道","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"表参道 フレンチ 映え",ig:"表参道グルメ",hasTikTok:true,hasInstagram:true},{name:"渋谷 ROOT",area:"渋谷・表参道",loc:"渋谷駅 徒歩5分",genre:"創作和食",budget:"12,000円〜",budgetNum:12000,hook:"料理の盛り付けが会話のきっかけになる。若手採用候補に好印象を与えやすい",partners:["インフルエンサー","採用候補","経営者仲間"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル","距離が縮まる"],areas:["渋谷・表参道","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:false,smoke:true,stairs:false,casual:false,dress:false},reservation:true,hours:"18:00-23:00",maxPax:20,tk:"渋谷 創作和食 SNS映え",ig:"渋谷グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"品川 風雅",area:"品川・天王洲",loc:"品川駅 徒歩5分",genre:"日本料理・個室",budget:"16,000円〜",budgetNum:16000,hook:"新幹線移動の前後にも最適。静かな個室でパートナーの話にじっくり向き合える",partners:["役員・部長クラス","長期の取引先","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める","受注後の深耕"],atmosphere:["堅め・格式高く","安心感を重視","会話がしやすい"],areas:["品川・天王洲","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"品川 日本料理 個室 接待",ig:"品川グルメ",hasTikTok:false,hasInstagram:true}];
 
 function scoreStore(s) {
   var sc = 0;
-  if (s.partners.indexOf(S.partner) >= 0)      sc += 20;
-  if (s.purposes.indexOf(S.purpose) >= 0)      sc += 15;
-  if (s.atmosphere.indexOf(S.atmosphere) >= 0) sc += 12;
+
+  // パートナーとの相性（最重要）
+  if (s.partners.indexOf(S.partner) >= 0)       sc += 25;
+
+  // 目的との一致
+  if (s.purposes.indexOf(S.purpose) >= 0)       sc += 20;
+
+  // 空気感の一致
+  if (s.atmosphere.indexOf(S.atmosphere) >= 0)  sc += 15;
+
+  // エリア一致
   var area = S.area.replace(/[都道府県]$/, '');
-  if (s.areas.some(function(a){ return a.indexOf(area)>=0 || area.indexOf(a.replace(/[都道府県]$/,''))>=0; })) sc += 10;
-  if (s.budgetNum <= S.budgetMax + 5000 && s.budgetNum >= Math.max(0, S.budgetMin - 3000)) sc += 8;
-  S.ngConds.forEach(function(ng){ if (!s.ng[ng]) sc -= 20; });
-  if (!s.reservation) sc -= 10;
-  if (!s._r) s._r = Math.random() * 3;
-  return sc + s._r;
+  if (s.areas.some(function(a) {
+    return a.indexOf(area) >= 0 || area.indexOf(a.replace(/[都道府県]$/, '')) >= 0;
+  })) sc += 12;
+
+  // 予算の適合
+  if (s.budgetNum <= S.budgetMax + 5000 && s.budgetNum >= Math.max(0, S.budgetMin - 3000)) sc += 10;
+
+  // NG条件への対応
+  S.ngConds.forEach(function(ng){ if (s.ng && !s.ng[ng]) sc -= 25; });
+
+  // 予約可能
+  if (!s.reservation) sc -= 12;
+
+  // 同点時の微小シャッフル
+  sc += s._r || 0;
+
+  return sc;
 }
 function isOpen(s) {
   if (!s.reservation) return false;
@@ -797,6 +816,9 @@ function isOpen(s) {
   return nowM < closeM - 60 || nowM < openM;
 }
 function getTop3() {
+  // 同スコアの店だけ微小にシャッフル（ベスト3の順位は条件一致度が最優先）
+  DB.forEach(function(s) { s._r = Math.random() * 1.5; });
+
   var area = S.area.replace(/[都道府県]$/, '');
 
   // ① エリア一致で候補を絞る（3件未満なら全DBに広げる）
@@ -914,8 +936,8 @@ function renderResults() {
 function openPostMeeting(storeName) {
   PM = { pm_outcome:'', pm_next:'', pm_rating:'', storeName:storeName, partnerId: APP.selectedPartner ? APP.selectedPartner.id : '', editMeetingId:'' };
   document.getElementById('pm-store-label').textContent = storeName;
-  var partnerName = APP.selectedPartner ? APP.selectedPartner.name : '（相手未選択）';
-  document.getElementById('pm-partner-label').textContent = '相手: ' + partnerName;
+  var partnerName = APP.selectedPartner ? APP.selectedPartner.name : '（パートナー未選択）';
+  document.getElementById('pm-partner-label').textContent = 'パートナー: ' + partnerName;
   document.querySelectorAll('#view-post-meeting .out-chip').forEach(function(b){ b.classList.remove('sel'); });
   document.getElementById('pm-topics').value = '';
   document.getElementById('pm-memo').value = '';
@@ -938,7 +960,7 @@ function saveMeeting() {
     }
     saveMeetings(meetings);
 
-    // 相手の次回の狙いも更新
+    // パートナーの次回の狙いも更新
     if (PM.pm_next && meetings[idx] && meetings[idx].partnerId) {
       var partners = loadPartners();
       var pi = partners.findIndex(function(p){ return p.id === meetings[idx].partnerId; });
@@ -965,7 +987,7 @@ function saveMeeting() {
     });
     saveMeetings(meetings);
 
-    // 相手の最終会食日・利用店・次回の狙いを更新
+    // パートナーの最終会食日・利用店・次回の狙いを更新
     if (APP.selectedPartner) {
       var partners = loadPartners();
       var pi = partners.findIndex(function(p){ return p.id === APP.selectedPartner.id; });
@@ -1001,7 +1023,7 @@ function renderHistory() {
       + '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">'
         + '<div style="flex:1;min-width:0;padding-right:8px">'
           + '<p style="font-weight:700;font-size:14px;color:#1E3932">' + (m.restaurant || '店舗未記録') + '</p>'
-          + '<p style="font-size:11px;color:#6B7280;margin-top:2px">' + (m.date || '') + ' · ' + (m.partnerName || '相手未選択') + '</p>'
+          + '<p style="font-size:11px;color:#6B7280;margin-top:2px">' + (m.date || '') + ' · ' + (m.partnerName || 'パートナー未選択') + '</p>'
         + '</div>'
         + outcomeHtml
       + '</div>'
@@ -1038,7 +1060,7 @@ function editMeeting(id) {
 
   // フォームを事前入力
   document.getElementById('pm-store-label').textContent   = m.restaurant   || '';
-  document.getElementById('pm-partner-label').textContent = '相手: ' + (m.partnerName || '未設定');
+  document.getElementById('pm-partner-label').textContent = 'パートナー: ' + (m.partnerName || '未設定');
   document.getElementById('pm-topics').value = m.topics || '';
   document.getElementById('pm-memo').value   = m.memo   || '';
 
@@ -1050,7 +1072,7 @@ function editMeeting(id) {
     if (b.dataset.val === m.rating)    { b.classList.add('sel'); PM.pm_rating  = m.rating; }
   });
 
-  APP.selectedPartner = null; // 相手IDは既存データを引き継ぐ
+  APP.selectedPartner = null; // パートナーIDは既存データを引き継ぐ
   gotoView('post-meeting');
 }
 
