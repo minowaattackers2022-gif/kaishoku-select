@@ -359,6 +359,56 @@ function sendToSheets(data) {
     return { success: false };
   });
 }
+
+/* ── トースト通知 ── */
+function showToast(msg, type) {
+  var existing = document.getElementById('kc-toast');
+  if (existing) existing.remove();
+
+  var color = type === 'error' ? '#DC2626' : '#1E3932';
+  var toast = document.createElement('div');
+  toast.id = 'kc-toast';
+  toast.textContent = msg;
+  toast.style.cssText = [
+    'position:fixed', 'bottom:32px', 'left:50%',
+    'transform:translateX(-50%)',
+    'background:' + color,
+    'color:#fff',
+    'padding:12px 28px',
+    'border-radius:50px',
+    'font-size:13px',
+    'font-weight:700',
+    'letter-spacing:.05em',
+    'box-shadow:0 4px 20px rgba(0,0,0,.18)',
+    'z-index:9999',
+    'opacity:0',
+    'transition:opacity .25s ease',
+    'pointer-events:none',
+    'white-space:nowrap'
+  ].join(';');
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(function() {
+    toast.style.opacity = '1';
+    setTimeout(function() {
+      toast.style.opacity = '0';
+      setTimeout(function() { if (toast.parentNode) toast.remove(); }, 300);
+    }, 2200);
+  });
+}
+
+/* ── 自動同期（保存のたびに呼ぶ）── */
+function autoSync(data) {
+  sendToSheets(data).then(function(res) {
+    if (res && res.skipped) return; // URL未設定は無視
+    if (res && res.success) {
+      showToast('保存完了', 'success');
+    } else {
+      showToast('ローカルに保存しました（シート同期失敗）', 'error');
+    }
+  });
+}
+
 function syncAllToSheets() {
   if (!GAS_URL) {
     alert('スプレッドシートのURLが設定されていません。\nkaishoku-concierge.html の GAS_URL を設定してください。');
@@ -369,7 +419,11 @@ function syncAllToSheets() {
   sendToSheets({ type:'sync_all', partners:loadPartners(), meetings:loadMeetings() })
     .then(function(res) {
       if (btn) { btn.textContent = 'シートに同期'; btn.disabled = false; }
-      alert(res && res.success ? '同期が完了しました！' : '同期に失敗しました。URLを確認してください。');
+      if (res && res.success) {
+        showToast('スプレッドシートに同期完了', 'success');
+      } else {
+        showToast('同期に失敗しました。URLを確認してください。', 'error');
+      }
     });
 }
 
@@ -499,6 +553,7 @@ function savePartner() {
 
   savePartners(partners);
   resetPartnerForm();
+  autoSync({ type: 'sync_all', partners: loadPartners(), meetings: loadMeetings() });
   gotoView('home');
 }
 
@@ -848,6 +903,7 @@ function saveMeeting() {
       if (pi >= 0) { partners[pi].nextGoal = PM.pm_next; savePartners(partners); }
     }
     PM.editMeetingId = '';
+    autoSync({ type: 'sync_all', partners: loadPartners(), meetings: loadMeetings() });
     gotoView('history');
 
   } else {
@@ -881,6 +937,7 @@ function saveMeeting() {
       }
     }
     PM.editMeetingId = '';
+    autoSync({ type: 'sync_all', partners: loadPartners(), meetings: loadMeetings() });
     gotoView('home');
   }
 }
