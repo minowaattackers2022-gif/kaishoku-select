@@ -316,13 +316,13 @@ function saveMeetings(arr) { localStorage.setItem('kc_meetings', JSON.stringify(
 // ═══════════════ STATE ═══════════════
 var APP = { view:'home', prevView:'home', selectedPartner:null };
 var REG = { p_type:'', p_status:'', p_atm:'' };
-var PM  = { pm_outcome:'', pm_next:'', pm_rating:'', storeId:'', storeName:'', partnerId:'' };
+var PM  = { pm_outcome:'', pm_next:'', pm_rating:'', storeId:'', storeName:'', partnerId:'', editMeetingId:'' };
 var S   = { partner:'', purpose:'', atmosphere:'', ngConds:[], area:'', lat:null, lng:null, budgetMin:0, budgetMax:99999, budgetLabel:'' };
 var cur = 1;
 
 // ═══════════════ GOOGLE スプレッドシート連携 ═══════════════
 // ▼ デプロイ後にURLをここに貼り付ける（空のままでも動作します）
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbwQ_RWBnFymOWYhvsqvDVqf0iflvijW2GyLg151IH51L_xk_siEr-j0xRfs3tTSSPGHgA/exec';
+var GAS_URL = '';
 
 function sendToSheets(data) {
   if (!GAS_URL) return Promise.resolve({ skipped: true });
@@ -791,7 +791,7 @@ function renderResults() {
 
 // ═══════════════ POST MEETING ═══════════════
 function openPostMeeting(storeName) {
-  PM = { pm_outcome:'', pm_next:'', pm_rating:'', storeName:storeName, partnerId: APP.selectedPartner ? APP.selectedPartner.id : '' };
+  PM = { pm_outcome:'', pm_next:'', pm_rating:'', storeName:storeName, partnerId: APP.selectedPartner ? APP.selectedPartner.id : '', editMeetingId:'' };
   document.getElementById('pm-store-label').textContent = storeName;
   var partnerName = APP.selectedPartner ? APP.selectedPartner.name : '（相手未選択）';
   document.getElementById('pm-partner-label').textContent = '相手: ' + partnerName;
@@ -802,59 +802,135 @@ function openPostMeeting(storeName) {
 }
 function saveMeeting() {
   var meetings = loadMeetings();
-  var today = new Date().toISOString().slice(0,10);
-  meetings.push({
-    id: 'm' + Date.now(),
-    date: today,
-    partnerId: PM.partnerId,
-    partnerName: APP.selectedPartner ? APP.selectedPartner.name : '',
-    restaurant: PM.storeName,
-    purpose: S.purpose,
-    outcome: PM.pm_outcome,
-    topics: document.getElementById('pm-topics').value.trim(),
-    nextGoal: PM.pm_next,
-    memo: document.getElementById('pm-memo').value.trim(),
-    rating: PM.pm_rating
-  });
-  saveMeetings(meetings);
-  // 相手の情報を更新
-  if (PM.partnerId) {
-    var partners = loadPartners();
-    var idx = partners.findIndex(function(p){ return p.id === PM.partnerId; });
+  var today    = new Date().toISOString().slice(0, 10);
+  var isEdit   = PM.editMeetingId ? true : false;
+
+  if (isEdit) {
+    // ── 編集モード：既存レコードを上書き ──
+    var idx = meetings.findIndex(function(m) { return m.id === PM.editMeetingId; });
     if (idx >= 0) {
-      partners[idx].lastMet = today;
-      partners[idx].lastRestaurant = PM.storeName;
-      if (PM.pm_next) partners[idx].nextGoal = PM.pm_next;
-      if (document.getElementById('pm-memo').value.trim()) {
-        partners[idx].memo = (partners[idx].memo ? partners[idx].memo + ' / ' : '') + document.getElementById('pm-memo').value.trim();
-      }
-      savePartners(partners);
+      meetings[idx].outcome   = PM.pm_outcome || meetings[idx].outcome;
+      meetings[idx].topics    = document.getElementById('pm-topics').value.trim() || meetings[idx].topics;
+      meetings[idx].nextGoal  = PM.pm_next    || meetings[idx].nextGoal;
+      meetings[idx].memo      = document.getElementById('pm-memo').value.trim()   || meetings[idx].memo;
+      meetings[idx].rating    = PM.pm_rating  || meetings[idx].rating;
     }
+    saveMeetings(meetings);
+
+    // 相手の次回の狙いも更新
+    if (PM.pm_next && meetings[idx] && meetings[idx].partnerId) {
+      var partners = loadPartners();
+      var pi = partners.findIndex(function(p){ return p.id === meetings[idx].partnerId; });
+      if (pi >= 0) { partners[pi].nextGoal = PM.pm_next; savePartners(partners); }
+    }
+    PM.editMeetingId = '';
+    gotoView('history');
+
+  } else {
+    // ── 新規登録モード ──
+    meetings.push({
+      id:          'm' + Date.now(),
+      date:        today,
+      partnerId:   APP.selectedPartner ? APP.selectedPartner.id   : '',
+      partnerName: APP.selectedPartner ? APP.selectedPartner.name : '',
+      restaurant:  PM.storeName  || '',
+      purpose:     S.purpose     || '',
+      outcome:     PM.pm_outcome || '',
+      topics:      document.getElementById('pm-topics').value.trim(),
+      nextGoal:    PM.pm_next    || '',
+      memo:        document.getElementById('pm-memo').value.trim(),
+      rating:      PM.pm_rating  || ''
+    });
+    saveMeetings(meetings);
+
+    // 相手の最終会食日・利用店・次回の狙いを更新
+    if (APP.selectedPartner) {
+      var partners = loadPartners();
+      var pi = partners.findIndex(function(p){ return p.id === APP.selectedPartner.id; });
+      if (pi >= 0) {
+        partners[pi].lastMet        = today;
+        partners[pi].lastRestaurant = PM.storeName || '';
+        if (PM.pm_next) partners[pi].nextGoal = PM.pm_next;
+        var newMemo = document.getElementById('pm-memo').value.trim();
+        if (newMemo) partners[pi].memo = (partners[pi].memo ? partners[pi].memo + ' / ' : '') + newMemo;
+        savePartners(partners);
+      }
+    }
+    PM.editMeetingId = '';
+    gotoView('home');
   }
-  gotoView('home');
 }
 
 // ═══════════════ HISTORY ═══════════════
 function renderHistory() {
-  var meetings = loadMeetings().reverse();
-  var wrap = document.getElementById('history-list');
+  var meetings = loadMeetings().slice().reverse();
+  var wrap  = document.getElementById('history-list');
   var empty = document.getElementById('history-empty');
-  if (!meetings.length) { wrap.innerHTML=''; empty.style.display=''; return; }
-  empty.style.display='none';
-  wrap.innerHTML = meetings.map(function(m,i){
-    return '<div style="background:#fff;border:1px solid #E2D8C8;border-radius:16px;padding:14px;margin-bottom:12px;animation:slideUp .3s '+i*0.06+'s ease both">' +
-      '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">' +
-        '<div>' +
-          '<p style="font-weight:700;font-size:14px;color:#1E3932">'+m.restaurant+'</p>' +
-          '<p style="font-size:11px;color:#6B7280;margin-top:2px">'+m.date+' · '+( m.partnerName||'相手未選択')+'</p>' +
-        '</div>' +
-        (m.outcome?'<span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#EBF5F0;color:#006241">'+m.outcome+'</span>':'') +
-      '</div>' +
-      (m.topics?'<p style="font-size:12px;color:#6B7280">話題：'+m.topics+'</p>':'') +
-      (m.nextGoal?'<p style="font-size:12px;font-weight:700;color:#CBA258;margin-top:4px">次の狙い：'+m.nextGoal+'</p>':'') +
-    '</div>';
+  if (!meetings.length) { wrap.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  wrap.innerHTML = meetings.map(function(m, i) {
+    var outcomeHtml = m.outcome
+      ? '<span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#EBF5F0;color:#006241">' + m.outcome + '</span>'
+      : '';
+    return '<div style="background:#fff;border:1px solid #E2D8C8;border-radius:16px;padding:14px;margin-bottom:12px;animation:slideUp .3s ' + (i * 0.06) + 's ease both">'
+      // ── ヘッダー行 ──
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">'
+        + '<div style="flex:1;min-width:0;padding-right:8px">'
+          + '<p style="font-weight:700;font-size:14px;color:#1E3932">' + (m.restaurant || '店舗未記録') + '</p>'
+          + '<p style="font-size:11px;color:#6B7280;margin-top:2px">' + (m.date || '') + ' · ' + (m.partnerName || '相手未選択') + '</p>'
+        + '</div>'
+        + outcomeHtml
+      + '</div>'
+      // ── 詳細 ──
+      + (m.topics   ? '<p style="font-size:12px;color:#6B7280;margin-top:4px">話題：' + m.topics + '</p>' : '')
+      + (m.nextGoal ? '<p style="font-size:12px;font-weight:700;color:#CBA258;margin-top:4px">次の狙い：' + m.nextGoal + '</p>' : '')
+      + (m.memo     ? '<p style="font-size:12px;color:#9CA3AF;margin-top:4px">' + m.memo + '</p>' : '')
+      // ── 編集・削除ボタン ──
+      + '<div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #F0EBE1">'
+        + '<button onclick="editMeeting(\'' + m.id + '\')" style="flex:1;padding:8px;background:#EBF5F0;color:#006241;border:1px solid #D4E9E2;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">内容を編集</button>'
+        + '<button onclick="deleteMeeting(\'' + m.id + '\')" style="padding:8px 14px;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">削除</button>'
+      + '</div>'
+    + '</div>';
   }).join('');
 }
+
+// ── 会食履歴を削除 ──
+function deleteMeeting(id) {
+  if (!confirm('この会食記録を削除しますか？')) return;
+  var meetings = loadMeetings().filter(function(m) { return m.id !== id; });
+  saveMeetings(meetings);
+  renderHistory();
+  renderHome();
+}
+
+// ── 会食履歴を編集（会食後記録画面を再利用）──
+function editMeeting(id) {
+  var meetings = loadMeetings();
+  var m = meetings.find(function(x) { return x.id === id; });
+  if (!m) return;
+
+  // 編集対象IDを記録
+  PM.editMeetingId = id;
+
+  // フォームを事前入力
+  document.getElementById('pm-store-label').textContent   = m.restaurant   || '';
+  document.getElementById('pm-partner-label').textContent = '相手: ' + (m.partnerName || '未設定');
+  document.getElementById('pm-topics').value = m.topics || '';
+  document.getElementById('pm-memo').value   = m.memo   || '';
+
+  // チップを復元
+  document.querySelectorAll('#view-post-meeting button.out-chip').forEach(function(b) {
+    b.classList.remove('sel');
+    if (b.dataset.val === m.outcome)   { b.classList.add('sel'); PM.pm_outcome = m.outcome; }
+    if (b.dataset.val === m.nextGoal)  { b.classList.add('sel'); PM.pm_next    = m.nextGoal; }
+    if (b.dataset.val === m.rating)    { b.classList.add('sel'); PM.pm_rating  = m.rating; }
+  });
+
+  APP.selectedPartner = null; // 相手IDは既存データを引き継ぐ
+  gotoView('post-meeting');
+}
+
 
 // ═══════════════ NG / AREA / BUDGET (concierge) ═══════════════
 var NG_LIST=[{id:'noise',label:'音漏れNG',sub:'個室でも声が筒抜けはNG'},{id:'loud',label:'騒がしすぎるのはNG',sub:'静かに話せる環境が必要'},{id:'seafood',label:'生魚・刺身が苦手',sub:'食の好みに配慮が必要'},{id:'allergy',label:'食物アレルギーあり',sub:'お店の対応確認が必要'},{id:'smoke',label:'禁煙席のみ',sub:'喫煙席のある店はNG'},{id:'stairs',label:'階段・段差はNG',sub:'高齢の方・車椅子への配慮'},{id:'casual',label:'接待向けでない店はNG',sub:'賑やかすぎる店など'},{id:'dress',label:'服装規定のある店はNG',sub:'カジュアルな服装で行く'}];
