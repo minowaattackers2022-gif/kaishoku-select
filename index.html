@@ -657,9 +657,19 @@ function gotoView(v) {
   if (v === 'history') renderHistory();
 }
 function goBack() {
-  // コンシェルジュ内はステップを1つ戻る
-  if (APP.view === 'concierge' && cur > 1) { go(cur - 1); return; }
-  // それ以外は前の画面へ、なければホームへ
+  // view-concierge が実際に表示中かをDOMで確認
+  var cv = document.getElementById('view-concierge');
+  var isConcierge = cv && cv.classList.contains('active');
+
+  if (isConcierge) {
+    if (cur > 1) {
+      go(cur - 1);   // 1つ前のステップへ
+    } else {
+      gotoView('home');  // ステップ1からはホームへ
+    }
+    return;
+  }
+  // その他の画面は前の画面、なければホームへ
   gotoView(APP.prevView && APP.prevView !== APP.view ? APP.prevView : 'home');
 }
 
@@ -1466,40 +1476,67 @@ function doGPS() {
   }
   if (!_gpsEl('gps-btn')) return;
 
-  gpsUI('loading','現在地を取得中...','取得しています...');
+  gpsUI('loading', '現在地を取得中...', '取得しています...');
   document.querySelectorAll('.area-chip').forEach(function(b) {
     b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A';
   });
 
-  navigator.geolocation.getCurrentPosition(
-    function(pos) {
-      S.lat = pos.coords.latitude;
-      S.lng = pos.coords.longitude;
+  function onSuccess(pos) {
+    S.lat  = pos.coords.latitude;
+    S.lng  = pos.coords.longitude;
+    S.area = '現在地'; // 取得直後に即セット（フォールバック）
 
-      fetch('https://nominatim.openstreetmap.org/reverse?lat='+S.lat+'&lon='+S.lng+'&format=json&accept-language=ja&zoom=16')
-        .then(function(r){ return r.json(); })
-        .then(function(d){
-          var a = d.address || {};
-          var skip = ['東京都','東京','大阪府','大阪','神奈川県','愛知県','福岡県','北海道','日本','Japan'];
-          function ok(v){ return v && skip.indexOf(v.trim())<0; }
-          S.area = (ok(a.neighbourhood)&&a.neighbourhood)||(ok(a.suburb)&&a.suburb)||
-                   (ok(a.quarter)&&a.quarter)||(ok(a.town)&&a.town)||(ok(a.city)&&a.city)||'現在地';
-        })
-        .catch(function(){ S.area='現在地'; })
-        .finally(function(){
-          gpsUI('ok', S.area+'を設定しました','現在地を取得しました');
-          tryS5();
-        });
-    },
-    function(err) {
-      gpsReset();
-      var msg = '現在地の取得に失敗しました。エリアを選んでください。';
-      if (err.code===1) msg = '位置情報の利用が許可されていません。\nブラウザの設定を確認してください。';
-      if (err.code===3) msg = 'タイムアウトしました。エリアを選んでください。';
-      alert(msg);
-    },
-    { enableHighAccuracy:false, timeout:12000, maximumAge:60000 }
-  );
+    // Nominatim で地名取得（5秒でタイムアウト）
+    var timedOut  = false;
+    var timer     = setTimeout(function() {
+      timedOut = true;
+      onGotArea('現在地');
+    }, 5000);
+
+    fetch('https://nominatim.openstreetmap.org/reverse?lat=' + S.lat +
+          '&lon=' + S.lng + '&format=json&accept-language=ja&zoom=16')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (timedOut) return;
+        clearTimeout(timer);
+        var a    = d.address || {};
+        var skip = ['東京都','東京','大阪府','大阪','神奈川県','愛知県','福岡県','北海道','日本','Japan'];
+        function ok(v) { return v && skip.indexOf(v.trim()) < 0; }
+        var name = (ok(a.neighbourhood) && a.neighbourhood) ||
+                   (ok(a.suburb)        && a.suburb)        ||
+                   (ok(a.quarter)       && a.quarter)        ||
+                   (ok(a.town)          && a.town)           ||
+                   (ok(a.city)          && a.city)           || '現在地';
+        onGotArea(name);
+      })
+      .catch(function() {
+        if (timedOut) return;
+        clearTimeout(timer);
+        onGotArea('現在地');
+      });
+  }
+
+  function onGotArea(name) {
+    S.area = name;
+    gpsUI('ok', name + 'を設定しました', '現在地を取得しました');
+    tryS5();
+  }
+
+  function onError(err) {
+    gpsReset();
+    var msgs = {
+      1: 'iPhoneの設定で位置情報を許可してください。\n設定 → プライバシー → 位置情報サービス → Safari',
+      2: '現在地を取得できませんでした。\nエリアを選んでください。',
+      3: 'タイムアウトしました。\nエリアを選んでください。'
+    };
+    alert(msgs[err.code] || '現在地の取得に失敗しました。\nエリアを選んでください。');
+  }
+
+  navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+    enableHighAccuracy: false,
+    timeout:            15000,
+    maximumAge:         60000
+  });
 }
 
 /* ── トースト通知 ── */
@@ -1622,59 +1659,7 @@ var PURPOSE_LABELS = {
 function purposeLabel(v) { return PURPOSE_LABELS[v] || v; }
 
 // ═══════════════ HOME RENDERING ═══════════════
-function renderHome() {
-  var partners = loadPartners();
-  var meetings = loadMeetings();
-  var now = new Date();
-  var thisMonth = now.getFullYear() + '-' + (now.getMonth()+1);
-  var monthCount = meetings.filter(function(m){ return m.date && m.date.startsWith(thisMonth); }).length;
-  document.getElementById('stat-partners').textContent = partners.length;
-  document.getElementById('stat-meetings').textContent = meetings.length;
-  document.getElementById('stat-this-month').textContent = monthCount;
 
-  var listEl = document.getElementById('partner-list-home');
-  var emptyEl = document.getElementById('home-empty');
-  if (!partners.length) { listEl.innerHTML = ''; emptyEl.style.display = ''; return; }
-  emptyEl.style.display = 'none';
-
-  // 最終会食日でソート（新しい順）
-  var sorted = partners.slice().sort(function(a,b){ return (b.lastMet||'0').localeCompare(a.lastMet||'0'); });
-
-  listEl.innerHTML = sorted.map(function(p, i) {
-    var daysSince = '';
-    if (p.lastMet) {
-      var diff = Math.floor((now - new Date(p.lastMet)) / 86400000);
-      daysSince = diff === 0 ? '今日' : diff + '日前';
-    } else {
-      daysSince = '会食記録なし';
-    }
-    var mCount = meetings.filter(function(m){ return m.partnerId === p.id; }).length;
-    return '<div class="partner-card mb-3" style="animation-delay:' + (i*0.07) + 's" onclick="startConcierge(\'' + p.id + '\')">' +
-      '<div style="display:flex;align-items:flex-start;justify-content:space-between">' +
-        '<div style="flex:1;min-width:0;padding-right:10px">' +
-          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
-            '<p style="font-weight:700;font-size:14px;color:#1E3932">' + p.name + '</p>' +
-            '<span class="status-badge status-' + p.status + '">' + p.status + '</span>' +
-          '</div>' +
-          '<p style="font-size:11px;color:#6B7280">' + (p.company ? p.company + (p.role ? ' · ' + p.role : '') : (p.role || '')) + '</p>' +
-          (p.nextGoal ? '<p style="font-size:11px;color:#006241;margin-top:4px;font-weight:700">次の狙い：' + p.nextGoal + '</p>' : '') +
-        '</div>' +
-        '<div style="text-align:right;flex-shrink:0">' +
-          '<p style="font-size:10px;color:#9CA3AF">' + daysSince + '</p>' +
-          '<p style="font-size:11px;font-weight:700;color:#006241;margin-top:2px">会食' + mCount + '回</p>' +
-          (p.lastRestaurant ? '<p style="font-size:10px;color:#9CA3AF;margin-top:1px">' + p.lastRestaurant + '</p>' : '') +
-        '</div>' +
-      '</div>' +
-      (p.ng || p.memo ? '<div style="margin-top:8px;padding:6px 10px;border-radius:8px;background:#FBF8F3;font-size:11px;color:#6B7280">' +
-        (p.ng ? 'NG: ' + p.ng + ' ' : '') + (p.memo ? p.memo : '') + '</div>' : '') +
-      '<div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #F0EBE1">' +
-        '<button onclick="startConcierge(\'' + p.id + '\')" style="flex:1;padding:8px;background:#006241;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">このパートナーで計画する</button>' +
-        '<button onclick="editPartner(\'' + p.id + '\')" style="padding:8px 12px;background:#EBF5F0;color:#006241;border:1px solid #D4E9E2;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">編集</button>' +
-        '<button onclick="deletePartner(\'' + p.id + '\')" style="padding:8px 12px;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">削除</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
 
 // ═══════════════ PARTNER CRUD ═══════════════
 function selRegChip(btn, groupId, stateKey) {
@@ -1686,54 +1671,7 @@ function selRegChip(btn, groupId, stateKey) {
   else                               { REG[stateKey] = btn.dataset.val; }
 }
 
-function savePartner() {
-  var name = document.getElementById('p-name').value.trim();
-  if (!name || !REG.p_type) {
-    document.getElementById('reg-err').style.display = '';
-    return;
-  }
-  document.getElementById('reg-err').style.display = 'none';
-  var partners = loadPartners();
 
-  // 編集モードか新規登録かを判断
-  var editId = document.getElementById('view-partner-reg').dataset.editId || '';
-  var today = new Date().toISOString().slice(0,10);
-
-  if (editId) {
-    // 既存のパートナーを編集
-    var idx = partners.findIndex(function(x){ return x.id === editId; });
-    if (idx >= 0) {
-      partners[idx].name      = name;
-      partners[idx].company   = document.getElementById('p-company').value.trim();
-      partners[idx].role      = document.getElementById('p-role').value.trim();
-      partners[idx].type      = REG.p_type      || partners[idx].type;
-      partners[idx].status    = REG.p_status    || partners[idx].status;
-      partners[idx].atmosphere= REG.p_atm       || partners[idx].atmosphere;
-      partners[idx].ng        = document.getElementById('p-ng').value.trim();
-      partners[idx].memo      = document.getElementById('p-memo').value.trim();
-    }
-  } else {
-    // 新規登録
-    partners.push({
-      id: 'p' + Date.now(),
-      name: name,
-      company: document.getElementById('p-company').value.trim(),
-      role: document.getElementById('p-role').value.trim(),
-      type: REG.p_type,
-      status: REG.p_status || '初回',
-      atmosphere: REG.p_atm || '',
-      ng: document.getElementById('p-ng').value.trim(),
-      memo: document.getElementById('p-memo').value.trim(),
-      lastMet: '', lastRestaurant: '', nextGoal: '',
-      createdAt: today
-    });
-  }
-
-  savePartners(partners);
-  resetPartnerForm();
-  autoSync({ type: 'sync_all', partners: loadPartners(), meetings: loadMeetings() });
-  gotoView('home');
-}
 
 function resetPartnerForm() {
   ['p-name','p-company','p-role','p-ng','p-memo'].forEach(function(id){
@@ -1962,11 +1900,7 @@ function go(next) {
   }, 170);
   cur = next; updPg(); updHdr();
 }
-function selOne(btn, field, nextStep) {
-  btn.parentElement.querySelectorAll('.pcard').forEach(function(b){ b.classList.remove('sel'); });
-  btn.classList.add('sel'); S[field] = btn.dataset.val;
-  setTimeout(function(){ go(nextStep); }, 180);
-}
+
 
 // ═══════════════ RESULTS ═══════════════
 // (DB + scoring — same as concierge version)
@@ -2190,102 +2124,10 @@ function openPostMeeting(storeName) {
   document.getElementById('pm-memo').value = '';
   gotoView('post-meeting');
 }
-function saveMeeting() {
-  var meetings = loadMeetings();
-  var today    = new Date().toISOString().slice(0, 10);
-  var isEdit   = PM.editMeetingId ? true : false;
 
-  if (isEdit) {
-    // ── 編集モード：既存レコードを上書き ──
-    var idx = meetings.findIndex(function(m) { return m.id === PM.editMeetingId; });
-    if (idx >= 0) {
-      meetings[idx].outcome   = PM.pm_outcome || meetings[idx].outcome;
-      meetings[idx].topics    = document.getElementById('pm-topics').value.trim() || meetings[idx].topics;
-      meetings[idx].nextGoal  = PM.pm_next    || meetings[idx].nextGoal;
-      meetings[idx].memo      = document.getElementById('pm-memo').value.trim()   || meetings[idx].memo;
-      meetings[idx].rating    = PM.pm_rating  || meetings[idx].rating;
-    }
-    saveMeetings(meetings);
-
-    // パートナーの次回の狙いも更新
-    if (PM.pm_next && meetings[idx] && meetings[idx].partnerId) {
-      var partners = loadPartners();
-      var pi = partners.findIndex(function(p){ return p.id === meetings[idx].partnerId; });
-      if (pi >= 0) { partners[pi].nextGoal = PM.pm_next; savePartners(partners); }
-    }
-    PM.editMeetingId = '';
-    autoSync({ type: 'sync_all', partners: loadPartners(), meetings: loadMeetings() });
-    gotoView('history');
-
-  } else {
-    // ── 新規登録モード ──
-    meetings.push({
-      id:          'm' + Date.now(),
-      date:        today,
-      partnerId:   APP.selectedPartner ? APP.selectedPartner.id   : '',
-      partnerName: APP.selectedPartner ? APP.selectedPartner.name : '',
-      restaurant:  PM.storeName  || '',
-      purpose:     S.purpose     || '',
-      outcome:     PM.pm_outcome || '',
-      topics:      document.getElementById('pm-topics').value.trim(),
-      nextGoal:    PM.pm_next    || '',
-      memo:        document.getElementById('pm-memo').value.trim(),
-      rating:      PM.pm_rating  || ''
-    });
-    saveMeetings(meetings);
-
-    // パートナーの最終会食日・利用店・次回の狙いを更新
-    if (APP.selectedPartner) {
-      var partners = loadPartners();
-      var pi = partners.findIndex(function(p){ return p.id === APP.selectedPartner.id; });
-      if (pi >= 0) {
-        partners[pi].lastMet        = today;
-        partners[pi].lastRestaurant = PM.storeName || '';
-        if (PM.pm_next) partners[pi].nextGoal = PM.pm_next;
-        var newMemo = document.getElementById('pm-memo').value.trim();
-        if (newMemo) partners[pi].memo = (partners[pi].memo ? partners[pi].memo + ' / ' : '') + newMemo;
-        savePartners(partners);
-      }
-    }
-    PM.editMeetingId = '';
-    autoSync({ type: 'sync_all', partners: loadPartners(), meetings: loadMeetings() });
-    gotoView('home');
-  }
-}
 
 // ═══════════════ HISTORY ═══════════════
-function renderHistory() {
-  var meetings = loadMeetings().slice().reverse();
-  var wrap  = document.getElementById('history-list');
-  var empty = document.getElementById('history-empty');
-  if (!meetings.length) { wrap.innerHTML = ''; empty.style.display = ''; return; }
-  empty.style.display = 'none';
 
-  wrap.innerHTML = meetings.map(function(m, i) {
-    var outcomeHtml = m.outcome
-      ? '<span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#EBF5F0;color:#006241">' + m.outcome + '</span>'
-      : '';
-    return '<div style="background:#fff;border:1px solid #E2D8C8;border-radius:16px;padding:14px;margin-bottom:12px;animation:slideUp .3s ' + (i * 0.06) + 's ease both">'
-      // ── ヘッダー行 ──
-      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">'
-        + '<div style="flex:1;min-width:0;padding-right:8px">'
-          + '<p style="font-weight:700;font-size:14px;color:#1E3932">' + (m.restaurant || '店舗未記録') + '</p>'
-          + '<p style="font-size:11px;color:#6B7280;margin-top:2px">' + (m.date || '') + ' · ' + (m.partnerName || 'パートナー未選択') + '</p>'
-        + '</div>'
-        + outcomeHtml
-      + '</div>'
-      // ── 詳細 ──
-      + (m.topics   ? '<p style="font-size:12px;color:#6B7280;margin-top:4px">話題：' + m.topics + '</p>' : '')
-      + (m.nextGoal ? '<p style="font-size:12px;font-weight:700;color:#CBA258;margin-top:4px">次の狙い：' + m.nextGoal + '</p>' : '')
-      + (m.memo     ? '<p style="font-size:12px;color:#9CA3AF;margin-top:4px">' + m.memo + '</p>' : '')
-      // ── 編集・削除ボタン ──
-      + '<div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #F0EBE1">'
-        + '<button onclick="editMeeting(\'' + m.id + '\')" style="flex:1;padding:8px;background:#EBF5F0;color:#006241;border:1px solid #D4E9E2;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">内容を編集</button>'
-        + '<button onclick="deleteMeeting(\'' + m.id + '\')" style="padding:8px 14px;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">削除</button>'
-      + '</div>'
-    + '</div>';
-  }).join('');
-}
 
 // ── 会食履歴を削除 ──
 function deleteMeeting(id) {
