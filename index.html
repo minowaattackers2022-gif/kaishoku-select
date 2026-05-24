@@ -936,7 +936,7 @@ function buildSteps() {
       '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 05</p>' +
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-5" style="color:#1E3932">場所と予算を<br>教えてください</h2>' +
       '<p class="text-sm font-bold mb-2" style="color:#1E3932">場所</p>' +
-      '<button id="gps-btn" onclick="doGPS()" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-2" style="background:#1E3932;border:2px solid #006241;color:#D4E9E2">' +
+      '<button id="gps-btn" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-2" style="background:#1E3932;border:2px solid #006241;color:#D4E9E2">' +
         '<div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(0,98,65,.45)">' +
           '<svg id="gi-def" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4E9E2" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>' +
           '<span id="gi-spin" style="display:none;width:18px;height:18px;border:2px solid rgba(212,233,226,.3);border-top-color:#D4E9E2;border-radius:50%;animation:spin .7s linear infinite"></span>' +
@@ -1474,30 +1474,45 @@ function doGPS() {
     alert('位置情報に対応していません。エリアを選んでください。');
     return;
   }
-  if (!_gpsEl('gps-btn')) return;
 
-  gpsUI('loading', '現在地を取得中...', '取得しています...');
+  // UIをローディング状態に
+  var btn = document.getElementById('gps-btn');
+  var lbl = document.getElementById('gps-label');
+  var sub = document.getElementById('gps-sub');
+  if (!btn) return;
+  btn.disabled = true;
+  if (lbl) lbl.textContent = '取得中...';
+  if (sub) sub.textContent = 'しばらくお待ちください';
+  document.getElementById('gi-def').style.display = 'none';
+  document.getElementById('gi-spin').style.display = '';
+  document.getElementById('gi-ok').style.display  = 'none';
+
+  // エリアチップの選択解除
   document.querySelectorAll('.area-chip').forEach(function(b) {
-    b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A';
+    b.style.background = '#fff';
+    b.style.borderColor = '#EDE0CC';
+    b.style.color = '#1A1A1A';
   });
 
+  // 成功時の処理
   function onSuccess(pos) {
     S.lat  = pos.coords.latitude;
     S.lng  = pos.coords.longitude;
-    S.area = '現在地'; // 取得直後に即セット（フォールバック）
+    S.area = '現在地';
 
-    // Nominatim で地名取得（5秒でタイムアウト）
-    var timedOut  = false;
-    var timer     = setTimeout(function() {
-      timedOut = true;
-      onGotArea('現在地');
+    // Nominatim で地名取得（5秒タイムアウト）
+    var done = false;
+    var timer = setTimeout(function() {
+      if (!done) { done = true; onAreaReady('現在地'); }
     }, 5000);
 
-    fetch('https://nominatim.openstreetmap.org/reverse?lat=' + S.lat +
-          '&lon=' + S.lng + '&format=json&accept-language=ja&zoom=16')
+    fetch('https://nominatim.openstreetmap.org/reverse?lat=' +
+          S.lat + '&lon=' + S.lng +
+          '&format=json&accept-language=ja&zoom=16')
       .then(function(r) { return r.json(); })
       .then(function(d) {
-        if (timedOut) return;
+        if (done) return;
+        done = true;
         clearTimeout(timer);
         var a    = d.address || {};
         var skip = ['東京都','東京','大阪府','大阪','神奈川県','愛知県','福岡県','北海道','日本','Japan'];
@@ -1507,35 +1522,55 @@ function doGPS() {
                    (ok(a.quarter)       && a.quarter)        ||
                    (ok(a.town)          && a.town)           ||
                    (ok(a.city)          && a.city)           || '現在地';
-        onGotArea(name);
+        onAreaReady(name);
       })
       .catch(function() {
-        if (timedOut) return;
+        if (done) return;
+        done = true;
         clearTimeout(timer);
-        onGotArea('現在地');
+        onAreaReady('現在地');
       });
   }
 
-  function onGotArea(name) {
+  // 地名決定後の UI 更新
+  function onAreaReady(name) {
     S.area = name;
-    gpsUI('ok', name + 'を設定しました', '現在地を取得しました');
+    var b2  = document.getElementById('gps-btn');
+    var l2  = document.getElementById('gps-label');
+    var s2  = document.getElementById('gps-sub');
+    var sp  = document.getElementById('gi-spin');
+    var ok  = document.getElementById('gi-ok');
+    if (sp) sp.style.display = 'none';
+    if (ok) ok.style.display = '';
+    if (l2) l2.textContent = name + 'を設定しました';
+    if (s2) { s2.textContent = '現在地を取得しました'; s2.style.color = '#CBA258'; }
+    if (b2) { b2.disabled = false; b2.style.borderColor = '#CBA258'; }
     tryS5();
   }
 
+  // エラー時の処理
   function onError(err) {
-    gpsReset();
-    var msgs = {
-      1: 'iPhoneの設定で位置情報を許可してください。\n設定 → プライバシー → 位置情報サービス → Safari',
-      2: '現在地を取得できませんでした。\nエリアを選んでください。',
-      3: 'タイムアウトしました。\nエリアを選んでください。'
-    };
-    alert(msgs[err.code] || '現在地の取得に失敗しました。\nエリアを選んでください。');
+    var b2 = document.getElementById('gps-btn');
+    var sp = document.getElementById('gi-spin');
+    var df = document.getElementById('gi-def');
+    var l2 = document.getElementById('gps-label');
+    var s2 = document.getElementById('gps-sub');
+    if (sp) sp.style.display = 'none';
+    if (df) df.style.display = '';
+    if (l2) l2.textContent = '現在地を自動取得';
+    if (s2) { s2.textContent = 'タップするだけ'; s2.style.color = 'rgba(212,233,226,.55)'; }
+    if (b2) { b2.disabled = false; b2.style.borderColor = '#006241'; }
+    if (err.code === 1) {
+      alert('位置情報が許可されていません。\niPhone: 設定 → プライバシー → 位置情報サービス → Safari → オン');
+    } else {
+      alert('現在地を取得できませんでした。エリアを選んでください。');
+    }
   }
 
   navigator.geolocation.getCurrentPosition(onSuccess, onError, {
     enableHighAccuracy: false,
     timeout:            15000,
-    maximumAge:         60000
+    maximumAge:         0
   });
 }
 
@@ -1822,7 +1857,7 @@ function buildSteps() {
       '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 05</p>' +
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-5" style="color:#1E3932">場所と予算を<br>教えてください</h2>' +
       '<p class="text-sm font-bold mb-2" style="color:#1E3932">場所</p>' +
-      '<button id="gps-btn" onclick="doGPS()" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-2" style="background:#1E3932;border:2px solid #006241;color:#D4E9E2">' +
+      '<button id="gps-btn" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-2" style="background:#1E3932;border:2px solid #006241;color:#D4E9E2">' +
         '<div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(0,98,65,.45)">' +
           '<svg id="gi-def" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4E9E2" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>' +
           '<span id="gi-spin" style="display:none;width:18px;height:18px;border:2px solid rgba(212,233,226,.3);border-top-color:#D4E9E2;border-radius:50%;animation:spin .7s linear infinite"></span>' +
