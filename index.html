@@ -131,6 +131,9 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
         パートナーを登録
       </button>
     </div>
+    <button id="restore-btn" onclick="restoreFromSheets()" class="w-full py-2.5 font-bold text-xs mt-2" style="background:transparent;border:none;color:#9CA3AF;letter-spacing:.03em;cursor:pointer">
+      スプレッドシートから復元
+    </button>
   </div>
 
   <!-- パートナー一覧 -->
@@ -427,6 +430,45 @@ function syncAllToSheets() {
       } else {
         showToast('同期に失敗しました。URLを確認してください。', 'error');
       }
+    });
+}
+
+/* ── スプレッドシートから復元 ── */
+function restoreFromSheets() {
+  if (!GAS_URL) { alert('スプレッドシートのURLが設定されていません。'); return; }
+  if (!confirm('スプレッドシートのデータでアプリを上書きします。\n現在のデータは置き換えられます。よろしいですか？')) return;
+
+  var btn = document.getElementById('restore-btn');
+  if (btn) { btn.textContent = '読み込み中...'; btn.disabled = true; }
+
+  var PMAP = { 'id':'id','氏名':'name','会社名':'company','役職':'role',
+    '雰囲気':'atmosphere','NG':'ng','メモ':'memo',
+    '会食日':'lastMet','利用店':'lastRestaurant','狙い':'nextGoal','登録日':'createdAt' };
+  var MMAP = { 'id':'id','日付':'date','相手id':'partnerId','パートナーid':'partnerId',
+    '相手名':'partnerName','パートナー名':'partnerName','店名':'restaurant',
+    '会食目的':'purpose','成果':'outcome','盛り上がった話題':'topics',
+    '次回の狙い':'nextGoal','メモ':'memo','評価':'rating' };
+
+  function convert(arr, map) {
+    return (arr||[]).filter(function(r){ return r.id; }).map(function(r){
+      var o={}; Object.keys(r).forEach(function(k){ o[map[k]||k]=r[k]; }); return o;
+    });
+  }
+
+  fetch(GAS_URL + '?action=getAll')
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if (!res.success) throw new Error();
+      var p = convert(res.partners, PMAP);
+      var m = convert(res.meetings,  MMAP);
+      savePartners(p); saveMeetings(m);
+      if (btn) { btn.textContent = 'シートから復元'; btn.disabled = false; }
+      showToast('パートナー' + p.length + '件・会食' + m.length + '件を復元しました', 'success');
+      renderHome();
+    })
+    .catch(function(){
+      if (btn) { btn.textContent = 'シートから復元'; btn.disabled = false; }
+      showToast('読み込みに失敗しました', 'error');
     });
 }
 
