@@ -1138,7 +1138,7 @@ function buildSteps() {
       '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 05</p>' +
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-5" style="color:#1E3932">場所と予算を<br>教えてください</h2>' +
       '<p class="text-sm font-bold mb-2" style="color:#1E3932">場所</p>' +
-      '<button id="gps-btn" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-2" style="cursor:pointer" style="background:#1E3932;border:2px solid #006241;color:#D4E9E2">' +
+      '<button id="gps-btn" onclick="doGPS()" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-2" style="-webkit-tap-highlight-color:rgba(0,0,0,0);cursor:pointer" style="background:#1E3932;border:2px solid #006241;color:#D4E9E2">' +
         '<div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(0,98,65,.45)">' +
           '<svg id="gi-def" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4E9E2" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>' +
           '<span id="gi-spin" style="display:none;width:18px;height:18px;border:2px solid rgba(212,233,226,.3);border-top-color:#D4E9E2;border-radius:50%;animation:spin .7s linear infinite"></span>' +
@@ -1520,8 +1520,9 @@ function buildCard(store, rank) {
 
   var navURL = 'https://maps.google.com/maps/dir/?api=1&destination='
     + encodeURIComponent(store.name + ' ' + store.loc) + '&travelmode=walking';
-  var tkURL  = 'https://www.tiktok.com/search?q=' + encodeURIComponent(store.name + ' グルメ');
-  var igURL  = 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(store.name + ' グルメ');
+  var searchWord = (store.area ? store.area.split('・')[0] + ' ' : '') + store.name + ' グルメ';
+  var tkURL  = 'https://www.tiktok.com/search?q=' + encodeURIComponent(searchWord);
+  var igURL  = 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(searchWord);
 
   var tkBtn = '<a href="'+tkURL+'" target="_blank" rel="noopener" class="tk-btn" style="flex:1;display:flex;align-items:center;justify-content:center;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">TikTok</a>';
   var igBtn = '<a href="'+igURL+'" target="_blank" rel="noopener" class="ig-btn" style="flex:1;display:flex;align-items:center;justify-content:center;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">Instagram</a>';
@@ -1808,100 +1809,78 @@ function gpsUI(state, text, sub) {
 function gpsReset() { gpsUI('idle','現在地を自動取得','タップするだけ'); }
 
 function doGPS() {
-  // 呼び出し確認（iOS Safariデバッグ用）
+  var btn = document.getElementById('gps-btn');
   var lbl = document.getElementById('gps-label');
   var sub = document.getElementById('gps-sub');
-  var def = document.getElementById('gi-def');
   var spn = document.getElementById('gi-spin');
-  var okm = document.getElementById('gi-ok');
-  var btn = document.getElementById('gps-btn');
+  var def = document.getElementById('gi-def');
+  var okI = document.getElementById('gi-ok');
 
-  if (!btn) {
-    alert('GPS要素が見つかりません。ページを再読み込みしてください。');
-    return;
-  }
+  // 要素が見つからない場合（ステップ未表示）
+  if (!lbl) { alert('ステップ5が表示されていません'); return; }
 
+  // GPS非対応
   if (!navigator.geolocation) {
-    if (lbl) lbl.textContent = '位置情報を使えません';
-    alert('この端末では位置情報が使えません。\nエリアを選んでください。');
+    lbl.textContent = '非対応';
+    alert('位置情報を使えません。エリアを選んでください。');
     return;
   }
 
-  // ── ローディング状態 ──
-  btn.disabled = true;
+  // ローディング
+  if (btn) btn.disabled = true;
   if (def) def.style.display = 'none';
   if (spn) spn.style.display = '';
-  if (okm) okm.style.display = 'none';
-  if (lbl) lbl.textContent   = '取得中...';
-  if (sub) sub.textContent   = 'しばらくお待ちください';
-  document.querySelectorAll('.area-chip').forEach(function(b) {
-    b.style.background = '#fff'; b.style.borderColor = '#EDE0CC'; b.style.color = '#1A1A1A';
-  });
+  if (okI) okI.style.display = 'none';
+  lbl.textContent = '取得中...';
+  if (sub) sub.textContent = 'しばらくお待ちください';
 
-  // ── 地名確定後の処理 ──
-  function finish(name) {
+  function done(name) {
     S.area = name;
-    btn.disabled = false;
+    if (btn) { btn.disabled = false; btn.style.borderColor = '#CBA258'; }
     if (spn) spn.style.display = 'none';
-    if (okm) okm.style.display = '';
-    if (def) def.style.display = 'none';
-    if (lbl) lbl.textContent   = name + 'を設定しました';
-    if (sub) { sub.textContent = '現在地を取得しました'; sub.style.color = '#CBA258'; }
-    btn.style.borderColor = '#CBA258';
+    if (okI) okI.style.display = '';
+    lbl.textContent = name + 'を設定しました';
+    if (sub) { sub.textContent = '完了'; sub.style.color = '#CBA258'; }
     tryS5();
   }
 
-  // ── エラー処理 ──
-  function fail(code) {
-    btn.disabled = false;
+  function fail(msg) {
+    if (btn) { btn.disabled = false; btn.style.borderColor = '#006241'; }
     if (spn) spn.style.display = 'none';
     if (def) def.style.display = '';
-    if (lbl) lbl.textContent   = '現在地を自動取得';
+    lbl.textContent = '現在地を自動取得';
     if (sub) { sub.textContent = 'タップするだけ'; sub.style.color = 'rgba(212,233,226,.55)'; }
-    btn.style.borderColor = '#006241';
-    var msg = '現在地を取得できませんでした。\nエリアを選んでください。';
-    if (code === 1) msg = '位置情報が許可されていません。\n\niPhone: 設定 → プライバシーとセキュリティ\n→ 位置情報サービス → Safari → 許可';
     alert(msg);
   }
 
-  // ── GPS取得 ──
   navigator.geolocation.getCurrentPosition(
     function(pos) {
       S.lat = pos.coords.latitude;
       S.lng = pos.coords.longitude;
 
-      // Nominatim で地名取得（5秒タイムアウト）
-      var resolved = false;
-      var timer = setTimeout(function() {
-        if (!resolved) { resolved = true; finish('現在地'); }
+      var settled = false;
+      var t = setTimeout(function() {
+        if (!settled) { settled = true; done('現在地'); }
       }, 5000);
 
       fetch('https://nominatim.openstreetmap.org/reverse?lat=' + S.lat +
             '&lon=' + S.lng + '&format=json&accept-language=ja&zoom=16')
         .then(function(r) { return r.json(); })
         .then(function(d) {
-          if (resolved) return;
-          resolved = true;
-          clearTimeout(timer);
+          if (settled) return; settled = true; clearTimeout(t);
           var a = d.address || {};
-          var skip = ['東京都','東京','大阪府','大阪','神奈川県','愛知県','福岡県','北海道','日本','Japan'];
-          function ok(v) { return v && skip.indexOf(v.trim()) < 0; }
-          finish(
-            (ok(a.neighbourhood) && a.neighbourhood) ||
-            (ok(a.suburb)        && a.suburb)        ||
-            (ok(a.quarter)       && a.quarter)        ||
-            (ok(a.town)          && a.town)           ||
-            (ok(a.city)          && a.city)           || '現在地'
-          );
+          var ng = ['東京都','東京','大阪府','大阪','神奈川県','愛知県','福岡県','北海道','日本','Japan'];
+          function ok(v) { return v && ng.indexOf(v.trim()) < 0; }
+          done((ok(a.neighbourhood)&&a.neighbourhood)||(ok(a.suburb)&&a.suburb)||
+               (ok(a.quarter)&&a.quarter)||(ok(a.town)&&a.town)||(ok(a.city)&&a.city)||'現在地');
         })
-        .catch(function() {
-          if (resolved) return;
-          resolved = true;
-          clearTimeout(timer);
-          finish('現在地');
-        });
+        .catch(function() { if (!settled) { settled=true; clearTimeout(t); done('現在地'); } });
     },
-    function(err) { fail(err.code); },
+    function(e) {
+      fail(e.code===1
+        ? '位置情報が許可されていません。\n\niPhone:\n設定 → プライバシーとセキュリティ\n→ 位置情報サービス\n→ Safari → 許可'
+        : '位置情報を取得できませんでした。\nエリアを選んでください。');
+    },
     { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }
   );
 }
@@ -2189,7 +2168,7 @@ function buildSteps() {
       '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 05</p>' +
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-5" style="color:#1E3932">場所と予算を<br>教えてください</h2>' +
       '<p class="text-sm font-bold mb-2" style="color:#1E3932">場所</p>' +
-      '<button id="gps-btn" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-2" style="cursor:pointer" style="background:#1E3932;border:2px solid #006241;color:#D4E9E2">' +
+      '<button id="gps-btn" onclick="doGPS()" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-2" style="-webkit-tap-highlight-color:rgba(0,0,0,0);cursor:pointer" style="background:#1E3932;border:2px solid #006241;color:#D4E9E2">' +
         '<div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(0,98,65,.45)">' +
           '<svg id="gi-def" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4E9E2" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>' +
           '<span id="gi-spin" style="display:none;width:18px;height:18px;border:2px solid rgba(212,233,226,.3);border-top-color:#D4E9E2;border-radius:50%;animation:spin .7s linear infinite"></span>' +
@@ -2429,11 +2408,10 @@ function buildCard(store, rank) {
 
   var navURL = 'https://maps.google.com/maps/dir/?api=1&destination='
     + encodeURIComponent(store.name + ' ' + store.loc) + '&travelmode=driving';
-  // ② TikTok：店名＋グルメで検索
-  var tkURL = 'https://www.tiktok.com/search?q=' + encodeURIComponent(store.name + ' グルメ');
-
-  // ③ Instagram：店名＋グルメでキーワード検索
-  var igURL = 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(store.name + ' グルメ');
+  // TikTok・Instagram：エリア + 店名 + グルメ で検索
+  var searchWord = (store.area ? store.area.split('・')[0] + ' ' : '') + store.name + ' グルメ';
+  var tkURL = 'https://www.tiktok.com/search?q=' + encodeURIComponent(searchWord);
+  var igURL = 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(searchWord);
 
   var tkBtn = '<a href="'+tkURL+'" target="_blank" rel="noopener" class="tk-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">TikTok 口コミ</a>';
   var igBtn = '<a href="'+igURL+'" target="_blank" rel="noopener" class="ig-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">Instagram 口コミ</a>';
@@ -2587,7 +2565,8 @@ function updHdr(){ document.getElementById('hdr-step').textContent='第'+cur+'�
 
 // ═══════════════ INIT ═══════════════
 renderHome();
-loadLastSearch(); // 前回条件を復元
+loadLastSearch();
+window.doGPS = doGPS; // iOSインライン呼び出し保険 // 前回条件を復元
 
 // ━━ GPS ボタン：ドキュメントデリゲーション（動的生成ボタンに最も確実）━━
 document.addEventListener('click', function(e) {
