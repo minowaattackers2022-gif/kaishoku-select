@@ -1816,22 +1816,18 @@ function doGPS() {
   var def = document.getElementById('gi-def');
   var okI = document.getElementById('gi-ok');
 
-  // 要素が見つからない場合（ステップ未表示）
-  if (!lbl) { alert('ステップ5が表示されていません'); return; }
-
-  // GPS非対応
   if (!navigator.geolocation) {
-    lbl.textContent = '非対応';
     alert('位置情報を使えません。エリアを選んでください。');
     return;
   }
+  if (!lbl) return;
 
-  // ローディング
+  // ── ローディング ──
   if (btn) btn.disabled = true;
   if (def) def.style.display = 'none';
   if (spn) spn.style.display = '';
   if (okI) okI.style.display = 'none';
-  lbl.textContent = '取得中...';
+  lbl.textContent = '現在地を取得中...';
   if (sub) sub.textContent = 'しばらくお待ちください';
 
   function done(name) {
@@ -1850,14 +1846,24 @@ function doGPS() {
     if (def) def.style.display = '';
     lbl.textContent = '現在地を自動取得';
     if (sub) { sub.textContent = 'タップするだけ'; sub.style.color = 'rgba(212,233,226,.55)'; }
-    alert(msg);
+    if (msg) alert(msg);
   }
 
+  // ── JS側の強制タイムアウト（20秒で必ずリセット）──
+  var hardTimer = setTimeout(function() {
+    fail('時間がかかりすぎています。\nエリアを選んでください。');
+  }, 20000);
+
+  function cleanup() { clearTimeout(hardTimer); }
+
+  // ── GPS取得（maximumAge:60秒 → iOSでキャッシュ利用・爆速）──
   navigator.geolocation.getCurrentPosition(
     function(pos) {
+      cleanup();
       S.lat = pos.coords.latitude;
       S.lng = pos.coords.longitude;
 
+      // Nominatim（5秒タイムアウト）
       var settled = false;
       var t = setTimeout(function() {
         if (!settled) { settled = true; done('現在地'); }
@@ -1874,14 +1880,17 @@ function doGPS() {
           done((ok(a.neighbourhood)&&a.neighbourhood)||(ok(a.suburb)&&a.suburb)||
                (ok(a.quarter)&&a.quarter)||(ok(a.town)&&a.town)||(ok(a.city)&&a.city)||'現在地');
         })
-        .catch(function() { if (!settled) { settled=true; clearTimeout(t); done('現在地'); } });
+        .catch(function() {
+          if (!settled) { settled = true; clearTimeout(t); done('現在地'); }
+        });
     },
     function(e) {
-      fail(e.code===1
-        ? '位置情報が許可されていません。\n\niPhone:\n設定 → プライバシーとセキュリティ\n→ 位置情報サービス\n→ Safari → 許可'
+      cleanup();
+      fail(e.code === 1
+        ? '位置情報が許可されていません。\n\niPhone: 設定 → プライバシーとセキュリティ\n→ 位置情報サービス → Safari → 許可'
         : '位置情報を取得できませんでした。\nエリアを選んでください。');
     },
-    { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
   );
 }
 
