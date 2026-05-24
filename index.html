@@ -506,6 +506,7 @@ var REG = { p_type:'', p_status:'', p_atm:'' };
 var PM  = { pm_outcome:'', pm_next:'', pm_rating:'', storeId:'', storeName:'', partnerId:'', editMeetingId:'' };
 var S   = { partner:'', purpose:'', atmosphere:'', ngConds:[], area:'', lat:null, lng:null, budgetMin:0, budgetMax:99999, budgetLabel:'' };
 var cur = 1;
+var HP_SHOPS = []; // ホットペッパーAPI取得結果
 
 // ═══════════════ GOOGLE スプレッドシート連携 ═══════════════
 // ▼ デプロイ後にURLをここに貼り付ける（空のままでも動作します）
@@ -966,6 +967,29 @@ function go(next) {
   var from = document.getElementById('step' + cur);
   var to   = document.getElementById('step' + next);
   if (!from || !to) return;
+
+  /* 手順6：APIフェッチ後に表示 */
+  if (next === 6) {
+    from.classList.add('hidden');
+    cur = 6; updPg(); updHdr();
+    updateBadges('s6badges');
+    to.classList.remove('hidden');
+    to.style.animation = 'sInR .26s both';
+    window.scrollTo(0, 0);
+
+    /* ローディング表示 */
+    var wrap = document.getElementById('result-cards');
+    if (wrap) wrap.innerHTML = '<div style="text-align:center;padding:48px 0"><div style="width:36px;height:36px;border:3px solid #EDE0CC;border-top-color:#1E3932;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px"></div><p style="color:#6B7280;font-size:13px">お店を検索しています...</p></div>';
+
+    /* Hot Pepper API → スコアリング → 表示 */
+    HP_SHOPS = [];
+    fetchHotPepper(function(shops) {
+      HP_SHOPS = shops;
+      renderResults();
+    });
+    return;
+  }
+
   var fwd = next > cur;
   from.style.animation = fwd ? 'sOutL .18s forwards' : 'sOutR .18s forwards';
   setTimeout(function(){
@@ -973,7 +997,6 @@ function go(next) {
     if (next === 4) { updateBadges('badge4'); renderNG(); }
     if (next === 3) updateBadges('badge3');
     if (next === 5) updateBadges('badge5');
-    if (next === 6) { updateBadges('s6badges'); renderResults(); }
     to.classList.remove('hidden');
     to.style.animation = fwd ? 'sInR .24s both' : 'sInL .24s both';
     setTimeout(function(){ to.style.animation = ''; }, 260);
@@ -1029,6 +1052,116 @@ var DB=[
 {name:"天王洲 OYSTER BAR PEARL",area:"品川・天王洲",loc:"天王洲アイル駅 徒歩3分",genre:"牡蠣・シーフード",budget:"12,000円〜",budgetNum:12000,hook:"運河沿いのテラスで楽しむ新鮮な牡蠣。非日常感とSNS映えで相手の印象に長く残る",partners:["インフルエンサー","新規の取引先","経営者仲間"],purposes:["関係を深める","採用の場"],atmosphere:["感度の高い店","距離が縮まる"],areas:["品川・天王洲","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:false,smoke:true,stairs:false,casual:false,dress:false},reservation:true,hours:"11:00-23:00",maxPax:40,hasTikTok:true,hasInstagram:true,snsBuzz:5},
 {name:"品川 鮨 おのでら",area:"品川・天王洲",loc:"品川駅 徒歩7分",genre:"鮨",budget:"25,000円〜",budgetNum:25000,hook:"品川の隠れた本格鮨。格式と丁寧なもてなしで重要なパートナーへの敬意を示せる",partners:["役員・部長クラス","長期の取引先"],purposes:["単価アップの布石","紹介のお礼"],atmosphere:["堅め・格式高く","安心感を重視"],areas:["品川・天王洲","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-22:30",maxPax:8,hasTikTok:false,hasInstagram:true,snsBuzz:2}
 ];
+
+
+/* ══ ホットペッパーAPI 連携 ══ */
+
+// 予算上限 → ホットペッパー予算コード
+function toBudgetCode(max) {
+  if (max <=  3000) return 'B001';
+  if (max <=  5000) return 'B003';
+  if (max <=  7000) return 'B008';
+  if (max <= 10000) return 'B004';
+  if (max <= 15000) return 'B005';
+  if (max <= 20000) return 'B006';
+  if (max <= 30000) return 'B013';
+  return '';
+}
+
+// 「3001~4000円」→ 3500 に変換
+function parseBudgetNum(str) {
+  if (!str) return 8000;
+  var nums = (str.match(/\d+/g) || []).map(Number);
+  return nums.length ? Math.round(nums.reduce(function(a,b){return a+b;},0)/nums.length) : 8000;
+}
+
+// ジャンル・予算からパートナー属性を推測
+function guessPartners(genre, budget) {
+  var p = [];
+  if (budget >= 20000) p.push('役員・部長クラス');
+  if (budget >= 12000) p.push('長期の取引先','経営者仲間');
+  if (budget <  12000) p.push('採用候補','経営者仲間');
+  if (/フレンチ|フランス|イタリア|スペイン/.test(genre)) p.push('インフルエンサー');
+  if (/和食|割烹|懐石|日本料理/.test(genre) && budget >= 15000) p.push('役員・部長クラス');
+  if (!p.length) p.push('新規の取引先','経営者仲間');
+  return p.filter(function(v,i,a){return a.indexOf(v)===i;});
+}
+
+function guessAtmosphere(genre, budget, priv) {
+  var a = [];
+  if (budget >= 20000) a.push('堅め・格式高く');
+  if (budget >= 10000 && budget < 25000) a.push('上品でカジュアル');
+  if (/フレンチ|イタリア|バル|カフェ/.test(genre)) a.push('感度の高い店');
+  if (/焼肉|居酒屋|鍋/.test(genre)) a.push('距離が縮まる');
+  if (priv) a.push('会話がしやすい','安心感を重視');
+  if (!a.length) a.push('上品でカジュアル');
+  return a.filter(function(v,i,a){return a.indexOf(v)===i;});
+}
+
+function guessPurposes(budget, priv) {
+  var p = ['関係を深める'];
+  if (priv) p.push('提案前の雰囲気づくり');
+  if (budget >= 15000) p.push('受注後の深耕','単価アップの布石');
+  if (budget <  12000) p.push('採用の場');
+  return p;
+}
+
+// ホットペッパーの店舗データ → アプリのstore形式に変換
+function convertHPShop(shop) {
+  var budget  = parseBudgetNum(shop.budget ? shop.budget.average : '');
+  var priv    = shop.private_room     === 'あり';
+  var noSmoke = shop.non_smoking_seat === 'あり';
+  var genre   = (shop.genre && shop.genre.name) || '';
+  return {
+    name:       shop.name,
+    area:       S.area || '検索エリア',
+    loc:        shop.access || shop.address || '',
+    genre:      genre,
+    budget:     budget.toLocaleString() + '円〜',
+    budgetNum:  budget,
+    hook:       shop.catch || (shop.pr && shop.pr.pr_short) || 'ホットペッパーから取得した店舗です',
+    partners:   guessPartners(genre, budget),
+    purposes:   guessPurposes(budget, priv),
+    atmosphere: guessAtmosphere(genre, budget, priv),
+    areas:      [S.area, '現在地周辺'],
+    ng:  { noise:priv, loud:priv, seafood:false, allergy:false, smoke:noSmoke, stairs:false, casual:true, dress:false },
+    reservation: true,
+    hours:      shop.open || '',
+    maxPax:     30,
+    hasTikTok:  true,
+    hasInstagram:true,
+    snsBuzz:    3,
+    shopUrl:    shop.urls ? shop.urls.pc : '',
+    isApiResult:true
+  };
+}
+
+// GAS経由でホットペッパーAPIを叩く
+function fetchHotPepper(callback) {
+  if (!GAS_URL) { callback([]); return; }
+  var params = [];
+  if (S.lat && S.lng) {
+    params.push('lat=' + S.lat, 'lng=' + S.lng, 'range=4');
+  } else if (S.area) {
+    params.push('keyword=' + encodeURIComponent(S.area + ' 個室 会食'));
+  } else { callback([]); return; }
+
+  if (S.budgetMax < 99999) {
+    var code = toBudgetCode(S.budgetMax);
+    if (code) params.push('budget=' + code);
+  }
+  if (S.ngConds.indexOf('smoke')  >= 0) params.push('non_smoking=1');
+  if (S.ngConds.indexOf('noise')  >= 0 || S.ngConds.indexOf('loud') >= 0) params.push('private_room=1');
+
+  var url = GAS_URL + '?action=hotpepper&' + params.join('&');
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      var shops = (res.success && res.shops) ? res.shops.map(convertHPShop) : [];
+      callback(shops);
+    })
+    .catch(function(){ callback([]); });
+}
 
 function scoreStore(s) {
   var sc = 0;
@@ -1846,6 +1979,29 @@ function go(next) {
   var from = document.getElementById('step' + cur);
   var to   = document.getElementById('step' + next);
   if (!from || !to) return;
+
+  /* 手順6：APIフェッチ後に表示 */
+  if (next === 6) {
+    from.classList.add('hidden');
+    cur = 6; updPg(); updHdr();
+    updateBadges('s6badges');
+    to.classList.remove('hidden');
+    to.style.animation = 'sInR .26s both';
+    window.scrollTo(0, 0);
+
+    /* ローディング表示 */
+    var wrap = document.getElementById('result-cards');
+    if (wrap) wrap.innerHTML = '<div style="text-align:center;padding:48px 0"><div style="width:36px;height:36px;border:3px solid #EDE0CC;border-top-color:#1E3932;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px"></div><p style="color:#6B7280;font-size:13px">お店を検索しています...</p></div>';
+
+    /* Hot Pepper API → スコアリング → 表示 */
+    HP_SHOPS = [];
+    fetchHotPepper(function(shops) {
+      HP_SHOPS = shops;
+      renderResults();
+    });
+    return;
+  }
+
   var fwd = next > cur;
   from.style.animation = fwd ? 'sOutL .18s forwards' : 'sOutR .18s forwards';
   setTimeout(function(){
@@ -1853,7 +2009,6 @@ function go(next) {
     if (next === 4) { updateBadges('badge4'); renderNG(); }
     if (next === 3) updateBadges('badge3');
     if (next === 5) updateBadges('badge5');
-    if (next === 6) { updateBadges('s6badges'); renderResults(); }
     to.classList.remove('hidden');
     to.style.animation = fwd ? 'sInR .24s both' : 'sInL .24s both';
     setTimeout(function(){ to.style.animation = ''; }, 260);
@@ -1869,6 +2024,116 @@ function selOne(btn, field, nextStep) {
 
 // ═══════════════ RESULTS ═══════════════
 // (DB + scoring — same as concierge version)
+
+
+/* ══ ホットペッパーAPI 連携 ══ */
+
+// 予算上限 → ホットペッパー予算コード
+function toBudgetCode(max) {
+  if (max <=  3000) return 'B001';
+  if (max <=  5000) return 'B003';
+  if (max <=  7000) return 'B008';
+  if (max <= 10000) return 'B004';
+  if (max <= 15000) return 'B005';
+  if (max <= 20000) return 'B006';
+  if (max <= 30000) return 'B013';
+  return '';
+}
+
+// 「3001~4000円」→ 3500 に変換
+function parseBudgetNum(str) {
+  if (!str) return 8000;
+  var nums = (str.match(/\d+/g) || []).map(Number);
+  return nums.length ? Math.round(nums.reduce(function(a,b){return a+b;},0)/nums.length) : 8000;
+}
+
+// ジャンル・予算からパートナー属性を推測
+function guessPartners(genre, budget) {
+  var p = [];
+  if (budget >= 20000) p.push('役員・部長クラス');
+  if (budget >= 12000) p.push('長期の取引先','経営者仲間');
+  if (budget <  12000) p.push('採用候補','経営者仲間');
+  if (/フレンチ|フランス|イタリア|スペイン/.test(genre)) p.push('インフルエンサー');
+  if (/和食|割烹|懐石|日本料理/.test(genre) && budget >= 15000) p.push('役員・部長クラス');
+  if (!p.length) p.push('新規の取引先','経営者仲間');
+  return p.filter(function(v,i,a){return a.indexOf(v)===i;});
+}
+
+function guessAtmosphere(genre, budget, priv) {
+  var a = [];
+  if (budget >= 20000) a.push('堅め・格式高く');
+  if (budget >= 10000 && budget < 25000) a.push('上品でカジュアル');
+  if (/フレンチ|イタリア|バル|カフェ/.test(genre)) a.push('感度の高い店');
+  if (/焼肉|居酒屋|鍋/.test(genre)) a.push('距離が縮まる');
+  if (priv) a.push('会話がしやすい','安心感を重視');
+  if (!a.length) a.push('上品でカジュアル');
+  return a.filter(function(v,i,a){return a.indexOf(v)===i;});
+}
+
+function guessPurposes(budget, priv) {
+  var p = ['関係を深める'];
+  if (priv) p.push('提案前の雰囲気づくり');
+  if (budget >= 15000) p.push('受注後の深耕','単価アップの布石');
+  if (budget <  12000) p.push('採用の場');
+  return p;
+}
+
+// ホットペッパーの店舗データ → アプリのstore形式に変換
+function convertHPShop(shop) {
+  var budget  = parseBudgetNum(shop.budget ? shop.budget.average : '');
+  var priv    = shop.private_room     === 'あり';
+  var noSmoke = shop.non_smoking_seat === 'あり';
+  var genre   = (shop.genre && shop.genre.name) || '';
+  return {
+    name:       shop.name,
+    area:       S.area || '検索エリア',
+    loc:        shop.access || shop.address || '',
+    genre:      genre,
+    budget:     budget.toLocaleString() + '円〜',
+    budgetNum:  budget,
+    hook:       shop.catch || (shop.pr && shop.pr.pr_short) || 'ホットペッパーから取得した店舗です',
+    partners:   guessPartners(genre, budget),
+    purposes:   guessPurposes(budget, priv),
+    atmosphere: guessAtmosphere(genre, budget, priv),
+    areas:      [S.area, '現在地周辺'],
+    ng:  { noise:priv, loud:priv, seafood:false, allergy:false, smoke:noSmoke, stairs:false, casual:true, dress:false },
+    reservation: true,
+    hours:      shop.open || '',
+    maxPax:     30,
+    hasTikTok:  true,
+    hasInstagram:true,
+    snsBuzz:    3,
+    shopUrl:    shop.urls ? shop.urls.pc : '',
+    isApiResult:true
+  };
+}
+
+// GAS経由でホットペッパーAPIを叩く
+function fetchHotPepper(callback) {
+  if (!GAS_URL) { callback([]); return; }
+  var params = [];
+  if (S.lat && S.lng) {
+    params.push('lat=' + S.lat, 'lng=' + S.lng, 'range=4');
+  } else if (S.area) {
+    params.push('keyword=' + encodeURIComponent(S.area + ' 個室 会食'));
+  } else { callback([]); return; }
+
+  if (S.budgetMax < 99999) {
+    var code = toBudgetCode(S.budgetMax);
+    if (code) params.push('budget=' + code);
+  }
+  if (S.ngConds.indexOf('smoke')  >= 0) params.push('non_smoking=1');
+  if (S.ngConds.indexOf('noise')  >= 0 || S.ngConds.indexOf('loud') >= 0) params.push('private_room=1');
+
+  var url = GAS_URL + '?action=hotpepper&' + params.join('&');
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      var shops = (res.success && res.shops) ? res.shops.map(convertHPShop) : [];
+      callback(shops);
+    })
+    .catch(function(){ callback([]); });
+}
 
 function scoreStore(s) {
   var sc = 0;
@@ -1914,45 +2179,30 @@ function isOpen(s) {
   return nowM < closeM - 60 || nowM < openM;
 }
 function getTop3() {
-  // 同スコアの店だけ微小にシャッフル（ベスト3の順位は条件一致度が最優先）
-  DB.forEach(function(s) { s._r = Math.random() * 1.5; });
-
-  var area = S.area.replace(/[都道府県]$/, '');
-
-  // ① エリア一致で候補を絞る（3件未満なら全DBに広げる）
-  var areaCands = DB.filter(function(s) {
-    return s.areas.some(function(a) {
-      return a.indexOf(area) >= 0 || area.indexOf(a.replace(/[都道府県]$/, '')) >= 0;
+  // ── ホットペッパーAPI結果があれば優先、なければ手動DB ──
+  var pool;
+  if (HP_SHOPS && HP_SHOPS.length > 0) {
+    pool = HP_SHOPS.slice();
+    pool.forEach(function(s){ s._r = Math.random() * 1.5; });
+  } else {
+    DB.forEach(function(s){ s._r = Math.random() * 1.5; });
+    var area = S.area.replace(/[都道府県]$/,'');
+    var cands = DB.filter(function(s){
+      return s.areas.some(function(a){ return a.indexOf(area)>=0||area.indexOf(a.replace(/[都道府県]$/,''))>=0; });
     });
-  });
-  var cands = areaCands.length >= 3 ? areaCands : DB;
-
-  // ② 予約可＋営業フィルター（緩和しながら必ず3件確保）
-  var pool = cands.filter(isOpen);
-  if (pool.length < 3) pool = cands.filter(function(s) { return s.reservation; });
-  if (pool.length < 3) pool = cands;
-
-  // ③ 人数フィルター（3件未満なら緩和）
-  if (S.paxNum > 0) {
-    var paxF = pool.filter(function(s) { return s.maxPax >= S.paxNum; });
-    if (paxF.length >= 3) pool = paxF;
+    pool = cands.length >= 3 ? cands : DB;
+    var p2 = pool.filter(isOpen);
+    if (p2.length < 3) p2 = pool.filter(function(s){ return s.reservation; });
+    if (p2.length < 3) p2 = pool;
+    pool = p2;
   }
-
-  // ④ 予算フィルター（3件未満なら緩和）
-  if (S.budgetMax < 99999) {
-    var bdgF = pool.filter(function(s) {
-      return s.budgetNum <= S.budgetMax + 5000 && s.budgetNum >= Math.max(0, S.budgetMin - 3000);
-    });
-    if (bdgF.length >= 3) pool = bdgF;
-  }
-
-  // ⑤ スコア順で必ず3件返す
   return pool
-    .map(function(s) { return { s: s, sc: scoreStore(s) }; })
-    .sort(function(a, b) { return b.sc - a.sc; })
-    .slice(0, 3)
-    .map(function(x) { return x.s; });
+    .map(function(s){ return {s:s, sc:scoreStore(s)}; })
+    .sort(function(a,b){ return b.sc-a.sc; })
+    .slice(0,3)
+    .map(function(x){ return x.s; });
 }
+
 function successRate(s) { return Math.min(97, Math.max(52, Math.round(scoreStore(s)*1.6+28))); }
 function reasonLabels(store) {
   var labels = [];
