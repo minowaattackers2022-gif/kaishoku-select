@@ -726,6 +726,33 @@ function sendToSheets(data) {
   });
 }
 
+
+/* ── SNS検索：クリップボードコピー → アプリ起動 ── */
+function openSNS(platform, searchWord) {
+  // 検索ワードをクリップボードにコピー
+  var copied = false;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(searchWord).then(function() { copied = true; });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = searchWord;
+    ta.style.position = 'fixed'; ta.style.top = '-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); copied = true; } catch(e) {}
+    document.body.removeChild(ta);
+  }
+
+  showToast('「' + searchWord + '」をコピーしました', 'success');
+
+  // 少し遅らせてアプリを開く
+  setTimeout(function() {
+    var url = platform === 'tiktok'
+      ? 'https://www.tiktok.com/search?q=' + encodeURIComponent(searchWord)
+      : 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(searchWord);
+    window.open(url, '_blank');
+  }, 400);
+}
+
 /* ── トースト通知 ── */
 function showToast(msg, type) {
   var existing = document.getElementById('kc-toast');
@@ -1552,8 +1579,8 @@ function buildCard(store, rank) {
   var tkURL  = 'https://www.tiktok.com/search?q=' + encodeURIComponent(searchWord);
   var igURL  = 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(searchWord);
 
-  var tkBtn = '<a href="'+tkURL+'" target="_blank" rel="noopener" class="tk-btn" style="flex:1;display:flex;align-items:center;justify-content:center;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">TikTok</a>';
-  var igBtn = '<a href="'+igURL+'" target="_blank" rel="noopener" class="ig-btn" style="flex:1;display:flex;align-items:center;justify-content:center;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">Instagram</a>';
+  var tkBtn = '<button data-sns="tiktok" data-word="'+encodeURIComponent(searchWord)+'" class="tk-btn sns-btn" style="flex:1;padding:9px;border-radius:50px;font-size:11px;font-weight:700;border:none;cursor:pointer">TikTok 検索</button>';
+  var igBtn = '<button data-sns="instagram" data-word="'+encodeURIComponent(searchWord)+'" class="ig-btn sns-btn" style="flex:1;padding:9px;border-radius:50px;font-size:11px;font-weight:700;border:none;cursor:pointer">Instagram 検索</button>';
 
   var rLabels = reasonLabels(store);
   var rHtml = rLabels.map(function(l){ return '<span style="display:inline-block;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;background:#F2EDE8;color:#5C4033;margin:2px 2px 2px 0">'+l+'</span>'; }).join('');
@@ -1929,6 +1956,33 @@ function doGPS() {
     },
     { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
   );
+}
+
+
+/* ── SNS検索：クリップボードコピー → アプリ起動 ── */
+function openSNS(platform, searchWord) {
+  // 検索ワードをクリップボードにコピー
+  var copied = false;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(searchWord).then(function() { copied = true; });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = searchWord;
+    ta.style.position = 'fixed'; ta.style.top = '-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); copied = true; } catch(e) {}
+    document.body.removeChild(ta);
+  }
+
+  showToast('「' + searchWord + '」をコピーしました', 'success');
+
+  // 少し遅らせてアプリを開く
+  setTimeout(function() {
+    var url = platform === 'tiktok'
+      ? 'https://www.tiktok.com/search?q=' + encodeURIComponent(searchWord)
+      : 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(searchWord);
+    window.open(url, '_blank');
+  }, 400);
 }
 
 /* ── トースト通知 ── */
@@ -2459,8 +2513,8 @@ function buildCard(store, rank) {
   var tkURL = 'https://www.tiktok.com/search?q=' + encodeURIComponent(searchWord);
   var igURL = 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(searchWord);
 
-  var tkBtn = '<a href="'+tkURL+'" target="_blank" rel="noopener" class="tk-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">TikTok 口コミ</a>';
-  var igBtn = '<a href="'+igURL+'" target="_blank" rel="noopener" class="ig-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">Instagram 口コミ</a>';
+  var tkBtn = '<button data-sns="tiktok" data-word="'+encodeURIComponent(searchWord)+'" class="tk-btn sns-btn" style="flex:1;padding:9px;border-radius:50px;font-size:11px;font-weight:700;border:none;cursor:pointer">TikTok 検索</button>';
+  var igBtn = '<button data-sns="instagram" data-word="'+encodeURIComponent(searchWord)+'" class="ig-btn sns-btn" style="flex:1;padding:9px;border-radius:50px;font-size:11px;font-weight:700;border:none;cursor:pointer">Instagram 検索</button>';
 
   var rLabels = reasonLabels(store);
   var rHtml = rLabels.map(function(l){ return '<span style="display:inline-block;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;background:#F2EDE8;color:#5C4033;margin:2px 2px 2px 0">'+l+'</span>'; }).join('');
@@ -2625,6 +2679,17 @@ window.doGPS = doGPS; // iOSインライン呼び出し保険 // 前回条件を
 
 // ━━ GPS ボタン：ドキュメントデリゲーション（動的生成ボタンに最も確実）━━
 document.addEventListener('click', function(e) {
+  // SNS検索ボタン
+  var snsBtn = e.target.closest ? e.target.closest('.sns-btn') : null;
+  if (!snsBtn && e.target.classList && e.target.classList.contains('sns-btn')) snsBtn = e.target;
+  if (snsBtn) {
+    var platform = snsBtn.dataset.sns;
+    var word     = decodeURIComponent(snsBtn.dataset.word || '');
+    if (platform && word) openSNS(platform, word);
+    return;
+  }
+
+  // GPS
   var btn = e.target.closest ? e.target.closest('#gps-btn') : null;
   if (!btn && e.target.id === 'gps-btn') btn = e.target;
   if (btn && !btn.disabled) doGPS();
