@@ -79,6 +79,57 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
 </head>
 <body>
 
+<!-- ═══ PINロック画面 ═══ -->
+<div id="pin-screen" style="position:fixed;inset:0;background:#1E3932;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px">
+  <svg width="48" height="48" viewBox="0 0 72 72" fill="none" style="margin-bottom:20px">
+    <circle cx="36" cy="36" r="34" stroke="#D4E9E2" stroke-width="2"/>
+    <path d="M22 36 Q36 20 50 36 Q36 52 22 36Z" fill="#00704A"/>
+    <circle cx="36" cy="36" r="10" fill="#1E3932"/>
+    <circle cx="36" cy="36" r="5" fill="#D4E9E2"/>
+  </svg>
+  <p id="pin-title" style="color:#D4E9E2;font-size:18px;font-weight:700;margin-bottom:6px;letter-spacing:.05em">会食コンシェルジュ</p>
+  <p id="pin-sub" style="color:rgba(212,233,226,.6);font-size:13px;margin-bottom:32px">PINを入力してください</p>
+
+  <!-- 入力ドット -->
+  <div style="display:flex;gap:16px;margin-bottom:32px" id="pin-dots">
+    <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid rgba(212,233,226,.5);background:transparent"></div>
+    <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid rgba(212,233,226,.5);background:transparent"></div>
+    <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid rgba(212,233,226,.5);background:transparent"></div>
+    <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid rgba(212,233,226,.5);background:transparent"></div>
+  </div>
+
+  <!-- テンキー -->
+  <div style="display:grid;grid-template-columns:repeat(3,72px);gap:12px">
+    <button onclick="pinTap('1')" class="pin-key">1</button>
+    <button onclick="pinTap('2')" class="pin-key">2</button>
+    <button onclick="pinTap('3')" class="pin-key">3</button>
+    <button onclick="pinTap('4')" class="pin-key">4</button>
+    <button onclick="pinTap('5')" class="pin-key">5</button>
+    <button onclick="pinTap('6')" class="pin-key">6</button>
+    <button onclick="pinTap('7')" class="pin-key">7</button>
+    <button onclick="pinTap('8')" class="pin-key">8</button>
+    <button onclick="pinTap('9')" class="pin-key">9</button>
+    <div></div>
+    <button onclick="pinTap('0')" class="pin-key">0</button>
+    <button onclick="pinDel()" class="pin-key" style="font-size:20px">⌫</button>
+  </div>
+
+  <p id="pin-err" style="color:#FCA5A5;font-size:12px;margin-top:20px;min-height:18px"></p>
+</div>
+
+<style>
+.pin-key{
+  width:72px;height:72px;border-radius:50%;
+  background:rgba(212,233,226,.12);
+  border:1px solid rgba(212,233,226,.2);
+  color:#D4E9E2;font-size:22px;font-weight:700;
+  cursor:pointer;transition:background .1s;
+  font-family:"Noto Sans JP",sans-serif;
+}
+.pin-key:active{background:rgba(212,233,226,.28)}
+</style>
+
+
 <!-- ヘッダー -->
 <header class="sticky top-0 z-50 flex items-center justify-between px-5 py-3" style="background:#1E3932;box-shadow:0 2px 16px rgba(0,0,0,.28)">
   <button id="hdr-back" onclick="goBack()" style="display:none;background:none;border:none;color:#D4E9E2;padding:0;cursor:pointer">
@@ -131,6 +182,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
         パートナーを登録
       </button>
     </div>
+    <button onclick="pinChange()" style="background:transparent;border:none;color:#C4B5A0;font-size:11px;cursor:pointer;letter-spacing:.03em;padding:4px 0">PINを変更する</button>
     <button id="restore-btn" onclick="restoreFromSheets()" class="w-full py-2.5 font-bold text-xs mt-2" style="background:transparent;border:none;color:#9CA3AF;letter-spacing:.03em;cursor:pointer">
       スプレッドシートから復元
     </button>
@@ -189,7 +241,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
         <div class="flex flex-wrap gap-2" id="p-status-group">
           <button class="out-chip" data-val="初回" onclick="selRegChip(this,'p-status-group','p_status')">初回</button>
           <button class="out-chip" data-val="進行中" onclick="selRegChip(this,'p-status-group','p_status')">進行中</button>
-          <button class="out-chip" data-val="深耕フェーズ" onclick="selRegChip(this,'p-status-group','p_status')">深耕フェーズ</button>
+
           <button class="out-chip" data-val="重要顧客" onclick="selRegChip(this,'p-status-group','p_status')">重要顧客</button>
         </div>
       </div>
@@ -333,6 +385,111 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
 </div>
 
 <script>
+
+// ═══════════════ PIN ロック ═══════════════
+var PIN_KEY   = 'kc_pin';
+var PIN_MODE  = 'set';   // 'set' | 'verify'
+var pinInput  = '';
+var pinConfirm = '';
+
+function pinHash(s) {
+  // 単純なハッシュ（完全なセキュリティではないが画面ロック用途として十分）
+  var h = 0;
+  for (var i = 0; i < s.length; i++) {
+    h = Math.imul(31, h) + s.charCodeAt(i) | 0;
+  }
+  return String(h);
+}
+
+function pinInit() {
+  var stored = localStorage.getItem(PIN_KEY);
+  if (!stored) {
+    PIN_MODE = 'set';
+    document.getElementById('pin-sub').textContent = '4桁のPINを設定してください';
+  } else {
+    PIN_MODE = 'verify';
+    document.getElementById('pin-sub').textContent = 'PINを入力してください';
+  }
+}
+
+function pinTap(n) {
+  if (pinInput.length >= 4) return;
+  pinInput += n;
+  pinUpdateDots();
+  if (pinInput.length === 4) setTimeout(pinSubmit, 120);
+}
+
+function pinDel() {
+  pinInput = pinInput.slice(0, -1);
+  pinUpdateDots();
+  document.getElementById('pin-err').textContent = '';
+}
+
+function pinUpdateDots() {
+  var dots = document.querySelectorAll('.pin-dot');
+  dots.forEach(function(d, i) {
+    d.style.background = i < pinInput.length ? '#D4E9E2' : 'transparent';
+    d.style.borderColor = i < pinInput.length ? '#D4E9E2' : 'rgba(212,233,226,.5)';
+  });
+}
+
+function pinSubmit() {
+  if (PIN_MODE === 'set') {
+    if (!pinConfirm) {
+      // 1回目：確認入力へ
+      pinConfirm = pinInput;
+      pinInput = '';
+      pinUpdateDots();
+      document.getElementById('pin-sub').textContent = 'もう一度入力してください';
+    } else {
+      // 2回目：一致確認
+      if (pinInput === pinConfirm) {
+        localStorage.setItem(PIN_KEY, pinHash(pinInput));
+        pinUnlock();
+      } else {
+        pinConfirm = '';
+        pinInput = '';
+        pinUpdateDots();
+        document.getElementById('pin-err').textContent = '一致しませんでした。最初からやり直してください';
+        document.getElementById('pin-sub').textContent = '4桁のPINを設定してください';
+      }
+    }
+  } else {
+    // 認証
+    var stored = localStorage.getItem(PIN_KEY);
+    if (pinHash(pinInput) === stored) {
+      pinUnlock();
+    } else {
+      pinInput = '';
+      pinUpdateDots();
+      document.getElementById('pin-err').textContent = 'PINが違います。もう一度入力してください';
+    }
+  }
+}
+
+function pinUnlock() {
+  var screen = document.getElementById('pin-screen');
+  screen.style.opacity = '0';
+  screen.style.transition = 'opacity .3s';
+  setTimeout(function() { screen.style.display = 'none'; }, 320);
+}
+
+// PIN変更（設定画面用）
+function pinChange() {
+  localStorage.removeItem(PIN_KEY);
+  pinInput = ''; pinConfirm = '';
+  pinUpdateDots();
+  document.getElementById('pin-err').textContent = '';
+  document.getElementById('pin-screen').style.display = 'flex';
+  document.getElementById('pin-screen').style.opacity = '1';
+  PIN_MODE = 'set';
+  document.getElementById('pin-sub').textContent = '新しい4桁のPINを設定してください';
+}
+
+// 起動時に実行
+pinInit();
+// END PIN ═══════════════
+
 // ═══════════════ STORAGE ═══════════════
 function loadPartners() {
   try { return JSON.parse(localStorage.getItem('kc_partners') || '[]'); } catch(e){ return []; }
