@@ -473,6 +473,18 @@ function restoreFromSheets() {
 }
 
 // ═══════════════ VIEW NAVIGATION ═══════════════
+
+/* 目的の表示ラベル（内部値→表示名） */
+var PURPOSE_LABELS = {
+  '関係を深める':        'もっと仲良くなる',
+  '提案前の雰囲気づくり':'提案前に場を温める',
+  '受注後の深耕':        '仕事が決まった後のお礼',
+  '単価アップの布石':    'より大きな仕事のきっかけに',
+  '採用の場':            '入ってもらうための食事',
+  '紹介のお礼':          '紹介へのお礼'
+};
+function purposeLabel(v) { return PURPOSE_LABELS[v] || v; }
+
 var VIEW_TITLES = { home:'会食コンシェルジュ', 'partner-reg':'パートナーを登録', 'post-meeting':'会食後の記録', history:'会食履歴', concierge:'会食を計画' };
 function gotoView(v) {
   APP.prevView = APP.view;
@@ -698,11 +710,11 @@ function buildSteps() {
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">誰と会いますか？</h2>' +
       '<p class="text-sm mb-5" style="color:#6B7280">条件に合った3店を提案します</p>' +
       '<div class="grid grid-cols-2 gap-3">' +
-        '<button class="pcard p-4 text-left' + (S.partner==='役員・部長クラス'?' sel':'') + '" data-val="役員・部長クラス" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">役員・部長クラス</p><p class="text-xs leading-snug" style="color:#6B7280">格式・信頼感を大切にしたい相手</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='役員・部長クラス'?' sel':'') + '" data-val="役員・部長クラス" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">役員・部長クラス</p><p class="text-xs leading-snug" style="color:#6B7280">信頼感を大切にしたいパートナー</p></button>' +
         '<button class="pcard p-4 text-left' + (S.partner==='新規の取引先'?' sel':'') + '" data-val="新規の取引先" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">新規の取引先</p><p class="text-xs leading-snug" style="color:#6B7280">初対面・まだ距離がある相手</p></button>' +
         '<button class="pcard p-4 text-left' + (S.partner==='経営者仲間'?' sel':'') + '" data-val="経営者仲間" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">経営者仲間</p><p class="text-xs leading-snug" style="color:#6B7280">フラットに話せる仲間</p></button>' +
-        '<button class="pcard p-4 text-left' + (S.partner==='採用候補'?' sel':'') + '" data-val="採用候補" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">採用候補</p><p class="text-xs leading-snug" style="color:#6B7280">入社意欲を引き出す席</p></button>' +
-        '<button class="pcard p-4 text-left' + (S.partner==='インフルエンサー'?' sel':'') + '" data-val="インフルエンサー" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">インフルエンサー</p><p class="text-xs leading-snug" style="color:#6B7280">発信力・SNS連携が鍵</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='採用候補'?' sel':'') + '" data-val="採用候補" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">採用候補</p><p class="text-xs leading-snug" style="color:#6B7280">入ってもらえるよう話す</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='インフルエンサー'?' sel':'') + '" data-val="インフルエンサー" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">インフルエンサー</p><p class="text-xs leading-snug" style="color:#6B7280">人気の人とつながるチャンス</p></button>' +
         '<button class="pcard p-4 text-left' + (S.partner==='長期の取引先'?' sel':'') + '" data-val="長期の取引先" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">長期の取引先</p><p class="text-xs leading-snug" style="color:#6B7280">長い付き合いへの感謝を込めて</p></button>' +
       '</div>' +
     '</div>' +
@@ -713,12 +725,12 @@ function buildSteps() {
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">何のために<br>会いますか？</h2>' +
       '<p class="text-sm mb-5" style="color:#6B7280">会食の目的を教えてください</p>' +
       '<div class="grid grid-cols-2 gap-3">' +
-        '<button class="pcard p-4 text-left" data-val="関係を深める" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">関係を深める</p><p class="text-xs leading-snug" style="color:#6B7280">信頼・親密度を上げる</p></button>' +
-        '<button class="pcard p-4 text-left" data-val="提案前の雰囲気づくり" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">提案前の雰囲気づくり</p><p class="text-xs leading-snug" style="color:#6B7280">次の商談を有利にする</p></button>' +
-        '<button class="pcard p-4 text-left" data-val="受注後の深耕" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">受注後の深耕</p><p class="text-xs leading-snug" style="color:#6B7280">継続・追加発注への布石</p></button>' +
-        '<button class="pcard p-4 text-left" data-val="単価アップの布石" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">単価アップの布石</p><p class="text-xs leading-snug" style="color:#6B7280">特別感で次のステージへ</p></button>' +
-        '<button class="pcard p-4 text-left" data-val="採用の場" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">採用の場</p><p class="text-xs leading-snug" style="color:#6B7280">入社意欲を高める会食</p></button>' +
-        '<button class="pcard p-4 text-left" data-val="紹介のお礼" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">紹介のお礼</p><p class="text-xs leading-snug" style="color:#6B7280">感謝・特別感を伝える</p></button>' +
+        '<button class="pcard p-4 text-left" data-val="関係を深める" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">もっと仲良くなる</p><p class="text-xs leading-snug" style="color:#6B7280">信頼関係をさらに深めたい</p></button>' +
+        '<button class="pcard p-4 text-left" data-val="提案前の雰囲気づくり" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">提案前に場を温める</p><p class="text-xs leading-snug" style="color:#6B7280">話しやすい関係を先に作っておく</p></button>' +
+        '<button class="pcard p-4 text-left" data-val="受注後の深耕" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">仕事が決まった後のお礼</p><p class="text-xs leading-snug" style="color:#6B7280">次の仕事にもつなげていきたい</p></button>' +
+        '<button class="pcard p-4 text-left" data-val="単価アップの布石" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">より大きな仕事のきっかけに</p><p class="text-xs leading-snug" style="color:#6B7280">関係を深めて次のステップへ</p></button>' +
+        '<button class="pcard p-4 text-left" data-val="採用の場" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">入ってもらうための食事</p><p class="text-xs leading-snug" style="color:#6B7280">入社意欲を高めたい</p></button>' +
+        '<button class="pcard p-4 text-left" data-val="紹介のお礼" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">紹介へのお礼</p><p class="text-xs leading-snug" style="color:#6B7280">紹介してくれた感謝を伝える</p></button>' +
       '</div>' +
     '</div>' +
     '<!-- step3 -->' +
@@ -1265,7 +1277,7 @@ function doGPS() {
 function updateBadges(targetId){
   var html='';
   if(S.partner) html+='<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:#EBF5F0;color:#006241">'+S.partner+'</span> ';
-  if(S.purpose) html+='<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:#1E3932;color:#D4E9E2">'+S.purpose+'</span> ';
+  if(S.purpose) html+='<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:#1E3932;color:#D4E9E2">'+purposeLabel(S.purpose)+'</span> ';
   if(S.atmosphere) html+='<span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(203,162,88,.2);color:#9A7830">'+S.atmosphere+'</span>';
   var el=document.getElementById(targetId); if(el) el.innerHTML=html;
 }
