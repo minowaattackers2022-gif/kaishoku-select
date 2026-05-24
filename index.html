@@ -1374,44 +1374,56 @@ function convertHPShop(shop) {
 // GAS経由でホットペッパーAPIを叩く
 function fetchHotPepper(callback) {
   if (!GAS_URL) { callback([]); return; }
-  var params = ['count=20'];
 
-  // エリア / 現在地
-  if (S.lat && S.lng) {
-    params.push('lat=' + S.lat, 'lng=' + S.lng, 'range=4');
-  } else if (S.area) {
-    params.push('keyword=' + encodeURIComponent(S.area + ' 会食'));
-  } else { callback([]); return; }
+  // GPS取得済みかどうかで検索方法を切り替え
+  var useGPS = !!(S.lat && S.lng);
 
-  // 予算コード
-  if (S.budgetMax < 99999) {
-    var bc = toBudgetCode(S.budgetMax);
-    if (bc) params.push('budget=' + bc);
+  function buildParams(range) {
+    var p = ['count=20'];
+    if (useGPS) {
+      p.push('lat=' + S.lat, 'lng=' + S.lng, 'range=' + range);
+    } else if (S.area) {
+      p.push('keyword=' + encodeURIComponent(S.area + ' 会食 個室'));
+    } else { return null; }
+    if (S.budgetMax < 99999) { var bc = toBudgetCode(S.budgetMax); if (bc) p.push('budget=' + bc); }
+    if (S.ngConds.indexOf('smoke')  >= 0) p.push('non_smoking=1');
+    if (S.ngConds.indexOf('noise')  >= 0 || S.ngConds.indexOf('loud') >= 0) p.push('private_room=1');
+    return p;
   }
 
-  // NG条件→HP-APIパラメータ
-  if (S.ngConds.indexOf('smoke')  >= 0) params.push('non_smoking=1');
-  if (S.ngConds.indexOf('noise')  >= 0 || S.ngConds.indexOf('loud') >= 0) params.push('private_room=1');
-  if (S.ngConds.indexOf('stairs') >= 0) params.push('barrier_free=1');
+  function doFetch(params) {
+    return fetch(GAS_URL + '?action=hotpepper&' + params.join('&'))
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        return (res.success && res.shops) ? res.shops.map(convertHPShop) : [];
+      })
+      .catch(function() { return []; });
+  }
 
-  // 深夜フラグ（騒がしすぎるNG→静かな店を優先するため夜景バーなど除外はせず後でスコアで調整）
-  // 駐車場はNG条件ではなくスコアで加点
-
-  var url = GAS_URL + '?action=hotpepper&' + params.join('&');
-  fetch(url)
-    .then(function(r){ return r.json(); })
-    .then(function(res){
-      var shops = (res.success && res.shops) ? res.shops.map(convertHPShop) : [];
-      // 人数フィルター（キャパ不足店を除外）
-      if (S.paxNum > 1) {
-        var ok = shops.filter(function(s){ return !s.capacity || s.capacity >= S.paxNum; });
-        if (ok.length >= 3) shops = ok;
-      }
+  // GPS使用時：範囲を段階的に拡大（3km→5km→キーワード）
+  if (useGPS) {
+    doFetch(buildParams(5)) // 3km
+      .then(function(shops) {
+        if (shops.length >= 3) { saveLastSearch(); callback(shops); return; }
+        // 3件未満→フィルターを緩めて再検索
+        var p2 = ['count=20',
+          'lat=' + S.lat, 'lng=' + S.lng, 'range=5']; // フィルターなしで再試行
+        doFetch(p2).then(function(shops2) {
+          saveLastSearch();
+          callback(shops2.length > 0 ? shops2 : shops);
+        });
+      });
+  } else {
+    // エリア名キーワード検索
+    var p = buildParams(5);
+    if (!p) { callback([]); return; }
+    doFetch(p).then(function(shops) {
       saveLastSearch();
       callback(shops);
-    })
-    .catch(function(){ callback([]); });
+    });
+  }
 }
+
 
 
 function scoreStore(s) {
@@ -1475,31 +1487,47 @@ function isOpen(s) {
   return nowM < closeM - 60 || nowM < openM;
 }
 function getTop3() {
-  // ホットペッパーAPI結果があれば優先、なければ手動DB
-  var pool;
-  if (HP_SHOPS && HP_SHOPS.length > 0) {
-    pool = HP_SHOPS.slice();
+  var useGPS  = !!(S.lat && S.lng);
+  var hasAPI  = HP_SHOPS && HP_SHOPS.length > 0;
+
+  if (hasAPI) {
+    // API結果があれば必ずそちらを使う（エリア一致保証）
+    var pool = HP_SHOPS.slice();
     pool.forEach(function(s){ s._r = Math.random() * 1.5; });
-  } else {
-    DB.forEach(function(s){ s._r = Math.random() * 1.5; });
-    var area = S.area.replace(/[都道府県]$/,'');
-    var cands = DB.filter(function(s){
-      return s.areas.some(function(a){
-        return a.indexOf(area)>=0 || area.indexOf(a.replace(/[都道府県]$/,''))>=0;
-      });
-    });
-    pool = cands.length >= 3 ? cands : DB;
-    var p2 = pool.filter(isOpen);
-    if (p2.length < 3) p2 = pool.filter(function(s){ return s.reservation; });
-    if (p2.length < 3) p2 = pool;
-    pool = p2;
+    if (S.paxNum > 1) {
+      var ok = pool.filter(function(s){ return !s.capacity || s.capacity >= S.paxNum; });
+      if (ok.length >= 3) pool = ok;
+    }
+    return pool
+      .map(function(s){ return {s:s, sc:scoreStore(s)}; })
+      .sort(function(a,b){ return b.sc-a.sc; })
+      .slice(0,3)
+      .map(function(x){ return x.s; });
   }
-  return pool
+
+  if (useGPS) {
+    // GPS使用でAPIが0件 → 手動DBへの逃げを禁止（null=0件を返す）
+    return null;
+  }
+
+  // エリア未指定（手動DB）
+  DB.forEach(function(s){ s._r = Math.random() * 1.5; });
+  var area  = S.area.replace(/[都道府県]$/,'');
+  var cands = DB.filter(function(s){
+    return s.areas.some(function(a){
+      return a.indexOf(area)>=0 || area.indexOf(a.replace(/[都道府県]$/,''))>=0;
+    });
+  });
+  var pool = cands.length >= 3 ? cands : DB;
+  var p2 = pool.filter(function(s){ return s.reservation; });
+  if (p2.length < 3) p2 = pool;
+  return p2
     .map(function(s){ return {s:s, sc:scoreStore(s)}; })
     .sort(function(a,b){ return b.sc-a.sc; })
     .slice(0,3)
     .map(function(x){ return x.s; });
 }
+
 function successRate(s) { return Math.min(97, Math.max(52, Math.round(scoreStore(s)*1.6+28))); }
 function reasonLabels(store) {
   var labels = [];
@@ -1608,6 +1636,15 @@ function renderResults() {
   }).join(' ');
   if (S.area) bs.innerHTML += ' <span style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(203,162,88,.2);color:#CBA258">'+S.area+'</span>';
   var top3 = getTop3(), wrap = document.getElementById('result-cards');
+  if (!top3 || top3.length === 0) {
+    var areaName = S.area || 'このエリア';
+    wrap.innerHTML = '<div style="border-radius:16px;padding:28px 20px;text-align:center;background:#fff;border:1px solid #EDE0CC">'
+      + '<p style="font-weight:700;font-size:15px;color:#1E3932;margin-bottom:10px">' + areaName + 'では該当店舗が見つかりませんでした</p>'
+      + '<p style="font-size:13px;color:#6B7280;line-height:1.6">予算・条件を緩めるか、別のエリアをお試しください</p>'
+      + '<button onclick="go(5)" style="margin-top:16px;padding:12px 24px;background:#1E3932;color:#fff;border:none;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">条件を変更する</button>'
+      + '</div>';
+    return;
+  }
   var html = ''; top3.forEach(function(s, i) { html += buildCard(s, i+1); }); wrap.innerHTML = html;
 }
 
@@ -2470,6 +2507,15 @@ function renderResults() {
   }).join(' ');
   if (S.area) bs.innerHTML += ' <span style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(203,162,88,.2);color:#CBA258">'+S.area+'</span>';
   var top3 = getTop3(), wrap = document.getElementById('result-cards');
+  if (!top3 || top3.length === 0) {
+    var areaName = S.area || 'このエリア';
+    wrap.innerHTML = '<div style="border-radius:16px;padding:28px 20px;text-align:center;background:#fff;border:1px solid #EDE0CC">'
+      + '<p style="font-weight:700;font-size:15px;color:#1E3932;margin-bottom:10px">' + areaName + 'では該当店舗が見つかりませんでした</p>'
+      + '<p style="font-size:13px;color:#6B7280;line-height:1.6">予算・条件を緩めるか、別のエリアをお試しください</p>'
+      + '<button onclick="go(5)" style="margin-top:16px;padding:12px 24px;background:#1E3932;color:#fff;border:none;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">条件を変更する</button>'
+      + '</div>';
+    return;
+  }
   var html = ''; top3.forEach(function(s, i) { html += buildCard(s, i+1); }); wrap.innerHTML = html;
 }
 
