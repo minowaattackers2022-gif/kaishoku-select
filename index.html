@@ -345,6 +345,61 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
   </div>
 </div>
 
+
+<!-- ═══ VIEW: 予約アシスト ═══ -->
+<div id="view-booking-assist" class="view" style="padding-bottom:32px">
+  <div class="px-5 pt-5 pb-4" style="background:#1E3932">
+    <p class="text-xs tracking-widest font-bold mb-1" style="color:#CBA258">予約アシスト</p>
+    <h2 id="ba-store-name" class="font-serif text-xl font-bold leading-tight" style="color:#fff"></h2>
+    <p id="ba-store-loc" class="text-xs mt-1" style="color:rgba(212,233,226,.6)"></p>
+  </div>
+
+  <!-- アクションボタン -->
+  <div class="px-5 pt-5 pb-2">
+    <div class="flex gap-3 mb-3">
+      <a id="ba-tel-btn" href="#" class="flex-1 py-3.5 font-bold text-sm text-white text-center no-underline" style="background:#1E3932;border-radius:50px;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.87 10.5a19.79 19.79 0 01-3.07-8.67A2 2 0 012.77 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.08 6.08l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        今すぐ電話
+      </a>
+      <a id="ba-url-btn" href="#" target="_blank" class="flex-1 py-3.5 font-bold text-sm text-center no-underline" style="background:#fff;border:1.5px solid #1E3932;color:#1E3932;border-radius:50px;letter-spacing:.04em;display:flex;align-items:center;justify-content:center">
+        予約ページへ
+      </a>
+    </div>
+    <a id="ba-map-btn" href="#" target="_blank" class="w-full py-3 font-bold text-xs text-center no-underline" style="background:transparent;border:1px solid #D9CFC5;color:#6B7280;border-radius:50px;display:flex;align-items:center;justify-content:center;gap:4px">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Googleマップで確認する
+    </a>
+  </div>
+
+  <!-- 予約前チェックリスト -->
+  <div class="px-5 pt-4">
+    <p class="text-sm font-bold mb-3" style="color:#1E3932;letter-spacing:.04em">予約時に伝えること</p>
+    <div id="ba-checklist" class="flex flex-col gap-2 mb-5"></div>
+
+    <!-- 電話テンプレ -->
+    <p class="text-sm font-bold mb-2" style="color:#1E3932;letter-spacing:.04em">電話・メッセージ用テンプレ</p>
+    <div style="background:#F9F6F1;border-radius:12px;padding:14px;margin-bottom:4px">
+      <p id="ba-tel-template" class="text-sm leading-relaxed" style="color:#1E3932"></p>
+    </div>
+    <button onclick="copyText('ba-tel-template')" class="w-full py-2.5 text-xs font-bold mb-5" style="background:transparent;border:1px solid #D9CFC5;border-radius:50px;color:#6B7280;cursor:pointer">
+      テンプレをコピー
+    </button>
+
+    <!-- パートナーへの案内文 -->
+    <p class="text-sm font-bold mb-2" style="color:#1E3932;letter-spacing:.04em">パートナーへの案内文</p>
+    <div style="background:#F9F6F1;border-radius:12px;padding:14px;margin-bottom:4px">
+      <p id="ba-guide-template" class="text-sm leading-relaxed" style="color:#1E3932"></p>
+    </div>
+    <button onclick="copyText('ba-guide-template')" class="w-full py-2.5 text-xs font-bold mb-5" style="background:transparent;border:1px solid #D9CFC5;border-radius:50px;color:#6B7280;cursor:pointer">
+      案内文をコピー
+    </button>
+
+    <button onclick="gotoView('home')" class="w-full py-3.5 font-bold text-sm" style="background:transparent;border:1.5px solid #1E3932;color:#1E3932;border-radius:50px;letter-spacing:.05em">
+      ホームに戻る
+    </button>
+  </div>
+</div>
+
 <!-- ═══ VIEW: コンシェルジュ（6段階） ═══ -->
 <div id="view-concierge" class="view">
   <!-- 進行バー -->
@@ -385,6 +440,121 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
 </div>
 
 <script>
+
+
+/* ── 予約アシスト ── */
+function renderBookingAssist(store) {
+  if (!store) return;
+
+  // ヘッダー
+  var el = document.getElementById('ba-store-name');
+  if (el) el.textContent = store.name;
+  var el2 = document.getElementById('ba-store-loc');
+  if (el2) el2.textContent = store.loc || '';
+
+  // 電話ボタン
+  var telBtn = document.getElementById('ba-tel-btn');
+  if (telBtn) {
+    if (store.tel) {
+      telBtn.href = 'tel:' + store.tel.replace(/[^\d+]/g,'');
+      telBtn.style.opacity = '1';
+    } else {
+      telBtn.href = '#';
+      telBtn.style.opacity = '0.4';
+      telBtn.onclick = function(e){ e.preventDefault(); alert('電話番号が取得できませんでした。\n予約ページからご確認ください。'); };
+    }
+  }
+
+  // 予約URLボタン
+  var urlBtn = document.getElementById('ba-url-btn');
+  if (urlBtn) {
+    if (store.shopUrl) {
+      urlBtn.href = store.shopUrl;
+      urlBtn.style.opacity = '1';
+    } else {
+      urlBtn.href = '#';
+      urlBtn.style.opacity = '0.4';
+    }
+  }
+
+  // マップボタン
+  var mapBtn = document.getElementById('ba-map-btn');
+  if (mapBtn) {
+    mapBtn.href = 'https://maps.google.com/maps/dir/?api=1&destination=' +
+      encodeURIComponent(store.name + ' ' + store.loc) + '&travelmode=walking';
+  }
+
+  // チェックリスト自動生成
+  var checks = [];
+  checks.push('人数：' + S.paxNum + '名で予約する');
+  if (store.ng && store.ng.noise) checks.push('個室希望と伝える');
+  if (store.ng && store.ng.smoke) checks.push('禁煙席を指定する');
+  if (S.ngConds.indexOf('allergy') >= 0) checks.push('食物アレルギーを事前に伝える');
+  if (S.ngConds.indexOf('stairs') >= 0)  checks.push('バリアフリー対応を確認する');
+  if (store.budgetNum >= 10000)           checks.push('コースまたは予算 ' + store.budget + ' を確認する');
+  checks.push('到着時間・遅延時の連絡先を確認する');
+
+  var cl = document.getElementById('ba-checklist');
+  if (cl) {
+    cl.innerHTML = checks.map(function(c, i) {
+      return '<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#fff;border-radius:10px;border:1px solid #E8E0D5">'
+        + '<div style="width:18px;height:18px;border-radius:4px;border:1.5px solid #D9CFC5;flex-shrink:0;margin-top:1px"></div>'
+        + '<p style="font-size:13px;color:#1E3932;font-weight:500">' + c + '</p>'
+        + '</div>';
+    }).join('');
+  }
+
+  // 電話テンプレ
+  var date = new Date();
+  var dateStr = (date.getMonth()+1) + '月' + date.getDate() + '日';
+  var paxStr  = S.paxNum + '名';
+  var budgetStr = store.budget || '';
+  var telTmpl  = '「' + dateStr + '、' + paxStr + 'で予約したいのですが、';
+  if (store.ng && store.ng.noise) telTmpl += '個室はありますか？';
+  if (store.ng && store.ng.smoke) telTmpl += '禁煙席を希望しています。';
+  if (budgetStr) telTmpl += 'お一人様' + budgetStr + '程度を考えています。';
+  telTmpl += 'よろしくお願いします。」';
+
+  var t1 = document.getElementById('ba-tel-template');
+  if (t1) t1.textContent = telTmpl;
+
+  // パートナーへの案内文
+  var partnerName = APP.selectedPartner ? APP.selectedPartner.name + 'さん' : 'ご参加の方';
+  var guideTmpl   = partnerName + '、\n\n次回の会食について、\n\n';
+  guideTmpl      += '【' + store.name + '】\n';
+  guideTmpl      += store.loc + '\n';
+  guideTmpl      += dateStr + ' ' + paxStr + '\n\n';
+  guideTmpl      += 'ご確認のほどよろしくお願いいたします。';
+
+  var t2 = document.getElementById('ba-guide-template');
+  if (t2) t2.textContent = guideTmpl;
+}
+
+function copyText(elementId) {
+  var el = document.getElementById(elementId);
+  if (!el) return;
+  var text = el.textContent || el.innerText;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function(){
+      showToast('コピーしました', 'success');
+    }).catch(function(){
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.top = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showToast('コピーしました', 'success'); } catch(e) {}
+  document.body.removeChild(ta);
+}
 
 // ═══════════════ PIN ロック ═══════════════
 var PIN_KEY   = 'kc_pin';
@@ -504,9 +674,41 @@ function saveMeetings(arr) { localStorage.setItem('kc_meetings', JSON.stringify(
 var APP = { view:'home', prevView:'home', selectedPartner:null };
 var REG = { p_type:'', p_status:'', p_atm:'' };
 var PM  = { pm_outcome:'', pm_next:'', pm_rating:'', storeId:'', storeName:'', partnerId:'', editMeetingId:'' };
-var S   = { partner:'', purpose:'', atmosphere:'', ngConds:[], area:'', lat:null, lng:null, budgetMin:0, budgetMax:99999, budgetLabel:'' };
+var S   = { partner:'', purpose:'', atmosphere:'', ngConds:[], area:'', lat:null, lng:null, budgetMin:0, budgetMax:99999, budgetLabel:'', paxNum:2 };
 var cur = 1;
 var HP_SHOPS = []; // ホットペッパーAPI取得結果
+
+/* ── 前回条件の保存・復元 ── */
+function saveLastSearch() {
+  try {
+    localStorage.setItem('kc_lastSearch', JSON.stringify({
+      partner:    S.partner,
+      purpose:    S.purpose,
+      atmosphere: S.atmosphere,
+      ngConds:    S.ngConds,
+      area:       S.area,
+      budgetMin:  S.budgetMin,
+      budgetMax:  S.budgetMax,
+      budgetLabel:S.budgetLabel,
+      paxNum:     S.paxNum
+    }));
+  } catch(e) {}
+}
+function loadLastSearch() {
+  try {
+    var d = JSON.parse(localStorage.getItem('kc_lastSearch') || 'null');
+    if (!d) return;
+    S.partner     = d.partner     || '';
+    S.purpose     = d.purpose     || '';
+    S.atmosphere  = d.atmosphere  || '';
+    S.ngConds     = d.ngConds     || [];
+    S.area        = d.area        || '';
+    S.budgetMin   = d.budgetMin   || 0;
+    S.budgetMax   = d.budgetMax   || 99999;
+    S.budgetLabel = d.budgetLabel || '';
+    S.paxNum      = d.paxNum      || 2;
+  } catch(e) {}
+}
 
 // ═══════════════ GOOGLE スプレッドシート連携 ═══════════════
 // ▼ デプロイ後にURLをここに貼り付ける（空のままでも動作します）
@@ -643,7 +845,7 @@ var PURPOSE_LABELS = {
 };
 function purposeLabel(v) { return PURPOSE_LABELS[v] || v; }
 
-var VIEW_TITLES = { home:'会食コンシェルジュ', 'partner-reg':'パートナーを登録', 'post-meeting':'会食後の記録', history:'会食履歴', concierge:'会食を計画' };
+var VIEW_TITLES = { home:'会食コンシェルジュ', 'partner-reg':'パートナーを登録', 'post-meeting':'会食後の記録', history:'会食履歴', concierge:'会食を計画', 'booking-assist':'予約アシスト' };
 function gotoView(v) {
   APP.prevView = APP.view;
   APP.view = v;
@@ -950,6 +1152,12 @@ function buildSteps() {
           return '<button class="area-chip chip py-2.5 rounded-xl border-2 font-bold text-sm" data-area="' + a + '" onclick="selArea(this)" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">' + a + '</button>';
         }).join('') +
       '</div>' +
+      '<p class="text-sm font-bold mb-2" style="color:#1E3932">人数</p>' +
+      '<div class="grid grid-cols-3 gap-2 mb-5">' +
+        [['1名',1],['2名',2],['3〜4名',4],['5〜8名',8],['9〜15名',15],['16名以上',16]].map(function(b){
+          return '<button class="pax-chip chip py-2.5 rounded-xl border-2 font-bold text-sm" data-pax="' + b[1] + '" onclick="selPax(this)" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">' + b[0] + '</button>';
+        }).join('') +
+      '</div>' +
       '<p class="text-sm font-bold mb-2" style="color:#1E3932">お一人様予算</p>' +
       '<div class="grid grid-cols-2 gap-2 mb-6">' +
         [['〜8,000円',0,8000],['〜12,000円',0,12000],['〜18,000円',0,18000],['〜25,000円',0,25000],['25,000円〜',18000,99999],['こだわらない',0,99999]].map(function(b){
@@ -1045,7 +1253,22 @@ function parseBudgetNum(str) {
   return nums.length ? Math.round(nums.reduce(function(a,b){return a+b;},0)/nums.length) : 8000;
 }
 
-// ジャンル・予算からパートナー属性を推測
+// ━━ HP-API データ変換ヘルパー ━━
+
+// 徒歩分数を access 文字列から抽出
+function parseWalkMin(access) {
+  var m = (access || '').match(/徒歩(\d+)分/);
+  return m ? parseInt(m[1]) : null;
+}
+
+// 「3001~4000円」→ 3500 に変換
+function parseBudgetNum(str) {
+  if (!str) return 8000;
+  var nums = (str.match(/\d+/g) || []).map(Number);
+  return nums.length ? Math.round(nums.reduce(function(a,b){return a+b;},0)/nums.length) : 8000;
+}
+
+// ジャンル→パートナー推測
 function guessPartners(genre, budget) {
   var p = [];
   if (budget >= 20000) p.push('役員・部長クラス');
@@ -1057,17 +1280,19 @@ function guessPartners(genre, budget) {
   return p.filter(function(v,i,a){return a.indexOf(v)===i;});
 }
 
+// ジャンル→雰囲気推測
 function guessAtmosphere(genre, budget, priv) {
   var a = [];
   if (budget >= 20000) a.push('堅め・格式高く');
   if (budget >= 10000 && budget < 25000) a.push('上品でカジュアル');
   if (/フレンチ|イタリア|バル|カフェ/.test(genre)) a.push('感度の高い店');
-  if (/焼肉|居酒屋|鍋/.test(genre)) a.push('距離が縮まる');
+  if (/焼肉|居酒屋|鍋/.test(genre))                a.push('距離が縮まる');
   if (priv) a.push('会話がしやすい','安心感を重視');
   if (!a.length) a.push('上品でカジュアル');
   return a.filter(function(v,i,a){return a.indexOf(v)===i;});
 }
 
+// ジャンル→目的推測
 function guessPurposes(budget, priv) {
   var p = ['関係を深める'];
   if (priv) p.push('提案前の雰囲気づくり');
@@ -1076,67 +1301,123 @@ function guessPurposes(budget, priv) {
   return p;
 }
 
-// ホットペッパーの店舗データ → アプリのstore形式に変換
+// HP-API shop → アプリ内 store 形式に変換
 function convertHPShop(shop) {
-  var budget  = parseBudgetNum(shop.budget ? shop.budget.average : '');
-  var priv    = shop.private_room     === 'あり';
-  var noSmoke = shop.non_smoking_seat === 'あり';
-  var genre   = (shop.genre && shop.genre.name) || '';
+  var budget   = parseBudgetNum(shop.budget ? shop.budget.average : '');
+  var priv     = shop.private_room      === 'あり';
+  var noSmoke  = shop.non_smoking_seat  === 'あり';
+  var midnight = shop.midnight          === 'あり';
+  var parking  = shop.parking           === 'あり';
+  var english  = shop.english           === 'あり';
+  var freeDrink= shop.free_drink        === 'あり';
+  var course   = shop.course            === 'あり';
+  var genre    = (shop.genre && shop.genre.name) || '';
+  var walkMin  = parseWalkMin(shop.access || '');
+  var capacity = shop.party_capacity ? parseInt(shop.party_capacity) : 30;
+
+  // 「なぜ今回向きか」Hook 自動生成
+  var hookParts = [];
+  if (priv)      hookParts.push('個室あり');
+  if (noSmoke)   hookParts.push('全席禁煙');
+  if (walkMin !== null && walkMin <= 3) hookParts.push('駅から徒歩' + walkMin + '分');
+  if (midnight)  hookParts.push('深夜も利用可');
+  if (parking)   hookParts.push('駐車場完備');
+  if (english)   hookParts.push('英語対応');
+  if (freeDrink) hookParts.push('飲み放題あり');
+  if (course)    hookParts.push('コース設定あり');
+  var hook = hookParts.length > 0
+    ? hookParts.slice(0,3).join('・') + '。' + (shop.catch || genre + 'の会食に向いている店です')
+    : shop.catch || (shop.pr && shop.pr.pr_short) || (genre + 'の会食向け店舗です');
+
   return {
-    name:       shop.name,
-    area:       S.area || '検索エリア',
-    loc:        shop.access || shop.address || '',
-    genre:      genre,
-    budget:     budget.toLocaleString() + '円〜',
-    budgetNum:  budget,
-    hook:       shop.catch || (shop.pr && shop.pr.pr_short) || 'ホットペッパーから取得した店舗です',
-    partners:   guessPartners(genre, budget),
-    purposes:   guessPurposes(budget, priv),
-    atmosphere: guessAtmosphere(genre, budget, priv),
-    areas:      [S.area, '現在地周辺'],
-    ng:  { noise:priv, loud:priv, seafood:false, allergy:false, smoke:noSmoke, stairs:false, casual:true, dress:false },
-    reservation: true,
-    hours:      shop.open || '',
-    maxPax:     30,
-    hasTikTok:  true,
-    hasInstagram:true,
-    snsBuzz:    3,
-    shopUrl:    shop.urls ? shop.urls.pc : '',
-    isApiResult:true
+    name:        shop.name,
+    area:        S.area || '検索エリア',
+    loc:         shop.access  || shop.address || '',
+    genre:       genre,
+    budget:      budget.toLocaleString() + '円〜',
+    budgetNum:   budget,
+    hook:        hook.slice(0, 80),
+    partners:    guessPartners(genre, budget),
+    purposes:    guessPurposes(budget, priv),
+    atmosphere:  guessAtmosphere(genre, budget, priv),
+    areas:       [S.area, '現在地周辺'],
+    ng: {
+      noise:    priv,
+      loud:     priv,
+      seafood:  false,
+      allergy:  false,
+      smoke:    noSmoke,
+      stairs:   false,
+      casual:   true,
+      dress:    false
+    },
+    reservation:  true,
+    hours:        shop.open || '',
+    maxPax:       capacity,
+    capacity:     capacity,
+    hasTikTok:    true,
+    hasInstagram: true,
+    snsBuzz:      (shop.photo && shop.photo.pc && shop.photo.pc.l) ? 4 : 2,
+    shopUrl:      shop.urls  ? shop.urls.pc  : '',
+    tel:          shop.tel   || '',
+    walkMin:      walkMin,
+    hasParking:   parking,
+    hasEnglish:   english,
+    hasMidnight:  midnight,
+    hasFreeDrink: freeDrink,
+    hasCourse:    course,
+    isApiResult:  true
   };
 }
+
 
 // GAS経由でホットペッパーAPIを叩く
 function fetchHotPepper(callback) {
   if (!GAS_URL) { callback([]); return; }
-  var params = [];
+  var params = ['count=20'];
+
+  // エリア / 現在地
   if (S.lat && S.lng) {
     params.push('lat=' + S.lat, 'lng=' + S.lng, 'range=4');
   } else if (S.area) {
-    params.push('keyword=' + encodeURIComponent(S.area + ' 個室 会食'));
+    params.push('keyword=' + encodeURIComponent(S.area + ' 会食'));
   } else { callback([]); return; }
 
+  // 予算コード
   if (S.budgetMax < 99999) {
-    var code = toBudgetCode(S.budgetMax);
-    if (code) params.push('budget=' + code);
+    var bc = toBudgetCode(S.budgetMax);
+    if (bc) params.push('budget=' + bc);
   }
+
+  // NG条件→HP-APIパラメータ
   if (S.ngConds.indexOf('smoke')  >= 0) params.push('non_smoking=1');
   if (S.ngConds.indexOf('noise')  >= 0 || S.ngConds.indexOf('loud') >= 0) params.push('private_room=1');
+  if (S.ngConds.indexOf('stairs') >= 0) params.push('barrier_free=1');
+
+  // 深夜フラグ（騒がしすぎるNG→静かな店を優先するため夜景バーなど除外はせず後でスコアで調整）
+  // 駐車場はNG条件ではなくスコアで加点
 
   var url = GAS_URL + '?action=hotpepper&' + params.join('&');
   fetch(url)
     .then(function(r){ return r.json(); })
     .then(function(res){
       var shops = (res.success && res.shops) ? res.shops.map(convertHPShop) : [];
+      // 人数フィルター（キャパ不足店を除外）
+      if (S.paxNum > 1) {
+        var ok = shops.filter(function(s){ return !s.capacity || s.capacity >= S.paxNum; });
+        if (ok.length >= 3) shops = ok;
+      }
+      saveLastSearch();
       callback(shops);
     })
     .catch(function(){ callback([]); });
 }
 
+
 function scoreStore(s) {
   var sc = 0;
 
-  // SNS映え加点（インフルエンサーのとき優先）
+  // SNS映え加点（インフルエンサーのとき）
   if (S.partner === 'インフルエンサー' && s.snsBuzz) sc += (s.snsBuzz - 1) * 4;
 
   // パートナーとの相性（最重要）
@@ -1157,17 +1438,34 @@ function scoreStore(s) {
   // 予算の適合
   if (s.budgetNum <= S.budgetMax + 5000 && s.budgetNum >= Math.max(0, S.budgetMin - 3000)) sc += 10;
 
+  // ━━ HP-APIフィールド加点 ━━
+  // 駅近（徒歩5分以内）
+  if (s.walkMin !== null && s.walkMin !== undefined) {
+    if      (s.walkMin <= 2) sc += 10;
+    else if (s.walkMin <= 5) sc += 7;
+    else if (s.walkMin <= 8) sc += 3;
+  }
+  if (s.hasParking)   sc += 4;   // 駐車場あり
+  if (s.hasEnglish)   sc += 3;   // 英語対応
+  if (s.hasMidnight)  sc += 2;   // 深夜営業
+  if (s.hasFreeDrink) sc += 3;   // 飲み放題
+  if (s.hasCourse)    sc += 3;   // コースあり
+
   // NG条件への対応
   S.ngConds.forEach(function(ng){ if (s.ng && !s.ng[ng]) sc -= 25; });
 
   // 予約可能
   if (!s.reservation) sc -= 12;
 
+  // 人数適合
+  if (S.paxNum > 0 && s.capacity && s.capacity < S.paxNum) sc -= 20;
+
   // 同点時の微小シャッフル
   sc += s._r || 0;
 
   return sc;
 }
+
 function isOpen(s) {
   if (!s.reservation) return false;
   var now = new Date(), nowM = now.getHours()*60+now.getMinutes();
@@ -1221,20 +1519,24 @@ function buildCard(store, rank) {
   var rate = successRate(store);
 
   var navURL = 'https://maps.google.com/maps/dir/?api=1&destination='
-    + encodeURIComponent(store.name + ' ' + store.loc) + '&travelmode=driving';
-  // ② TikTok：店名＋グルメで検索
-  var tkURL = 'https://www.tiktok.com/search?q=' + encodeURIComponent(store.name + ' グルメ');
+    + encodeURIComponent(store.name + ' ' + store.loc) + '&travelmode=walking';
+  var tkURL  = 'https://www.tiktok.com/search?q=' + encodeURIComponent(store.name + ' グルメ');
+  var igURL  = 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(store.name + ' グルメ');
 
-  // ③ Instagram：店名＋グルメでキーワード検索
-  var igURL = 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(store.name + ' グルメ');
-
-  var tkBtn = '<a href="'+tkURL+'" target="_blank" rel="noopener" class="tk-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">TikTok 口コミ</a>';
-  var igBtn = '<a href="'+igURL+'" target="_blank" rel="noopener" class="ig-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">Instagram 口コミ</a>';
+  var tkBtn = '<a href="'+tkURL+'" target="_blank" rel="noopener" class="tk-btn" style="flex:1;display:flex;align-items:center;justify-content:center;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">TikTok</a>';
+  var igBtn = '<a href="'+igURL+'" target="_blank" rel="noopener" class="ig-btn" style="flex:1;display:flex;align-items:center;justify-content:center;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">Instagram</a>';
 
   var rLabels = reasonLabels(store);
   var rHtml = rLabels.map(function(l){ return '<span style="display:inline-block;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;background:#F2EDE8;color:#5C4033;margin:2px 2px 2px 0">'+l+'</span>'; }).join('');
 
-  function spec(ok,label){ return '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:'+(ok?'#1E3932':'#BDBDBD')+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'+label+'</div>'; }
+  // スペック（HP-APIフィールドを最大限活用）
+  function spec(ok, label) {
+    return '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:'+(ok?'#1E3932':'#BDBDBD')+'"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'+label+'</div>';
+  }
+
+  var walkLabel = (store.walkMin !== null && store.walkMin !== undefined)
+    ? '徒歩' + store.walkMin + '分'
+    : (store.loc ? store.loc.match(/徒歩\d+分/) && store.loc.match(/徒歩\d+分/)[0] || '徒歩圏内' : '');
 
   return '<div class="rcard">'
     + '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 14px 8px">'
@@ -1244,7 +1546,7 @@ function buildCard(store, rank) {
           + '<span style="font-size:11px;padding:3px 10px;border-radius:50px;background:#F2EDE8;color:#5C4033;font-weight:500">'+store.genre+'</span>'
         + '</div>'
         + '<h3 style="font-family:\'Playfair Display\',serif;font-size:17px;font-weight:700;color:#1E3932;line-height:1.2">'+store.name+'</h3>'
-        + '<p style="font-size:11px;color:#9CA3AF;margin-top:2px">'+store.loc+'</p>'
+        + (walkLabel ? '<p style="font-size:11px;color:#9CA3AF;margin-top:2px">'+walkLabel+'</p>' : '')
       + '</div>'
       + '<div style="text-align:right;flex-shrink:0">'
         + '<p style="font-size:10px;color:#CBA258;font-weight:700;margin-bottom:2px;letter-spacing:.03em">条件一致度</p>'
@@ -1257,18 +1559,47 @@ function buildCard(store, rank) {
       + '<p style="font-size:10px;font-weight:700;color:#1E3932;margin-bottom:3px;letter-spacing:.04em">なぜ今回向きか</p>'
       + '<p style="font-size:13px;font-weight:500;color:#1E3932;line-height:1.6">'+store.hook+'</p>'
     + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;padding:0 14px 10px">'+spec(store.ng&&store.ng.noise,'音漏れなし')+spec(store.ng&&store.ng.smoke,'禁煙対応')+spec(store.ng&&store.ng.loud,'静かな環境')+spec(store.reservation,'予約可能')+'</div>'
-    + '<div style="padding:0 14px 10px">'
-      + '<a href="'+navURL+'" target="_blank" rel="noopener" class="nav-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:.04em">'
-        + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'+store.name+'に案内する'
-      + '</a>'
+    // スペックグリッド（HP-APIフィールド活用）
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 8px;padding:0 14px 10px">'
+      + spec(store.ng&&store.ng.noise,  '音漏れなし')
+      + spec(store.ng&&store.ng.smoke,  '禁煙対応')
+      + spec(store.reservation,         '予約可能')
+      + spec(store.hasParking,          '駐車場あり')
+      + spec(store.hasFreeDrink,        '飲み放題')
+      + spec(store.hasCourse,           'コースあり')
+      + spec(store.hasMidnight,         '深夜OK')
+      + spec(store.hasEnglish,          '英語対応')
+      + spec(store.ng&&store.ng.loud,   '静かな環境')
     + '</div>'
-    + '<div style="display:flex;gap:8px;padding:0 14px 10px">'+tkBtn+igBtn+'</div>'
+    // 予約アシストボタン（メイン）
+    + '<div style="padding:0 14px 8px">'
+      + '<button onclick="openBookingAssist(\''+rank-1+'\')" style="width:100%;padding:14px;border-radius:50px;background:#1E3932;color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em">'
+        + '✓ この店で予約する'
+      + '</button>'
+    + '</div>'
+    // サブアクション
+    + '<div style="display:flex;gap:6px;padding:0 14px 8px">'
+      + '<a href="'+navURL+'" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:9px;border-radius:50px;border:1.5px solid #1E3932;color:#1E3932;font-size:11px;font-weight:700;text-decoration:none">地図</a>'
+      + tkBtn
+      + igBtn
+    + '</div>'
     + '<div style="padding:0 14px 14px">'
-      + '<button onclick="openPostMeeting(\''+store.name+'\')" style="width:100%;padding:11px;border-radius:50px;border:1.5px solid #CBA258;background:transparent;font-size:12px;font-weight:700;color:#9A7830;cursor:pointer;letter-spacing:.04em">この店に決めた！記録する</button>'
+      + '<button onclick="openPostMeeting(\''+store.name+'\')" style="width:100%;padding:10px;border-radius:50px;border:1.5px solid #CBA258;background:transparent;font-size:12px;font-weight:700;color:#9A7830;cursor:pointer;letter-spacing:.04em">会食後に記録する</button>'
     + '</div>'
   + '</div>';
 }
+
+// 予約アシストで使う店舗データを一時保存
+var BOOKING_STORE = null;
+
+function openBookingAssist(rankIdx) {
+  var top3 = getTop3();
+  if (!top3 || !top3[rankIdx]) return;
+  BOOKING_STORE = top3[rankIdx];
+  renderBookingAssist(BOOKING_STORE);
+  gotoView('booking-assist');
+}
+
 function renderResults() {
   var bs = document.getElementById('s6badges');
   bs.innerHTML = [S.partner,S.purpose,S.atmosphere].filter(Boolean).map(function(t){
@@ -1439,6 +1770,13 @@ function toggleNG(btn){
   var id=btn.dataset.id, idx=S.ngConds.indexOf(id), box=document.getElementById('ngbox-'+id);
   if(idx>=0){ S.ngConds.splice(idx,1); btn.style.borderColor='#EDE0CC'; btn.style.background='#fff'; box.innerHTML=''; box.style.borderColor='#EDE0CC'; box.style.background='';}
   else { S.ngConds.push(id); btn.style.borderColor='#006241'; btn.style.background='#EBF5F0'; box.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'; box.style.background='#006241'; }
+}
+function selPax(btn) {
+  document.querySelectorAll('.pax-chip').forEach(function(b) {
+    b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A';
+  });
+  btn.style.background='#1E3932'; btn.style.borderColor='#1E3932'; btn.style.color='#D4E9E2';
+  S.paxNum = parseInt(btn.dataset.pax) || 2;
 }
 function selArea(btn){ document.querySelectorAll('.area-chip').forEach(function(b){ b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A'; }); btn.style.background='#1E3932'; btn.style.borderColor='#1E3932'; btn.style.color='#D4E9E2'; S.area=btn.dataset.area; S.lat=null; S.lng=null; gpsReset(); tryS5(); }
 function selBudget(btn){ document.querySelectorAll('.bdg-chip').forEach(function(b){ b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A'; }); btn.style.background='#CBA258'; btn.style.borderColor='#9A7830'; btn.style.color='#1A1A1A'; S.budgetMin=parseInt(btn.dataset.min)||0; S.budgetMax=parseInt(btn.dataset.max)||99999; S.budgetLabel=btn.dataset.bdg; tryS5(); }
@@ -1871,6 +2209,12 @@ function buildSteps() {
           return '<button class="area-chip chip py-2.5 rounded-xl border-2 font-bold text-sm" data-area="' + a + '" onclick="selArea(this)" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">' + a + '</button>';
         }).join('') +
       '</div>' +
+      '<p class="text-sm font-bold mb-2" style="color:#1E3932">人数</p>' +
+      '<div class="grid grid-cols-3 gap-2 mb-5">' +
+        [['1名',1],['2名',2],['3〜4名',4],['5〜8名',8],['9〜15名',15],['16名以上',16]].map(function(b){
+          return '<button class="pax-chip chip py-2.5 rounded-xl border-2 font-bold text-sm" data-pax="' + b[1] + '" onclick="selPax(this)" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">' + b[0] + '</button>';
+        }).join('') +
+      '</div>' +
       '<p class="text-sm font-bold mb-2" style="color:#1E3932">お一人様予算</p>' +
       '<div class="grid grid-cols-2 gap-2 mb-6">' +
         [['〜8,000円',0,8000],['〜12,000円',0,12000],['〜18,000円',0,18000],['〜25,000円',0,25000],['25,000円〜',18000,99999],['こだわらない',0,99999]].map(function(b){
@@ -2217,6 +2561,13 @@ function toggleNG(btn){
   if(idx>=0){ S.ngConds.splice(idx,1); btn.style.borderColor='#EDE0CC'; btn.style.background='#fff'; box.innerHTML=''; box.style.borderColor='#EDE0CC'; box.style.background='';}
   else { S.ngConds.push(id); btn.style.borderColor='#006241'; btn.style.background='#EBF5F0'; box.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'; box.style.background='#006241'; }
 }
+function selPax(btn) {
+  document.querySelectorAll('.pax-chip').forEach(function(b) {
+    b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A';
+  });
+  btn.style.background='#1E3932'; btn.style.borderColor='#1E3932'; btn.style.color='#D4E9E2';
+  S.paxNum = parseInt(btn.dataset.pax) || 2;
+}
 function selArea(btn){ document.querySelectorAll('.area-chip').forEach(function(b){ b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A'; }); btn.style.background='#1E3932'; btn.style.borderColor='#1E3932'; btn.style.color='#D4E9E2'; S.area=btn.dataset.area; S.lat=null; S.lng=null; gpsReset(); tryS5(); }
 function selBudget(btn){ document.querySelectorAll('.bdg-chip').forEach(function(b){ b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A'; }); btn.style.background='#CBA258'; btn.style.borderColor='#9A7830'; btn.style.color='#1A1A1A'; S.budgetMin=parseInt(btn.dataset.min)||0; S.budgetMax=parseInt(btn.dataset.max)||99999; S.budgetLabel=btn.dataset.bdg; tryS5(); }
 function tryS5(){ if(!S.area||S.budgetLabel===undefined||!S.budgetLabel) return; var nb=document.getElementById('s5next'); if(!nb)return; nb.disabled=false; nb.style.background='#1E3932'; nb.style.color='#fff'; nb.style.cursor='pointer'; nb.style.borderRadius='50px'; nb.style.letterSpacing='.05em'; nb.style.boxShadow='none'; }
@@ -2242,6 +2593,7 @@ function updHdr(){ document.getElementById('hdr-step').textContent='第'+cur+'�
 
 // ═══════════════ INIT ═══════════════
 renderHome();
+loadLastSearch(); // 前回条件を復元
 </script>
 </body>
 </html>
