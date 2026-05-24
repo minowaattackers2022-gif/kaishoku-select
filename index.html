@@ -149,7 +149,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#006241" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
       <p class="font-bold text-sm mb-1" style="color:#1E3932">まだパートナーが登録されていません</p>
-      <p class="text-xs" style="color:#6B7280">パートナーを登録すると会食後の記録が蓄積されます</p>
+      <p class="text-xs" style="color:#6B7280">登録すると、会食のたびに記録が増えます</p>
     </div>
   </div>
 </div>
@@ -174,7 +174,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
         <input class="form-input" id="p-role" type="text" placeholder="例：マーケティング部長">
       </div>
       <div>
-        <p class="text-sm font-bold mb-2" style="color:#1E3932">パートナーの属性</p>
+        <p class="text-sm font-bold mb-2" style="color:#1E3932">どんな関係ですか？</p>
         <div class="flex flex-col gap-2" id="p-type-group">
           <button class="pcard p-3 text-left" data-val="役員・部長クラス" onclick="selRegChip(this,'p-type-group','p_type')"><p class="font-bold text-sm" style="color:#1A1A1A">役員・部長クラス</p></button>
           <button class="pcard p-3 text-left" data-val="新規の取引先" onclick="selRegChip(this,'p-type-group','p_type')"><p class="font-bold text-sm" style="color:#1A1A1A">新規の取引先</p></button>
@@ -214,7 +214,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
     </div>
 
     <button id="reg-submit-btn" onclick="savePartner()" class="w-full h-14 font-bold text-base text-white mt-6" style="background:#1E3932;border-radius:50px;letter-spacing:.05em">登録する</button>
-    <p id="reg-err" class="text-xs text-center mt-3" style="color:#DC2626;display:none">氏名と属性は必須です</p>
+    <p id="reg-err" class="text-xs text-center mt-3" style="color:#DC2626;display:none">名前と属性を入力してください</p>
   </div>
 </div>
 
@@ -255,7 +255,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
         </div>
       </div>
       <div>
-        <p class="text-sm font-bold mb-2" style="color:#1E3932">パートナーの好み・新たに気づいたこと</p>
+        <p class="text-sm font-bold mb-2" style="color:#1E3932">気になったこと（好み・苦手など）</p>
         <input class="form-input" id="pm-memo" type="text" placeholder="例：白ワインが好き、静かな個室を好む">
       </div>
       <div>
@@ -283,7 +283,7 @@ body{font-family:"Noto Sans JP",sans-serif;background:#FBF8F3;overscroll-behavio
     <div id="history-list"></div>
     <div id="history-empty" style="display:none;text-align:center;padding:32px 0">
       <p class="font-bold text-sm mb-1" style="color:#1E3932">会食履歴がまだありません</p>
-      <p class="text-xs" style="color:#6B7280">会食後に記録すると蓄積されます</p>
+      <p class="text-xs" style="color:#6B7280">記録するごとに履歴が増えます</p>
     </div>
     <div class="pt-4 pb-2">
       <button onclick="gotoView('home')" class="w-full py-3.5 font-bold text-sm" style="background:#1E3932;color:#fff;border:none;border-radius:50px;letter-spacing:.05em;cursor:pointer">
@@ -410,7 +410,7 @@ function autoSync(data) {
     if (res && res.success) {
       showToast('保存完了', 'success');
     } else {
-      showToast('ローカルに保存しました（シート同期失敗）', 'error');
+      showToast('保存しました（シートへの同期に失敗）', 'error');
     }
   });
 }
@@ -428,7 +428,7 @@ function syncAllToSheets() {
       if (res && res.success) {
         showToast('スプレッドシートに同期完了', 'success');
       } else {
-        showToast('同期に失敗しました。URLを確認してください。', 'error');
+        showToast('同期できませんでした。URLを確認してください', 'error');
       }
     });
 }
@@ -436,7 +436,7 @@ function syncAllToSheets() {
 /* ── スプレッドシートから復元 ── */
 function restoreFromSheets() {
   if (!GAS_URL) { alert('スプレッドシートのURLが設定されていません。'); return; }
-  if (!confirm('スプレッドシートのデータでアプリを上書きします。\n現在のデータは置き換えられます。よろしいですか？')) return;
+  if (!confirm('シートのデータを読み込みます。\n現在の記録は上書きされます。続けますか？')) return;
 
   var btn = document.getElementById('restore-btn');
   if (btn) { btn.textContent = '読み込み中...'; btn.disabled = true; }
@@ -468,7 +468,7 @@ function restoreFromSheets() {
     })
     .catch(function(){
       if (btn) { btn.textContent = 'シートから復元'; btn.disabled = false; }
-      showToast('読み込みに失敗しました', 'error');
+      showToast('読み込めませんでした', 'error');
     });
 }
 
@@ -696,14 +696,14 @@ function buildSteps() {
       partner_hint +
       '<p class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">手順 01</p>' +
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">誰と会いますか？</h2>' +
-      '<p class="text-sm mb-5" style="color:#6B7280">パートナーに合わせて最適な店を提案します</p>' +
+      '<p class="text-sm mb-5" style="color:#6B7280">条件に合った3店を提案します</p>' +
       '<div class="grid grid-cols-2 gap-3">' +
-        '<button class="pcard p-4 text-left' + (S.partner==='役員・部長クラス'?' sel':'') + '" data-val="役員・部長クラス" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">役員・部長クラス</p><p class="text-xs leading-snug" style="color:#6B7280">格式・信頼感が重要なパートナー</p></button>' +
-        '<button class="pcard p-4 text-left' + (S.partner==='新規の取引先'?' sel':'') + '" data-val="新規の取引先" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">新規の取引先</p><p class="text-xs leading-snug" style="color:#6B7280">初対面・まだ距離があるパートナー</p></button>' +
-        '<button class="pcard p-4 text-left' + (S.partner==='経営者仲間'?' sel':'') + '" data-val="経営者仲間" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">経営者仲間</p><p class="text-xs leading-snug" style="color:#6B7280">対等・互いに価値ある関係</p></button>' +
-        '<button class="pcard p-4 text-left' + (S.partner==='採用候補'?' sel':'') + '" data-val="採用候補" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">採用候補</p><p class="text-xs leading-snug" style="color:#6B7280">入社意思を高める場</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='役員・部長クラス'?' sel':'') + '" data-val="役員・部長クラス" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">役員・部長クラス</p><p class="text-xs leading-snug" style="color:#6B7280">格式・信頼感を大切にしたい相手</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='新規の取引先'?' sel':'') + '" data-val="新規の取引先" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">新規の取引先</p><p class="text-xs leading-snug" style="color:#6B7280">初対面・まだ距離がある相手</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='経営者仲間'?' sel':'') + '" data-val="経営者仲間" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">経営者仲間</p><p class="text-xs leading-snug" style="color:#6B7280">フラットに話せる仲間</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='採用候補'?' sel':'') + '" data-val="採用候補" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">採用候補</p><p class="text-xs leading-snug" style="color:#6B7280">入社意欲を引き出す席</p></button>' +
         '<button class="pcard p-4 text-left' + (S.partner==='インフルエンサー'?' sel':'') + '" data-val="インフルエンサー" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">インフルエンサー</p><p class="text-xs leading-snug" style="color:#6B7280">発信力・SNS連携が鍵</p></button>' +
-        '<button class="pcard p-4 text-left' + (S.partner==='長期の取引先'?' sel':'') + '" data-val="長期の取引先" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">長期の取引先</p><p class="text-xs leading-snug" style="color:#6B7280">継続・深耕・感謝を伝える</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='長期の取引先'?' sel':'') + '" data-val="長期の取引先" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">長期の取引先</p><p class="text-xs leading-snug" style="color:#6B7280">長い付き合いへの感謝を込めて</p></button>' +
       '</div>' +
     '</div>' +
     '<!-- step2 -->' +
@@ -726,7 +726,7 @@ function buildSteps() {
       '<div id="badge3" class="mb-4"></div>' +
       '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 03</p>' +
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">どんな空気感に<br>したいですか？</h2>' +
-      '<p class="text-sm mb-5" style="color:#6B7280">パートナーに与えたい印象を選んでください</p>' +
+      '<p class="text-sm mb-5" style="color:#6B7280">どんな雰囲気にしたいですか？</p>' +
       '<div class="grid grid-cols-2 gap-3">' +
         '<button class="pcard p-4 text-left' + (S.atmosphere==='堅め・格式高く'?' sel':'') + '" data-val="堅め・格式高く" onclick="selOne(this,\'atmosphere\',4)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">堅め・格式高く</p><p class="text-xs leading-snug" style="color:#6B7280">信頼感・本気度を示す</p></button>' +
         '<button class="pcard p-4 text-left' + (S.atmosphere==='上品でカジュアル'?' sel':'') + '" data-val="上品でカジュアル" onclick="selOne(this,\'atmosphere\',4)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">上品でカジュアル</p><p class="text-xs leading-snug" style="color:#6B7280">距離感をほどよく縮める</p></button>' +
@@ -741,7 +741,7 @@ function buildSteps() {
       '<div id="badge4" class="mb-4"></div>' +
       '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 04</p>' +
       '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">避けたい条件は<br>ありますか？</h2>' +
-      '<p class="text-sm mb-5" style="color:#6B7280">複数選択可・スキップも可能です</p>' +
+      '<p class="text-sm mb-5" style="color:#6B7280">なければスキップOK</p>' +
       '<div class="flex flex-col gap-2.5 mb-6" id="ng-wrap"></div>' +
       '<button onclick="go(5)" class="w-full h-14 rounded-2xl font-bold text-base text-white" style="background:#1E3932;border-radius:50px;letter-spacing:.05em">次へ進む</button>' +
     '</div>' +
@@ -757,7 +757,7 @@ function buildSteps() {
           '<span id="gi-spin" style="display:none;width:18px;height:18px;border:2px solid rgba(212,233,226,.3);border-top-color:#D4E9E2;border-radius:50%;animation:spin .7s linear infinite"></span>' +
           '<svg id="gi-ok" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBA258" stroke-width="2.5" style="display:none"><polyline points="20 6 9 17 4 12"/></svg>' +
         '</div>' +
-        '<div class="flex-1 text-left"><p id="gps-label" class="font-bold" style="font-size:.9rem">現在地を自動取得</p><p id="gps-sub" class="text-xs mt-0.5" style="color:rgba(212,233,226,.55)">推奨・タップするだけ</p></div>' +
+        '<div class="flex-1 text-left"><p id="gps-label" class="font-bold" style="font-size:.9rem">現在地を自動取得</p><p id="gps-sub" class="text-xs mt-0.5" style="color:rgba(212,233,226,.55)">タップするだけ</p></div>' +
       '</button>' +
       '<p class="text-xs mb-2" style="color:#6B7280">または主要エリアから選ぶ</p>' +
       '<div class="grid grid-cols-2 gap-2 mb-5">' +
@@ -776,8 +776,8 @@ function buildSteps() {
     '<!-- step6: 提案 -->' +
     '<div id="step6" class="hidden pb-8">' +
       '<div class="px-5 pt-5 pb-5" style="background:#1E3932">' +
-        '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 06 — 即決提案</p>' +
-        '<h2 class="font-serif text-xl font-bold leading-tight mb-3" style="color:#fff">今回のパートナーなら<br><em style="font-style:normal;color:#D4E9E2">この3店</em>が最適です</h2>' +
+        '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 06</p>' +
+        '<h2 class="font-serif text-xl font-bold leading-tight mb-3" style="color:#fff">この条件でおすすめの3店<br><em style="font-style:normal;color:#D4E9E2">この3店</em>が最適です</h2>' +
         '<div id="s6badges" class="flex flex-wrap gap-1.5"></div>' +
       '</div>' +
       '<div class="px-4 pt-5 pb-4" style="background:#F0EBE1"><div id="result-cards" class="flex flex-col gap-4"></div></div>' +
@@ -960,7 +960,7 @@ function buildCard(store, rank) {
     + '</div>'
     + '<div style="display:flex;gap:8px;padding:0 14px 10px">'+tkBtn+igBtn+'</div>'
     + '<div style="padding:0 14px 14px">'
-      + '<button onclick="openPostMeeting(\''+store.name+'\')" style="width:100%;padding:11px;border-radius:50px;border:1.5px solid #CBA258;background:transparent;font-size:12px;font-weight:700;color:#9A7830;cursor:pointer;letter-spacing:.04em">この店に決めた → 記録する</button>'
+      + '<button onclick="openPostMeeting(\''+store.name+'\')" style="width:100%;padding:11px;border-radius:50px;border:1.5px solid #CBA258;background:transparent;font-size:12px;font-weight:700;color:#9A7830;cursor:pointer;letter-spacing:.04em">この店に決めた！記録する</button>'
     + '</div>'
   + '</div>';
 }
@@ -1154,7 +1154,7 @@ function gpsReset() {
   if (sp)  sp.style.display  = 'none';
   if (ok)  ok.style.display  = 'none';
   if (lbl) lbl.textContent   = '現在地を自動取得';
-  if (sub) { sub.textContent = '推奨・タップするだけ'; sub.style.color = 'rgba(212,233,226,.55)'; }
+  if (sub) { sub.textContent = 'タップするだけ'; sub.style.color = 'rgba(212,233,226,.55)'; }
   btn.style.borderColor = '#006241';
   btn.disabled = false;
 }
@@ -1177,7 +1177,7 @@ function doGPS() {
   if (def) def.style.display = 'none';
   if (sp)  sp.style.display  = '';
   if (lbl) lbl.textContent   = '現在地を取得中...';
-  if (sub) sub.textContent   = 'しばらくお待ちください';
+  if (sub) sub.textContent   = '取得しています...';
   btn.disabled = true;
 
   /* エリアチップのリセット */
@@ -1224,7 +1224,7 @@ function doGPS() {
   tryGet(true, 8000)
     .catch(function(err) {
       if (err.code === 1) return Promise.reject(err); /* 許可拒否は即エラー */
-      if (lbl) lbl.textContent = '再試行中...';
+      if (lbl) lbl.textContent = 'もう一度試しています...';
       return tryGet(false, 12000); /* 精度を落として再試行 */
     })
     .then(function(pos) {
@@ -1245,7 +1245,7 @@ function doGPS() {
       if (spEl)  spEl.style.display = 'none';
       if (okEl)  okEl.style.display = '';
       if (lblEl) lblEl.textContent = areaName + 'を設定しました';
-      if (subEl) { subEl.textContent = '現在地の取得が完了'; subEl.style.color = '#CBA258'; }
+      if (subEl) { subEl.textContent = '現在地を取得しました'; subEl.style.color = '#CBA258'; }
       if (btnEl) { btnEl.style.borderColor = '#CBA258'; btnEl.disabled = false; }
 
       tryS5(); /* 次へボタンを解放 */
