@@ -655,7 +655,850 @@ function gotoView(v) {
   if (v === 'home')    renderHome();
   if (v === 'history') renderHistory();
 }
-function goBack() { gotoView(APP.prevView === APP.view ? 'home' : APP.prevView); }
+function goBack() {
+  // コンシェルジュ内はステップを1つ戻る
+  if (APP.view === 'concierge' && cur > 1) { go(cur - 1); return; }
+  // それ以外は前の画面へ、なければホームへ
+  gotoView(APP.prevView && APP.prevView !== APP.view ? APP.prevView : 'home');
+}
+
+// ═══════════════ HOME RENDERING ═══════════════
+function renderHome() {
+  var partners = loadPartners();
+  var meetings = loadMeetings();
+  var now = new Date();
+  var thisMonth = now.getFullYear() + '-' + (now.getMonth()+1);
+  var monthCount = meetings.filter(function(m){ return m.date && m.date.startsWith(thisMonth); }).length;
+  document.getElementById('stat-partners').textContent = partners.length;
+  document.getElementById('stat-meetings').textContent = meetings.length;
+  document.getElementById('stat-this-month').textContent = monthCount;
+
+  var listEl = document.getElementById('partner-list-home');
+  var emptyEl = document.getElementById('home-empty');
+  if (!partners.length) { listEl.innerHTML = ''; emptyEl.style.display = ''; return; }
+  emptyEl.style.display = 'none';
+
+  // 最終会食日でソート（新しい順）
+  var sorted = partners.slice().sort(function(a,b){ return (b.lastMet||'0').localeCompare(a.lastMet||'0'); });
+
+  listEl.innerHTML = sorted.map(function(p, i) {
+    var daysSince = '';
+    if (p.lastMet) {
+      var diff = Math.floor((now - new Date(p.lastMet)) / 86400000);
+      daysSince = diff === 0 ? '今日' : diff + '日前';
+    } else {
+      daysSince = '会食記録なし';
+    }
+    var mCount = meetings.filter(function(m){ return m.partnerId === p.id; }).length;
+    return '<div class="partner-card mb-3" style="animation-delay:' + (i*0.07) + 's" onclick="startConcierge(\'' + p.id + '\')">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between">' +
+        '<div style="flex:1;min-width:0;padding-right:10px">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+            '<p style="font-weight:700;font-size:14px;color:#1E3932">' + p.name + '</p>' +
+            '<span class="status-badge status-' + p.status + '">' + p.status + '</span>' +
+          '</div>' +
+          '<p style="font-size:11px;color:#6B7280">' + (p.company ? p.company + (p.role ? ' · ' + p.role : '') : (p.role || '')) + '</p>' +
+          (p.nextGoal ? '<p style="font-size:11px;color:#006241;margin-top:4px;font-weight:700">次の狙い：' + p.nextGoal + '</p>' : '') +
+        '</div>' +
+        '<div style="text-align:right;flex-shrink:0">' +
+          '<p style="font-size:10px;color:#9CA3AF">' + daysSince + '</p>' +
+          '<p style="font-size:11px;font-weight:700;color:#006241;margin-top:2px">会食' + mCount + '回</p>' +
+          (p.lastRestaurant ? '<p style="font-size:10px;color:#9CA3AF;margin-top:1px">' + p.lastRestaurant + '</p>' : '') +
+        '</div>' +
+      '</div>' +
+      (p.ng || p.memo ? '<div style="margin-top:8px;padding:6px 10px;border-radius:8px;background:#FBF8F3;font-size:11px;color:#6B7280">' +
+        (p.ng ? 'NG: ' + p.ng + ' ' : '') + (p.memo ? p.memo : '') + '</div>' : '') +
+      '<div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #F0EBE1">' +
+        '<button onclick="startConcierge(\'' + p.id + '\')" style="flex:1;padding:8px;background:#006241;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">このパートナーで計画する</button>' +
+        '<button onclick="editPartner(\'' + p.id + '\')" style="padding:8px 12px;background:#EBF5F0;color:#006241;border:1px solid #D4E9E2;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">編集</button>' +
+        '<button onclick="deletePartner(\'' + p.id + '\')" style="padding:8px 12px;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">削除</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ═══════════════ PARTNER CRUD ═══════════════
+function selRegChip(btn, groupId, stateKey) {
+  // グループ内の全ボタンから sel を外す
+  btn.parentElement.querySelectorAll('button').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  // REG か PM どちらに書くかをキーの先頭で判断
+  if (stateKey.indexOf('pm_') === 0) { PM[stateKey] = btn.dataset.val; }
+  else                               { REG[stateKey] = btn.dataset.val; }
+}
+
+function savePartner() {
+  var name = document.getElementById('p-name').value.trim();
+  if (!name || !REG.p_type) {
+    document.getElementById('reg-err').style.display = '';
+    return;
+  }
+  document.getElementById('reg-err').style.display = 'none';
+  var partners = loadPartners();
+
+  // 編集モードか新規登録かを判断
+  var editId = document.getElementById('view-partner-reg').dataset.editId || '';
+  var today = new Date().toISOString().slice(0,10);
+
+  if (editId) {
+    // 既存のパートナーを編集
+    var idx = partners.findIndex(function(x){ return x.id === editId; });
+    if (idx >= 0) {
+      partners[idx].name      = name;
+      partners[idx].company   = document.getElementById('p-company').value.trim();
+      partners[idx].role      = document.getElementById('p-role').value.trim();
+      partners[idx].type      = REG.p_type      || partners[idx].type;
+      partners[idx].status    = REG.p_status    || partners[idx].status;
+      partners[idx].atmosphere= REG.p_atm       || partners[idx].atmosphere;
+      partners[idx].ng        = document.getElementById('p-ng').value.trim();
+      partners[idx].memo      = document.getElementById('p-memo').value.trim();
+    }
+  } else {
+    // 新規登録
+    partners.push({
+      id: 'p' + Date.now(),
+      name: name,
+      company: document.getElementById('p-company').value.trim(),
+      role: document.getElementById('p-role').value.trim(),
+      type: REG.p_type,
+      status: REG.p_status || '初回',
+      atmosphere: REG.p_atm || '',
+      ng: document.getElementById('p-ng').value.trim(),
+      memo: document.getElementById('p-memo').value.trim(),
+      lastMet: '', lastRestaurant: '', nextGoal: '',
+      createdAt: today
+    });
+  }
+
+  savePartners(partners);
+  resetPartnerForm();
+  autoSync({ type: 'sync_all', partners: loadPartners(), meetings: loadMeetings() });
+  gotoView('home');
+}
+
+function resetPartnerForm() {
+  ['p-name','p-company','p-role','p-ng','p-memo'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.querySelectorAll('#view-partner-reg button').forEach(function(b){ b.classList.remove('sel'); });
+  REG = { p_type:'', p_status:'', p_atm:'' };
+  document.getElementById('view-partner-reg').dataset.editId = '';
+  var title = document.getElementById('reg-form-title');
+  if (title) title.textContent = 'パートナーを登録する';
+  var btn = document.getElementById('reg-submit-btn');
+  if (btn) btn.textContent = '登録する';
+}
+
+function deletePartner(id) {
+  if (!confirm('このパートナーを削除しますか？（会食履歴も一緒に削除されます）')) return;
+  var partners = loadPartners().filter(function(p){ return p.id !== id; });
+  savePartners(partners);
+  var meetings = loadMeetings().filter(function(m){ return m.partnerId !== id; });
+  saveMeetings(meetings);
+  renderHome();
+}
+
+function editPartner(id) {
+  var partners = loadPartners();
+  var p = partners.find(function(x){ return x.id === id; });
+  if (!p) return;
+
+  resetPartnerForm();
+  document.getElementById('view-partner-reg').dataset.editId = id;
+  document.getElementById('p-name').value    = p.name    || '';
+  document.getElementById('p-company').value = p.company || '';
+  document.getElementById('p-role').value    = p.role    || '';
+  document.getElementById('p-ng').value      = p.ng      || '';
+  document.getElementById('p-memo').value    = p.memo    || '';
+
+  // チップを復元
+  function restoreChip(groupSel, val) {
+    document.querySelectorAll(groupSel + ' button').forEach(function(b){
+      if (b.dataset.val === val) b.classList.add('sel');
+    });
+  }
+  if (p.type)       { REG.p_type   = p.type;       restoreChip('#p-type-group',   p.type); }
+  if (p.status)     { REG.p_status = p.status;     restoreChip('#p-status-group', p.status); }
+  if (p.atmosphere) { REG.p_atm    = p.atmosphere; restoreChip('#p-atm-group',    p.atmosphere); }
+
+  var title = document.getElementById('reg-form-title');
+  if (title) title.textContent = p.name + ' さんを編集';
+  var btn = document.getElementById('reg-submit-btn');
+  if (btn) { btn.textContent = '変更を保存する'; btn.style.borderRadius='50px'; }
+
+  gotoView('partner-reg');
+}
+
+// ═══════════════ START CONCIERGE ═══════════════
+function startConcierge(partnerId) {
+  S = { partner:'', purpose:'', atmosphere:'', ngConds:[], area:'', lat:null, lng:null, budgetMin:0, budgetMax:99999, budgetLabel:'' };
+  APP.selectedPartner = null;
+  if (partnerId) {
+    var partners = loadPartners();
+    var p = partners.find(function(x){ return x.id === partnerId; });
+    if (p) {
+      APP.selectedPartner = p;
+      S.partner = p.type || '';
+      S.atmosphere = p.atmosphere || '';
+    }
+  }
+  cur = 1;
+  renderConcierge();
+  gotoView('concierge');
+}
+
+// ═══════════════ CONCIERGE STEPS ═══════════════
+function renderConcierge() {
+  var html = buildSteps();
+  document.getElementById('concierge-steps').innerHTML = html;
+  // NG条件を都度レンダリング
+  renderNG();
+  updPg(); updHdr();
+}
+
+function buildSteps() {
+  var partner_hint = APP.selectedPartner ?
+    '<div style="margin-bottom:16px;padding:10px 14px;border-radius:12px;background:#EBF5F0;border:1px solid #D4E9E2">' +
+    '<p style="font-size:11px;font-weight:700;color:#006241;margin-bottom:2px">' + APP.selectedPartner.name + 'さんの情報を引き継ぎました</p>' +
+    (APP.selectedPartner.ng ? '<p style="font-size:11px;color:#6B7280">NG: ' + APP.selectedPartner.ng + '</p>' : '') +
+    (APP.selectedPartner.memo ? '<p style="font-size:11px;color:#6B7280">' + APP.selectedPartner.memo + '</p>' : '') +
+    '</div>' : '';
+
+  return '<!-- step1 -->' +
+    '<div id="step1" class="px-5 pt-5 pb-6">' +
+      partner_hint +
+      '<p class="text-xs tracking-widest font-bold mb-2" style="color:#CBA258">手順 01</p>' +
+      '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">誰と会いますか？</h2>' +
+      '<p class="text-sm mb-5" style="color:#6B7280">条件に合った3店を提案します</p>' +
+      '<div class="grid grid-cols-2 gap-3">' +
+        '<button class="pcard p-4 text-left' + (S.partner==='役員・部長クラス'?' sel':'') + '" data-val="役員・部長クラス" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">役員・部長クラス</p><p class="text-xs leading-snug" style="color:#6B7280">信頼感を大切にしたいパートナー</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='新規の取引先'?' sel':'') + '" data-val="新規の取引先" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">新規の取引先</p><p class="text-xs leading-snug" style="color:#6B7280">初対面・まだ距離がある相手</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='経営者仲間'?' sel':'') + '" data-val="経営者仲間" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">経営者仲間</p><p class="text-xs leading-snug" style="color:#6B7280">フラットに話せる仲間</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='採用候補'?' sel':'') + '" data-val="採用候補" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">採用候補</p><p class="text-xs leading-snug" style="color:#6B7280">入ってもらえるよう話す</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='インフルエンサー'?' sel':'') + '" data-val="インフルエンサー" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">インフルエンサー</p><p class="text-xs leading-snug" style="color:#6B7280">人気の人とつながるチャンス</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.partner==='長期の取引先'?' sel':'') + '" data-val="長期の取引先" onclick="selOne(this,\'partner\',2)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">長期の取引先</p><p class="text-xs leading-snug" style="color:#6B7280">長い付き合いへの感謝を込めて</p></button>' +
+      '</div>' +
+    '</div>' +
+    '<!-- step2 -->' +
+    '<div id="step2" class="px-5 pt-5 pb-6 hidden">' +
+      '<div id="badge2" class="mb-4"></div>' +
+      '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 02</p>' +
+      '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">何のために<br>会いますか？</h2>' +
+      '<p class="text-sm mb-5" style="color:#6B7280">会食の目的を教えてください</p>' +
+      '<div class="grid grid-cols-2 gap-3">' +
+        '<button class="pcard p-4 text-left" data-val="関係を深める" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">もっと仲良くなる</p><p class="text-xs leading-snug" style="color:#6B7280">信頼関係をさらに深めたい</p></button>' +
+        '<button class="pcard p-4 text-left" data-val="提案前の雰囲気づくり" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">提案前に場を温める</p><p class="text-xs leading-snug" style="color:#6B7280">話しやすい関係を先に作っておく</p></button>' +
+        '<button class="pcard p-4 text-left" data-val="受注後の深耕" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">仕事が決まった後のお礼</p><p class="text-xs leading-snug" style="color:#6B7280">次の仕事にもつなげていきたい</p></button>' +
+        '<button class="pcard p-4 text-left" data-val="単価アップの布石" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">より大きな仕事のきっかけに</p><p class="text-xs leading-snug" style="color:#6B7280">関係を深めて次のステップへ</p></button>' +
+        '<button class="pcard p-4 text-left" data-val="採用の場" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">入ってもらうための食事</p><p class="text-xs leading-snug" style="color:#6B7280">入社意欲を高めたい</p></button>' +
+        '<button class="pcard p-4 text-left" data-val="紹介のお礼" onclick="selOne(this,\'purpose\',3)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">紹介へのお礼</p><p class="text-xs leading-snug" style="color:#6B7280">紹介してくれた感謝を伝える</p></button>' +
+      '</div>' +
+    '</div>' +
+    '<!-- step3 -->' +
+    '<div id="step3" class="px-5 pt-5 pb-6 hidden">' +
+      '<div id="badge3" class="mb-4"></div>' +
+      '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 03</p>' +
+      '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">どんな空気感に<br>したいですか？</h2>' +
+      '<p class="text-sm mb-5" style="color:#6B7280">どんな雰囲気にしたいですか？</p>' +
+      '<div class="grid grid-cols-2 gap-3">' +
+        '<button class="pcard p-4 text-left' + (S.atmosphere==='堅め・格式高く'?' sel':'') + '" data-val="堅め・格式高く" onclick="selOne(this,\'atmosphere\',4)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">堅め・格式高く</p><p class="text-xs leading-snug" style="color:#6B7280">信頼感・本気度を示す</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.atmosphere==='上品でカジュアル'?' sel':'') + '" data-val="上品でカジュアル" onclick="selOne(this,\'atmosphere\',4)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">上品でカジュアル</p><p class="text-xs leading-snug" style="color:#6B7280">距離感をほどよく縮める</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.atmosphere==='感度の高い店'?' sel':'') + '" data-val="感度の高い店" onclick="selOne(this,\'atmosphere\',4)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">感度の高い店</p><p class="text-xs leading-snug" style="color:#6B7280">選んだセンスを伝える</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.atmosphere==='距離が縮まる'?' sel':'') + '" data-val="距離が縮まる" onclick="selOne(this,\'atmosphere\',4)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">距離が縮まる</p><p class="text-xs leading-snug" style="color:#6B7280">本音が出やすい雰囲気</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.atmosphere==='安心感を重視'?' sel':'') + '" data-val="安心感を重視" onclick="selOne(this,\'atmosphere\',4)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">安心感を重視</p><p class="text-xs leading-snug" style="color:#6B7280">失敗しない・外れない</p></button>' +
+        '<button class="pcard p-4 text-left' + (S.atmosphere==='会話がしやすい'?' sel':'') + '" data-val="会話がしやすい" onclick="selOne(this,\'atmosphere\',4)"><p class="font-bold text-sm mb-0.5" style="color:#1A1A1A">会話がしやすい</p><p class="text-xs leading-snug" style="color:#6B7280">静かで話の内容が大事</p></button>' +
+      '</div>' +
+    '</div>' +
+    '<!-- step4: NG -->' +
+    '<div id="step4" class="px-5 pt-5 pb-6 hidden">' +
+      '<div id="badge4" class="mb-4"></div>' +
+      '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 04</p>' +
+      '<h2 class="font-serif text-2xl font-bold leading-tight mb-1" style="color:#1E3932">避けたい条件は<br>ありますか？</h2>' +
+      '<p class="text-sm mb-5" style="color:#6B7280">なければスキップOK</p>' +
+      '<div class="flex flex-col gap-2.5 mb-6" id="ng-wrap"></div>' +
+      '<button onclick="go(5)" class="w-full h-14 rounded-2xl font-bold text-base text-white" style="background:#1E3932;border-radius:50px;letter-spacing:.05em">次へ進む</button>' +
+    '</div>' +
+    '<!-- step5: 場所・予算 -->' +
+    '<div id="step5" class="px-5 pt-5 pb-6 hidden">' +
+      '<div id="badge5" class="mb-4"></div>' +
+      '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 05</p>' +
+      '<h2 class="font-serif text-2xl font-bold leading-tight mb-5" style="color:#1E3932">場所と予算を<br>教えてください</h2>' +
+      '<p class="text-sm font-bold mb-2" style="color:#1E3932">場所</p>' +
+      '<button id="gps-btn" onclick="doGPS()" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-2" style="background:#1E3932;border:2px solid #006241;color:#D4E9E2">' +
+        '<div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(0,98,65,.45)">' +
+          '<svg id="gi-def" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4E9E2" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>' +
+          '<span id="gi-spin" style="display:none;width:18px;height:18px;border:2px solid rgba(212,233,226,.3);border-top-color:#D4E9E2;border-radius:50%;animation:spin .7s linear infinite"></span>' +
+          '<svg id="gi-ok" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBA258" stroke-width="2.5" style="display:none"><polyline points="20 6 9 17 4 12"/></svg>' +
+        '</div>' +
+        '<div class="flex-1 text-left"><p id="gps-label" class="font-bold" style="font-size:.9rem">現在地を自動取得</p><p id="gps-sub" class="text-xs mt-0.5" style="color:rgba(212,233,226,.55)">タップするだけ</p></div>' +
+      '</button>' +
+      '<p class="text-xs mb-2" style="color:#6B7280">または主要エリアから選ぶ</p>' +
+      '<div class="grid grid-cols-2 gap-2 mb-5">' +
+        ['恵比寿・中目黒','六本木・麻布','銀座・丸の内','新宿','渋谷・表参道','品川・天王洲'].map(function(a){
+          return '<button class="area-chip chip py-2.5 rounded-xl border-2 font-bold text-sm" data-area="' + a + '" onclick="selArea(this)" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">' + a + '</button>';
+        }).join('') +
+      '</div>' +
+      '<p class="text-sm font-bold mb-2" style="color:#1E3932">お一人様予算</p>' +
+      '<div class="grid grid-cols-2 gap-2 mb-6">' +
+        [['〜8,000円',0,8000],['〜12,000円',0,12000],['〜18,000円',0,18000],['〜25,000円',0,25000],['25,000円〜',18000,99999],['こだわらない',0,99999]].map(function(b){
+          return '<button class="bdg-chip chip py-3 rounded-xl border-2 font-bold text-sm" data-min="' + b[1] + '" data-max="' + b[2] + '" data-bdg="' + b[0] + '" onclick="selBudget(this)" style="border-color:#EDE0CC;background:#fff;color:#1A1A1A">' + b[0] + '</button>';
+        }).join('') +
+      '</div>' +
+      '<button id="s5next" onclick="go(6)" disabled class="w-full h-14 rounded-2xl font-bold text-base" style="background:#EDE0CC;color:#bbb;cursor:not-allowed">提案を見る</button>' +
+    '</div>' +
+    '<!-- step6: 提案 -->' +
+    '<div id="step6" class="hidden pb-8">' +
+      '<div class="px-5 pt-5 pb-5" style="background:#1E3932">' +
+        '<p class="text-xs tracking-widest font-bold mb-1.5" style="color:#CBA258">手順 06</p>' +
+        '<h2 class="font-serif text-xl font-bold leading-tight mb-3" style="color:#fff">この条件でおすすめの3店<br><em style="font-style:normal;color:#D4E9E2">この3店</em>が最適です</h2>' +
+        '<div id="s6badges" class="flex flex-wrap gap-1.5"></div>' +
+      '</div>' +
+      '<div class="px-4 pt-5 pb-4" style="background:#F0EBE1"><div id="result-cards" class="flex flex-col gap-4"></div></div>' +
+      '<div class="px-4 pt-2 pb-4" style="background:#F0EBE1">' +
+        '<button onclick="goBack()" class="w-full py-3.5 rounded-2xl text-sm font-bold border-2" style="border:1.5px solid #1E3932;color:#1E3932;background:#fff;border-radius:50px;letter-spacing:.04em">ホームに戻る</button>' +
+      '</div>' +
+    '</div>';
+}
+
+// ═══════════════ GO (concierge step nav) ═══════════════
+function go(next) {
+  var from = document.getElementById('step' + cur);
+  var to   = document.getElementById('step' + next);
+  if (!from || !to) return;
+  var fwd = next > cur;
+  from.style.animation = fwd ? 'sOutL .18s forwards' : 'sOutR .18s forwards';
+  setTimeout(function(){
+    from.style.animation = ''; from.classList.add('hidden');
+    if (next === 4) { updateBadges('badge4'); renderNG(); }
+    if (next === 3) updateBadges('badge3');
+    if (next === 5) updateBadges('badge5');
+    if (next === 6) { updateBadges('s6badges'); renderResults(); }
+    to.classList.remove('hidden');
+    to.style.animation = fwd ? 'sInR .24s both' : 'sInL .24s both';
+    setTimeout(function(){ to.style.animation = ''; }, 260);
+    window.scrollTo(0, 0);
+  }, 170);
+  cur = next; updPg(); updHdr();
+}
+function selOne(btn, field, nextStep) {
+  btn.parentElement.querySelectorAll('.pcard').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel'); S[field] = btn.dataset.val;
+  setTimeout(function(){ go(nextStep); }, 180);
+}
+
+// ═══════════════ RESULTS ═══════════════
+// (DB + scoring — same as concierge version)
+var DB=[{name:"麻布 真田",area:"六本木・麻布",loc:"麻布十番駅 徒歩3分",genre:"日本料理・割烹",budget:"18,000円〜",budgetNum:18000,hook:"完全防音の個室で密談に最適。格式ある雰囲気でパートナーへの敬意を伝えられる",partners:["役員・部長クラス","長期の取引先","経営者仲間"],purposes:["受注後の深耕","単価アップの布石","紹介のお礼"],atmosphere:["堅め・格式高く","安心感を重視","会話がしやすい"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:8,tk:"麻布十番 割烹 個室 接待",ig:"麻布十番グルメ",hasTikTok:true,hasInstagram:true},{name:"六本木 銀狐",area:"六本木・麻布",loc:"六本木駅 徒歩2分",genre:"現代フランス料理",budget:"22,000円〜",budgetNum:22000,hook:"東京タワーを望む最上階テラス。選んだセンスがパートナーに自然に伝わる空間",partners:["インフルエンサー","経営者仲間","長期の取引先"],purposes:["関係を深める","単価アップの布石"],atmosphere:["感度の高い店","距離が縮まる"],areas:["六本木・麻布","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:30",maxPax:12,tk:"六本木 夜景 フレンチ 飯テロ",ig:"六本木グルメ",hasTikTok:true,hasInstagram:true},{name:"西麻布 杉乃屋",area:"六本木・麻布",loc:"広尾駅 徒歩8分",genre:"懐石料理",budget:"25,000円〜",budgetNum:25000,hook:"路地裏の完全隠れ家。「なぜこの店を知っているのか」とパートナーが唸る特別感",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["単価アップの布石","紹介のお礼","受注後の深耕"],atmosphere:["堅め・格式高く","安心感を重視"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:6,tk:"西麻布 懐石 隠れ家",ig:"西麻布グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"麻布 Cielo",area:"六本木・麻布",loc:"麻布十番駅 徒歩5分",genre:"イタリア料理",budget:"12,000円〜",budgetNum:12000,hook:"心理的負担が少ない単価感と自然にSNS投稿が生まれるオープンな雰囲気",partners:["インフルエンサー","新規の取引先","採用候補"],purposes:["関係を深める","採用の場"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["六本木・麻布","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:false,smoke:true,stairs:true,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"麻布十番 イタリア料理 映え 飯テロ",ig:"麻布十番グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"六本木 月夜",area:"六本木・麻布",loc:"六本木駅 徒歩4分",genre:"鉄板焼き",budget:"20,000円〜",budgetNum:20000,hook:"目の前で焼き上げる演出が会話のきっかけに。特別な体験で距離が縮まる",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["受注後の深耕","単価アップの布石"],atmosphere:["堅め・格式高く","距離が縮まる"],areas:["六本木・麻布","現在地周辺"],ng:{noise:true,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"六本木 鉄板焼き 接待",ig:"六本木グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"恵比寿 木の葉",area:"恵比寿・中目黒",loc:"恵比寿駅 徒歩5分",genre:"和食・個室",budget:"15,000円〜",budgetNum:15000,hook:"完全個室で商談が弾む。穏やかな和の空間が初対面の緊張を自然に和らげる",partners:["役員・部長クラス","長期の取引先","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["上品でカジュアル","安心感を重視","会話がしやすい"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"恵比寿 和食 個室 接待",ig:"恵比寿グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"中目黒 HARU",area:"恵比寿・中目黒",loc:"中目黒駅 徒歩3分",genre:"現代フランス料理",budget:"16,000円〜",budgetNum:16000,hook:"目黒川沿いテラスと料理の彩りが自然な会話を生む",partners:["インフルエンサー","採用候補","新規の取引先"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:true,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"中目黒 フレンチ テラス 映え",ig:"中目黒グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"中目黒 静流",area:"恵比寿・中目黒",loc:"中目黒駅 徒歩6分",genre:"日本料理",budget:"20,000円〜",budgetNum:20000,hook:"完全予約制・防音完璧の静寂個室。声が外に漏れない安心感で本音を引き出せる",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["受注後の深耕","単価アップの布石"],atmosphere:["堅め・格式高く","安心感を重視"],areas:["恵比寿・中目黒","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:6,tk:"中目黒 日本料理 個室",ig:"中目黒グルメ",hasTikTok:false,hasInstagram:false,hasTikTok:false,hasInstagram:false},{name:"銀座 黒田",area:"銀座・丸の内",loc:"銀座駅 徒歩2分",genre:"鮨",budget:"30,000円〜",budgetNum:30000,hook:"格式と信頼感が圧倒的。重要なパートナーへの最大限の敬意を示せる店",partners:["役員・部長クラス","経営者仲間","長期の取引先"],purposes:["単価アップの布石","紹介のお礼","受注後の深耕"],atmosphere:["堅め・格式高く"],areas:["銀座・丸の内","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-22:00",maxPax:8,tk:"銀座 鮨 高級 接待",ig:"銀座グルメ",hasTikTok:false,hasInstagram:true,hasTikTok:false,hasInstagram:true},{name:"丸の内 FORZA",area:"銀座・丸の内",loc:"東京駅 徒歩4分",genre:"欧風料理",budget:"18,000円〜",budgetNum:18000,hook:"ビジネス街の正統派接待店。初対面のパートナーにも安心感と信頼感を伝えられる",partners:["役員・部長クラス","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["堅め・格式高く","上品でカジュアル","安心感を重視"],areas:["銀座・丸の内","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"11:30-23:00",maxPax:30,tk:"丸の内 欧風料理 接待",ig:"丸の内グルメ",hasTikTok:false,hasInstagram:true},{name:"新宿 夜桜",area:"新宿",loc:"西新宿駅 徒歩3分",genre:"割烹・個室",budget:"15,000円〜",budgetNum:15000,hook:"個室で話しやすく格式もある。初回商談でもまた来たいと思わせる品格",partners:["新規の取引先","役員・部長クラス"],purposes:["提案前の雰囲気づくり","関係を深める"],atmosphere:["上品でカジュアル","安心感を重視"],areas:["新宿","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:false,casual:true,dress:false},reservation:true,hours:"17:30-23:00",maxPax:15,tk:"新宿 割烹 個室 接待",ig:"新宿グルメ",hasTikTok:false,hasInstagram:true},{name:"表参道 BLANC",area:"渋谷・表参道",loc:"表参道駅 徒歩3分",genre:"現代フランス料理",budget:"18,000円〜",budgetNum:18000,hook:"ファッション誌でも紹介される洗練空間。選んだセンスがパートナーに自然に伝わる",partners:["インフルエンサー","採用候補","新規の取引先"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル"],areas:["渋谷・表参道","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:true,smoke:true,stairs:false,casual:false,dress:false},reservation:true,hours:"12:00-23:00",maxPax:20,tk:"表参道 フレンチ 映え",ig:"表参道グルメ",hasTikTok:true,hasInstagram:true},{name:"渋谷 ROOT",area:"渋谷・表参道",loc:"渋谷駅 徒歩5分",genre:"創作和食",budget:"12,000円〜",budgetNum:12000,hook:"料理の盛り付けが会話のきっかけになる。若手採用候補に好印象を与えやすい",partners:["インフルエンサー","採用候補","経営者仲間"],purposes:["採用の場","関係を深める"],atmosphere:["感度の高い店","上品でカジュアル","距離が縮まる"],areas:["渋谷・表参道","現在地周辺"],ng:{noise:false,loud:false,seafood:false,allergy:false,smoke:true,stairs:false,casual:false,dress:false},reservation:true,hours:"18:00-23:00",maxPax:20,tk:"渋谷 創作和食 SNS映え",ig:"渋谷グルメ",hasTikTok:true,hasInstagram:true,hasTikTok:true,hasInstagram:true},{name:"品川 風雅",area:"品川・天王洲",loc:"品川駅 徒歩5分",genre:"日本料理・個室",budget:"16,000円〜",budgetNum:16000,hook:"新幹線移動の前後にも最適。静かな個室でパートナーの話にじっくり向き合える",partners:["役員・部長クラス","長期の取引先","新規の取引先"],purposes:["提案前の雰囲気づくり","関係を深める","受注後の深耕"],atmosphere:["堅め・格式高く","安心感を重視","会話がしやすい"],areas:["品川・天王洲","現在地周辺"],ng:{noise:true,loud:true,seafood:false,allergy:true,smoke:true,stairs:true,casual:true,dress:false},reservation:true,hours:"18:00-23:00",maxPax:10,tk:"品川 日本料理 個室 接待",ig:"品川グルメ",hasTikTok:false,hasInstagram:true}];
+
+function scoreStore(s) {
+  var sc = 0;
+
+  // パートナーとの相性（最重要）
+  if (s.partners.indexOf(S.partner) >= 0)       sc += 25;
+
+  // 目的との一致
+  if (s.purposes.indexOf(S.purpose) >= 0)       sc += 20;
+
+  // 空気感の一致
+  if (s.atmosphere.indexOf(S.atmosphere) >= 0)  sc += 15;
+
+  // エリア一致
+  var area = S.area.replace(/[都道府県]$/, '');
+  if (s.areas.some(function(a) {
+    return a.indexOf(area) >= 0 || area.indexOf(a.replace(/[都道府県]$/, '')) >= 0;
+  })) sc += 12;
+
+  // 予算の適合
+  if (s.budgetNum <= S.budgetMax + 5000 && s.budgetNum >= Math.max(0, S.budgetMin - 3000)) sc += 10;
+
+  // NG条件への対応
+  S.ngConds.forEach(function(ng){ if (s.ng && !s.ng[ng]) sc -= 25; });
+
+  // 予約可能
+  if (!s.reservation) sc -= 12;
+
+  // 同点時の微小シャッフル
+  sc += s._r || 0;
+
+  return sc;
+}
+function isOpen(s) {
+  if (!s.reservation) return false;
+  var now = new Date(), nowM = now.getHours()*60+now.getMinutes();
+  var p = s.hours.split('-'), op = p[0].split(':'), cl = p[1].split(':');
+  var openM = parseInt(op[0])*60+parseInt(op[1]), closeM = parseInt(cl[0])*60+parseInt(cl[1]);
+  if (closeM < openM) closeM += 1440;
+  return nowM < closeM - 60 || nowM < openM;
+}
+function getTop3() {
+  // 同スコアの店だけ微小にシャッフル（ベスト3の順位は条件一致度が最優先）
+  DB.forEach(function(s) { s._r = Math.random() * 1.5; });
+
+  var area = S.area.replace(/[都道府県]$/, '');
+
+  // ① エリア一致で候補を絞る（3件未満なら全DBに広げる）
+  var areaCands = DB.filter(function(s) {
+    return s.areas.some(function(a) {
+      return a.indexOf(area) >= 0 || area.indexOf(a.replace(/[都道府県]$/, '')) >= 0;
+    });
+  });
+  var cands = areaCands.length >= 3 ? areaCands : DB;
+
+  // ② 予約可＋営業フィルター（緩和しながら必ず3件確保）
+  var pool = cands.filter(isOpen);
+  if (pool.length < 3) pool = cands.filter(function(s) { return s.reservation; });
+  if (pool.length < 3) pool = cands;
+
+  // ③ 人数フィルター（3件未満なら緩和）
+  if (S.paxNum > 0) {
+    var paxF = pool.filter(function(s) { return s.maxPax >= S.paxNum; });
+    if (paxF.length >= 3) pool = paxF;
+  }
+
+  // ④ 予算フィルター（3件未満なら緩和）
+  if (S.budgetMax < 99999) {
+    var bdgF = pool.filter(function(s) {
+      return s.budgetNum <= S.budgetMax + 5000 && s.budgetNum >= Math.max(0, S.budgetMin - 3000);
+    });
+    if (bdgF.length >= 3) pool = bdgF;
+  }
+
+  // ⑤ スコア順で必ず3件返す
+  return pool
+    .map(function(s) { return { s: s, sc: scoreStore(s) }; })
+    .sort(function(a, b) { return b.sc - a.sc; })
+    .slice(0, 3)
+    .map(function(x) { return x.s; });
+}
+function successRate(s) { return Math.min(97, Math.max(52, Math.round(scoreStore(s)*1.6+28))); }
+function reasonLabels(store) {
+  var labels = [];
+  if (S.partner==='役員・部長クラス' && store.atmosphere.indexOf('堅め・格式高く')>=0) labels.push('役員クラスに格落ちしない');
+  if (S.partner==='採用候補') labels.push('心理的負担が少ない単価感');
+  if (S.partner==='インフルエンサー' && store.atmosphere.indexOf('感度の高い店')>=0) labels.push('選んだセンスが伝わる');
+  if (S.partner==='新規の取引先' && store.atmosphere.indexOf('安心感を重視')>=0) labels.push('初対面の緊張を和らげる');
+  if (S.purpose==='提案前の雰囲気づくり' && store.ng.noise) labels.push('静かで話の内容に集中できる');
+  if (S.purpose==='単価アップの布石' && store.budgetNum>=20000) labels.push('特別感で関係を次のステージへ');
+  if (S.ngConds.indexOf('noise')>=0 && store.ng.noise) labels.push('声が漏れない完全個室');
+  if (S.ngConds.indexOf('smoke')>=0 && store.ng.smoke) labels.push('全席禁煙対応');
+  if (S.atmosphere==='感度の高い店' && store.atmosphere.indexOf('感度の高い店')>=0) labels.push('選んだセンスを伝える店');
+  return labels.slice(0,4);
+}
+function buildCard(store, rank) {
+  var labels = ['1位','2位','3位'], cls = ['r1','r2','r3'];
+  var rate = successRate(store);
+
+  var navURL = 'https://maps.google.com/maps/dir/?api=1&destination='
+    + encodeURIComponent(store.name + ' ' + store.loc) + '&travelmode=driving';
+  // ② TikTok：店名＋グルメで検索
+  var tkURL = 'https://www.tiktok.com/search?q=' + encodeURIComponent(store.name + ' グルメ');
+
+  // ③ Instagram：店名＋グルメでキーワード検索
+  var igURL = 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(store.name + ' グルメ');
+
+  var tkBtn = '<a href="'+tkURL+'" target="_blank" rel="noopener" class="tk-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">TikTok 口コミ</a>';
+  var igBtn = '<a href="'+igURL+'" target="_blank" rel="noopener" class="ig-btn" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:9px;border-radius:50px;font-size:11px;font-weight:700;text-decoration:none">Instagram 口コミ</a>';
+
+  var rLabels = reasonLabels(store);
+  var rHtml = rLabels.map(function(l){ return '<span style="display:inline-block;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;background:#F2EDE8;color:#5C4033;margin:2px 2px 2px 0">'+l+'</span>'; }).join('');
+
+  function spec(ok,label){ return '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:'+(ok?'#1E3932':'#BDBDBD')+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'+label+'</div>'; }
+
+  return '<div class="rcard">'
+    + '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 14px 8px">'
+      + '<div style="flex:1;min-width:0;padding-right:10px">'
+        + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'
+          + '<span class="'+cls[rank-1]+'" style="padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700;letter-spacing:.04em">'+labels[rank-1]+'</span>'
+          + '<span style="font-size:11px;padding:3px 10px;border-radius:50px;background:#F2EDE8;color:#5C4033;font-weight:500">'+store.genre+'</span>'
+        + '</div>'
+        + '<h3 style="font-family:\'Playfair Display\',serif;font-size:17px;font-weight:700;color:#1E3932;line-height:1.2">'+store.name+'</h3>'
+        + '<p style="font-size:11px;color:#9CA3AF;margin-top:2px">'+store.loc+'</p>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+        + '<p style="font-size:10px;color:#CBA258;font-weight:700;margin-bottom:2px;letter-spacing:.03em">条件一致度</p>'
+        + '<p style="font-size:22px;font-weight:700;color:#1E3932;line-height:1">'+rate+'<span style="font-size:13px">%</span></p>'
+        + '<div style="width:52px;height:4px;background:#F2EDE8;border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;border-radius:2px;background:#1E3932;width:'+rate+'%"></div></div>'
+      + '</div>'
+    + '</div>'
+    + (rHtml ? '<div style="padding:0 14px 8px;display:flex;flex-wrap:wrap;gap:4px">'+rHtml+'</div>' : '')
+    + '<div style="margin:0 14px 10px;padding:10px 14px;border-radius:4px;background:#F9F6F1;border-left:3px solid #1E3932">'
+      + '<p style="font-size:10px;font-weight:700;color:#1E3932;margin-bottom:3px;letter-spacing:.04em">なぜ今回向きか</p>'
+      + '<p style="font-size:13px;font-weight:500;color:#1E3932;line-height:1.6">'+store.hook+'</p>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;padding:0 14px 10px">'+spec(store.ng&&store.ng.noise,'音漏れなし')+spec(store.ng&&store.ng.smoke,'禁煙対応')+spec(store.ng&&store.ng.loud,'静かな環境')+spec(store.reservation,'予約可能')+'</div>'
+    + '<div style="padding:0 14px 10px">'
+      + '<a href="'+navURL+'" target="_blank" rel="noopener" class="nav-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:.04em">'
+        + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'+store.name+'に案内する'
+      + '</a>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;padding:0 14px 10px">'+tkBtn+igBtn+'</div>'
+    + '<div style="padding:0 14px 14px">'
+      + '<button onclick="openPostMeeting(\''+store.name+'\')" style="width:100%;padding:11px;border-radius:50px;border:1.5px solid #CBA258;background:transparent;font-size:12px;font-weight:700;color:#9A7830;cursor:pointer;letter-spacing:.04em">この店に決めた！記録する</button>'
+    + '</div>'
+  + '</div>';
+}
+function renderResults() {
+  var bs = document.getElementById('s6badges');
+  bs.innerHTML = [S.partner,S.purpose,S.atmosphere].filter(Boolean).map(function(t){
+    return '<span style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(212,233,226,.2);color:#D4E9E2">'+t+'</span>';
+  }).join(' ');
+  if (S.area) bs.innerHTML += ' <span style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(203,162,88,.2);color:#CBA258">'+S.area+'</span>';
+  var top3 = getTop3(), wrap = document.getElementById('result-cards');
+  var html = ''; top3.forEach(function(s, i) { html += buildCard(s, i+1); }); wrap.innerHTML = html;
+}
+
+// ═══════════════ POST MEETING ═══════════════
+function openPostMeeting(storeName) {
+  PM = { pm_outcome:'', pm_next:'', pm_rating:'', storeName:storeName, partnerId: APP.selectedPartner ? APP.selectedPartner.id : '', editMeetingId:'' };
+  document.getElementById('pm-store-label').textContent = storeName;
+  var partnerName = APP.selectedPartner ? APP.selectedPartner.name : '（パートナー未選択）';
+  document.getElementById('pm-partner-label').textContent = 'パートナー: ' + partnerName;
+  document.querySelectorAll('#view-post-meeting .out-chip').forEach(function(b){ b.classList.remove('sel'); });
+  document.getElementById('pm-topics').value = '';
+  document.getElementById('pm-memo').value = '';
+  gotoView('post-meeting');
+}
+function saveMeeting() {
+  var meetings = loadMeetings();
+  var today    = new Date().toISOString().slice(0, 10);
+  var isEdit   = PM.editMeetingId ? true : false;
+
+  if (isEdit) {
+    // ── 編集モード：既存レコードを上書き ──
+    var idx = meetings.findIndex(function(m) { return m.id === PM.editMeetingId; });
+    if (idx >= 0) {
+      meetings[idx].outcome   = PM.pm_outcome || meetings[idx].outcome;
+      meetings[idx].topics    = document.getElementById('pm-topics').value.trim() || meetings[idx].topics;
+      meetings[idx].nextGoal  = PM.pm_next    || meetings[idx].nextGoal;
+      meetings[idx].memo      = document.getElementById('pm-memo').value.trim()   || meetings[idx].memo;
+      meetings[idx].rating    = PM.pm_rating  || meetings[idx].rating;
+    }
+    saveMeetings(meetings);
+
+    // パートナーの次回の狙いも更新
+    if (PM.pm_next && meetings[idx] && meetings[idx].partnerId) {
+      var partners = loadPartners();
+      var pi = partners.findIndex(function(p){ return p.id === meetings[idx].partnerId; });
+      if (pi >= 0) { partners[pi].nextGoal = PM.pm_next; savePartners(partners); }
+    }
+    PM.editMeetingId = '';
+    autoSync({ type: 'sync_all', partners: loadPartners(), meetings: loadMeetings() });
+    gotoView('history');
+
+  } else {
+    // ── 新規登録モード ──
+    meetings.push({
+      id:          'm' + Date.now(),
+      date:        today,
+      partnerId:   APP.selectedPartner ? APP.selectedPartner.id   : '',
+      partnerName: APP.selectedPartner ? APP.selectedPartner.name : '',
+      restaurant:  PM.storeName  || '',
+      purpose:     S.purpose     || '',
+      outcome:     PM.pm_outcome || '',
+      topics:      document.getElementById('pm-topics').value.trim(),
+      nextGoal:    PM.pm_next    || '',
+      memo:        document.getElementById('pm-memo').value.trim(),
+      rating:      PM.pm_rating  || ''
+    });
+    saveMeetings(meetings);
+
+    // パートナーの最終会食日・利用店・次回の狙いを更新
+    if (APP.selectedPartner) {
+      var partners = loadPartners();
+      var pi = partners.findIndex(function(p){ return p.id === APP.selectedPartner.id; });
+      if (pi >= 0) {
+        partners[pi].lastMet        = today;
+        partners[pi].lastRestaurant = PM.storeName || '';
+        if (PM.pm_next) partners[pi].nextGoal = PM.pm_next;
+        var newMemo = document.getElementById('pm-memo').value.trim();
+        if (newMemo) partners[pi].memo = (partners[pi].memo ? partners[pi].memo + ' / ' : '') + newMemo;
+        savePartners(partners);
+      }
+    }
+    PM.editMeetingId = '';
+    autoSync({ type: 'sync_all', partners: loadPartners(), meetings: loadMeetings() });
+    gotoView('home');
+  }
+}
+
+// ═══════════════ HISTORY ═══════════════
+function renderHistory() {
+  var meetings = loadMeetings().slice().reverse();
+  var wrap  = document.getElementById('history-list');
+  var empty = document.getElementById('history-empty');
+  if (!meetings.length) { wrap.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  wrap.innerHTML = meetings.map(function(m, i) {
+    var outcomeHtml = m.outcome
+      ? '<span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#EBF5F0;color:#006241">' + m.outcome + '</span>'
+      : '';
+    return '<div style="background:#fff;border:1px solid #E2D8C8;border-radius:16px;padding:14px;margin-bottom:12px;animation:slideUp .3s ' + (i * 0.06) + 's ease both">'
+      // ── ヘッダー行 ──
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">'
+        + '<div style="flex:1;min-width:0;padding-right:8px">'
+          + '<p style="font-weight:700;font-size:14px;color:#1E3932">' + (m.restaurant || '店舗未記録') + '</p>'
+          + '<p style="font-size:11px;color:#6B7280;margin-top:2px">' + (m.date || '') + ' · ' + (m.partnerName || 'パートナー未選択') + '</p>'
+        + '</div>'
+        + outcomeHtml
+      + '</div>'
+      // ── 詳細 ──
+      + (m.topics   ? '<p style="font-size:12px;color:#6B7280;margin-top:4px">話題：' + m.topics + '</p>' : '')
+      + (m.nextGoal ? '<p style="font-size:12px;font-weight:700;color:#CBA258;margin-top:4px">次の狙い：' + m.nextGoal + '</p>' : '')
+      + (m.memo     ? '<p style="font-size:12px;color:#9CA3AF;margin-top:4px">' + m.memo + '</p>' : '')
+      // ── 編集・削除ボタン ──
+      + '<div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #F0EBE1">'
+        + '<button onclick="editMeeting(\'' + m.id + '\')" style="flex:1;padding:8px;background:#EBF5F0;color:#006241;border:1px solid #D4E9E2;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">内容を編集</button>'
+        + '<button onclick="deleteMeeting(\'' + m.id + '\')" style="padding:8px 14px;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">削除</button>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+// ── 会食履歴を削除 ──
+function deleteMeeting(id) {
+  if (!confirm('この会食記録を削除しますか？')) return;
+  var meetings = loadMeetings().filter(function(m) { return m.id !== id; });
+  saveMeetings(meetings);
+  renderHistory();
+  renderHome();
+}
+
+// ── 会食履歴を編集（会食後記録画面を再利用）──
+function editMeeting(id) {
+  var meetings = loadMeetings();
+  var m = meetings.find(function(x) { return x.id === id; });
+  if (!m) return;
+
+  // 編集対象IDを記録
+  PM.editMeetingId = id;
+
+  // フォームを事前入力
+  document.getElementById('pm-store-label').textContent   = m.restaurant   || '';
+  document.getElementById('pm-partner-label').textContent = 'パートナー: ' + (m.partnerName || '未設定');
+  document.getElementById('pm-topics').value = m.topics || '';
+  document.getElementById('pm-memo').value   = m.memo   || '';
+
+  // チップを復元
+  document.querySelectorAll('#view-post-meeting button.out-chip').forEach(function(b) {
+    b.classList.remove('sel');
+    if (b.dataset.val === m.outcome)   { b.classList.add('sel'); PM.pm_outcome = m.outcome; }
+    if (b.dataset.val === m.nextGoal)  { b.classList.add('sel'); PM.pm_next    = m.nextGoal; }
+    if (b.dataset.val === m.rating)    { b.classList.add('sel'); PM.pm_rating  = m.rating; }
+  });
+
+  APP.selectedPartner = null; // パートナーIDは既存データを引き継ぐ
+  gotoView('post-meeting');
+}
+
+
+// ═══════════════ NG / AREA / BUDGET (concierge) ═══════════════
+var NG_LIST=[{id:'noise',label:'音漏れNG',sub:'個室でも声が筒抜けはNG'},{id:'loud',label:'騒がしすぎるのはNG',sub:'静かに話せる環境が必要'},{id:'seafood',label:'生魚・刺身が苦手',sub:'食の好みに配慮が必要'},{id:'allergy',label:'食物アレルギーあり',sub:'お店の対応確認が必要'},{id:'smoke',label:'禁煙席のみ',sub:'喫煙席のある店はNG'},{id:'stairs',label:'階段・段差はNG',sub:'高齢の方・車椅子への配慮'},{id:'casual',label:'接待向けでない店はNG',sub:'賑やかすぎる店など'},{id:'dress',label:'服装規定のある店はNG',sub:'カジュアルな服装で行く'}];
+function renderNG(){
+  var wrap=document.getElementById('ng-wrap'); if(!wrap) return;
+  wrap.innerHTML=NG_LIST.map(function(item){
+    return '<button class="chip" data-id="'+item.id+'" onclick="toggleNG(this)" style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:14px;border:1.5px solid #EDE0CC;background:#fff;text-align:left;width:100%">' +
+      '<div style="width:20px;height:20px;border-radius:6px;border:2px solid #EDE0CC;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center" id="ngbox-'+item.id+'"></div>' +
+      '<div><p style="font-weight:700;font-size:13px;color:#1A1A1A">'+item.label+'</p><p style="font-size:11px;color:#6B7280;margin-top:1px">'+item.sub+'</p></div>' +
+    '</button>';
+  }).join('');
+}
+function toggleNG(btn){
+  var id=btn.dataset.id, idx=S.ngConds.indexOf(id), box=document.getElementById('ngbox-'+id);
+  if(idx>=0){ S.ngConds.splice(idx,1); btn.style.borderColor='#EDE0CC'; btn.style.background='#fff'; box.innerHTML=''; box.style.borderColor='#EDE0CC'; box.style.background='';}
+  else { S.ngConds.push(id); btn.style.borderColor='#006241'; btn.style.background='#EBF5F0'; box.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'; box.style.background='#006241'; }
+}
+function selArea(btn){ document.querySelectorAll('.area-chip').forEach(function(b){ b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A'; }); btn.style.background='#1E3932'; btn.style.borderColor='#1E3932'; btn.style.color='#D4E9E2'; S.area=btn.dataset.area; S.lat=null; S.lng=null; gpsReset(); tryS5(); }
+function selBudget(btn){ document.querySelectorAll('.bdg-chip').forEach(function(b){ b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A'; }); btn.style.background='#CBA258'; btn.style.borderColor='#9A7830'; btn.style.color='#1A1A1A'; S.budgetMin=parseInt(btn.dataset.min)||0; S.budgetMax=parseInt(btn.dataset.max)||99999; S.budgetLabel=btn.dataset.bdg; tryS5(); }
+function tryS5(){ if(!S.area||S.budgetLabel===undefined||!S.budgetLabel) return; var nb=document.getElementById('s5next'); if(!nb)return; nb.disabled=false; nb.style.background='#1E3932'; nb.style.color='#fff'; nb.style.cursor='pointer'; nb.style.borderRadius='50px'; nb.style.letterSpacing='.05em'; nb.style.boxShadow='none'; }
+
+/* ─── 現在地取得 ─── */
+function _gpsEl(id) { return document.getElementById(id); }
+
+function gpsUI(state, text, sub) {
+  var btn = _gpsEl('gps-btn');
+  var def = _gpsEl('gi-def');
+  var sp  = _gpsEl('gi-spin');
+  var ok  = _gpsEl('gi-ok');
+  var lbl = _gpsEl('gps-label');
+  var sub2= _gpsEl('gps-sub');
+  if (!btn) return;
+  def.style.display = (state==='idle')    ? '' : 'none';
+  sp.style.display  = (state==='loading') ? '' : 'none';
+  ok.style.display  = (state==='ok')      ? '' : 'none';
+  if (lbl)  lbl.textContent = text || '現在地を自動取得';
+  if (sub2) {
+    sub2.textContent  = sub || 'タップするだけ';
+    sub2.style.color  = (state==='ok') ? '#CBA258' : 'rgba(212,233,226,.55)';
+  }
+  btn.style.borderColor = (state==='ok') ? '#CBA258' : '#006241';
+  btn.disabled = (state==='loading');
+}
+
+function gpsReset() { gpsUI('idle','現在地を自動取得','タップするだけ'); }
+
+function doGPS() {
+  if (!navigator.geolocation) {
+    alert('位置情報に対応していません。エリアを選んでください。');
+    return;
+  }
+  if (!_gpsEl('gps-btn')) return;
+
+  gpsUI('loading','現在地を取得中...','取得しています...');
+  document.querySelectorAll('.area-chip').forEach(function(b) {
+    b.style.background='#fff'; b.style.borderColor='#EDE0CC'; b.style.color='#1A1A1A';
+  });
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      S.lat = pos.coords.latitude;
+      S.lng = pos.coords.longitude;
+
+      fetch('https://nominatim.openstreetmap.org/reverse?lat='+S.lat+'&lon='+S.lng+'&format=json&accept-language=ja&zoom=16')
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var a = d.address || {};
+          var skip = ['東京都','東京','大阪府','大阪','神奈川県','愛知県','福岡県','北海道','日本','Japan'];
+          function ok(v){ return v && skip.indexOf(v.trim())<0; }
+          S.area = (ok(a.neighbourhood)&&a.neighbourhood)||(ok(a.suburb)&&a.suburb)||
+                   (ok(a.quarter)&&a.quarter)||(ok(a.town)&&a.town)||(ok(a.city)&&a.city)||'現在地';
+        })
+        .catch(function(){ S.area='現在地'; })
+        .finally(function(){
+          gpsUI('ok', S.area+'を設定しました','現在地を取得しました');
+          tryS5();
+        });
+    },
+    function(err) {
+      gpsReset();
+      var msg = '現在地の取得に失敗しました。エリアを選んでください。';
+      if (err.code===1) msg = '位置情報の利用が許可されていません。\nブラウザの設定を確認してください。';
+      if (err.code===3) msg = 'タイムアウトしました。エリアを選んでください。';
+      alert(msg);
+    },
+    { enableHighAccuracy:false, timeout:12000, maximumAge:60000 }
+  );
+}
+
+/* ── トースト通知 ── */
+function showToast(msg, type) {
+  var existing = document.getElementById('kc-toast');
+  if (existing) existing.remove();
+
+  var color = type === 'error' ? '#DC2626' : '#1E3932';
+  var toast = document.createElement('div');
+  toast.id = 'kc-toast';
+  toast.textContent = msg;
+  toast.style.cssText = [
+    'position:fixed', 'bottom:32px', 'left:50%',
+    'transform:translateX(-50%)',
+    'background:' + color,
+    'color:#fff',
+    'padding:12px 28px',
+    'border-radius:50px',
+    'font-size:13px',
+    'font-weight:700',
+    'letter-spacing:.05em',
+    'box-shadow:0 4px 20px rgba(0,0,0,.18)',
+    'z-index:9999',
+    'opacity:0',
+    'transition:opacity .25s ease',
+    'pointer-events:none',
+    'white-space:nowrap'
+  ].join(';');
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(function() {
+    toast.style.opacity = '1';
+    setTimeout(function() {
+      toast.style.opacity = '0';
+      setTimeout(function() { if (toast.parentNode) toast.remove(); }, 300);
+    }, 2200);
+  });
+}
+
+/* ── 自動同期（保存のたびに呼ぶ）── */
+function autoSync(data) {
+  sendToSheets(data).then(function(res) {
+    if (res && res.skipped) return; // URL未設定は無視
+    if (res && res.success) {
+      showToast('保存完了', 'success');
+    } else {
+      showToast('保存しました（シートへの同期に失敗）', 'error');
+    }
+  });
+}
+
+function syncAllToSheets() {
+  if (!GAS_URL) {
+    alert('スプレッドシートのURLが設定されていません。\nkaishoku-concierge.html の GAS_URL を設定してください。');
+    return;
+  }
+  var btn = document.getElementById('sync-btn');
+  if (btn) { btn.textContent = '同期中...'; btn.disabled = true; }
+  sendToSheets({ type:'sync_all', partners:loadPartners(), meetings:loadMeetings() })
+    .then(function(res) {
+      if (btn) { btn.textContent = 'シートに同期'; btn.disabled = false; }
+      if (res && res.success) {
+        showToast('スプレッドシートに同期完了', 'success');
+      } else {
+        showToast('同期できませんでした。URLを確認してください', 'error');
+      }
+    });
+}
+
+/* ── スプレッドシートから復元 ── */
+function restoreFromSheets() {
+  if (!GAS_URL) { alert('スプレッドシートのURLが設定されていません。'); return; }
+  if (!confirm('シートのデータを読み込みます。\n現在の記録は上書きされます。続けますか？')) return;
+
+  var btn = document.getElementById('restore-btn');
+  if (btn) { btn.textContent = '読み込み中...'; btn.disabled = true; }
+
+  var PMAP = { 'id':'id','氏名':'name','会社名':'company','役職':'role',
+    '雰囲気':'atmosphere','NG':'ng','メモ':'memo',
+    '会食日':'lastMet','利用店':'lastRestaurant','狙い':'nextGoal','登録日':'createdAt' };
+  var MMAP = { 'id':'id','日付':'date','相手id':'partnerId','パートナーid':'partnerId',
+    '相手名':'partnerName','パートナー名':'partnerName','店名':'restaurant',
+    '会食目的':'purpose','成果':'outcome','盛り上がった話題':'topics',
+    '次回の狙い':'nextGoal','メモ':'memo','評価':'rating' };
+
+  function convert(arr, map) {
+    return (arr||[]).filter(function(r){ return r.id; }).map(function(r){
+      var o={}; Object.keys(r).forEach(function(k){ o[map[k]||k]=r[k]; }); return o;
+    });
+  }
+
+  fetch(GAS_URL + '?action=getAll')
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if (!res.success) throw new Error();
+      var p = convert(res.partners, PMAP);
+      var m = convert(res.meetings,  MMAP);
+      savePartners(p); saveMeetings(m);
+      if (btn) { btn.textContent = 'シートから復元'; btn.disabled = false; }
+      showToast('パートナー' + p.length + '件・会食' + m.length + '件を復元しました', 'success');
+      renderHome();
+    })
+    .catch(function(){
+      if (btn) { btn.textContent = 'シートから復元'; btn.disabled = false; }
+      showToast('読み込めませんでした', 'error');
+    });
+}
+
+// ═══════════════ VIEW NAVIGATION ═══════════════
+
+/* 目的の表示ラベル（内部値→表示名） */
+var PURPOSE_LABELS = {
+  '関係を深める':        'もっと仲良くなる',
+  '提案前の雰囲気づくり':'提案前に場を温める',
+  '受注後の深耕':        '仕事が決まった後のお礼',
+  '単価アップの布石':    'より大きな仕事のきっかけに',
+  '採用の場':            '入ってもらうための食事',
+  '紹介のお礼':          '紹介へのお礼'
+};
+function purposeLabel(v) { return PURPOSE_LABELS[v] || v; }
 
 // ═══════════════ HOME RENDERING ═══════════════
 function renderHome() {
